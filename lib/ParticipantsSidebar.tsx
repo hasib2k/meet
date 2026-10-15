@@ -158,12 +158,17 @@ export function ParticipantsSidebar() {
                 style={{
                   fontSize: '0.8rem',
                   padding: '0.5rem',
-                  margin: '0 1rem 0.5rem',
-                  background: linkCopied ? 'rgba(91,200,141,0.15)' : 'rgba(91,141,238,0.15)',
+                  margin: '0 0.75rem 0.5rem',
+                  background: '#1e1e32',
                   color: linkCopied ? '#5bc88d' : '#5b8dee',
-                  border: `1px solid ${linkCopied ? 'rgba(91,200,141,0.25)' : 'rgba(91,141,238,0.25)'}`,
-                  width: 'calc(100% - 2rem)',
+                  border: 'none',
+                  borderRadius: '0.75rem',
+                  boxShadow: linkCopied
+                    ? 'inset 2px 2px 5px #151528, inset -2px -2px 5px #27273c'
+                    : '3px 3px 8px #151528, -3px -3px 8px #27273c',
+                  width: 'calc(100% - 1.5rem)',
                   textAlign: 'center',
+                  transition: 'all 0.2s',
                 }}
               >
                 {linkCopied ? 'Link Copied!' : 'Copy Meeting Link'}
@@ -220,9 +225,13 @@ export function ParticipantsSidebar() {
                       style={{
                         fontSize: '0.7rem',
                         padding: '0.2rem 0.35rem',
-                        background: p.isPinned ? 'rgba(91,141,238,0.2)' : 'rgba(255,255,255,0.05)',
+                        background: '#1e1e32',
                         color: p.isPinned ? '#5b8dee' : 'rgba(255,255,255,0.4)',
-                        border: `1px solid ${p.isPinned ? 'rgba(91,141,238,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        boxShadow: p.isPinned
+                          ? 'inset 2px 2px 4px #151528, inset -2px -2px 4px #27273c'
+                          : '2px 2px 5px #151528, -2px -2px 5px #27273c',
                         minWidth: 'auto',
                       }}
                     >
@@ -239,7 +248,7 @@ export function ParticipantsSidebar() {
                           className="lk-button"
                           onClick={() => doAction('grant_speak', p.identity)}
                           disabled={loadingAction === p.identity}
-                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: 'rgba(91,200,141,0.15)', color: '#5bc88d', border: '1px solid rgba(91,200,141,0.25)' }}
+                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#5bc88d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
                         >
                           Grant Speak
                         </button>
@@ -248,7 +257,7 @@ export function ParticipantsSidebar() {
                           className="lk-button"
                           onClick={() => doAction('revoke_speak', p.identity)}
                           disabled={loadingAction === p.identity}
-                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: 'rgba(232,168,93,0.15)', color: '#e8a85d', border: '1px solid rgba(232,168,93,0.25)' }}
+                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#e8a85d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
                         >
                           Mute
                         </button>
@@ -257,7 +266,7 @@ export function ParticipantsSidebar() {
                         className="lk-button"
                         onClick={() => { if (confirm(`Remove ${p.name}?`)) doAction('remove_participant', p.identity); }}
                         disabled={loadingAction === p.identity}
-                        style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: 'rgba(220,50,50,0.1)', color: '#ff6b6b', border: '1px solid rgba(220,50,50,0.2)' }}
+                        style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#ff6b6b', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
                       >
                         Remove
                       </button>
@@ -284,11 +293,14 @@ function Avatar({ imageUrl, name, isSpeaking }: { imageUrl?: string; name: strin
   return (
     <div style={{
       width: '32px', height: '32px', borderRadius: '50%',
-      background: 'linear-gradient(135deg, #5b8dee, #4a7dd4)',
+      background: imageUrl ? 'transparent' : 'linear-gradient(135deg, #5b8dee, #4a7dd4)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0, overflow: 'hidden',
-      border: isSpeaking ? '2px solid #5bc88d' : '2px solid transparent',
+      boxShadow: isSpeaking
+        ? 'inset 2px 2px 4px #151528, inset -2px -2px 4px #27273c, 0 0 0 2px #5bc88d'
+        : 'inset 2px 2px 4px #151528, inset -2px -2px 4px #27273c',
       boxSizing: 'border-box',
+      border: 'none',
     }}>
       {imageUrl ? (
         <img src={imageUrl} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />

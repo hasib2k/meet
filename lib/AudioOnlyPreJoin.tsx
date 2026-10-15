@@ -10,11 +10,12 @@ const containerStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '1.5rem',
   padding: '2.5rem',
-  background: 'rgba(255, 255, 255, 0.04)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  borderRadius: '1rem',
+  background: '#1e1e32',
+  border: 'none',
+  borderRadius: '1.5rem',
   width: '100%',
   maxWidth: '400px',
+  boxShadow: '8px 8px 20px #151528, -8px -8px 20px #27273c',
 };
 
 const iconStyle: React.CSSProperties = {
@@ -26,18 +27,20 @@ const iconStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   overflow: 'hidden',
+  boxShadow: '4px 4px 10px #151528, -4px -4px 10px #27273c',
 };
 
 const buttonStyle: React.CSSProperties = {
   width: '100%',
   padding: '0.875rem',
-  backgroundColor: '#5b8dee',
+  background: 'linear-gradient(145deg, #6394f5, #5280d6)',
   color: '#fff',
   border: 'none',
   borderRadius: '2rem',
   fontSize: '1rem',
   fontWeight: 500,
   cursor: 'pointer',
+  boxShadow: '4px 4px 12px #151528, -2px -2px 8px #27273c',
 };
 
 export function AudioOnlyPreJoin(props: {
