@@ -260,6 +260,95 @@ body {
   font-size: 0.875rem;
 }
 
+/* Meeting History */
+.meeting-history {
+  margin-top: 1.5rem;
+}
+
+.meeting-history-title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem;
+}
+
+.meeting-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.meeting-history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s;
+}
+
+.meeting-history-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.meeting-history-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(91, 141, 238, 0.15);
+  color: #5b8dee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.meeting-history-info {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.meeting-history-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meeting-history-meta {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.meeting-history-remove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.meeting-history-remove:hover {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* Footer */
 footer {
   width: 100%;
@@ -356,6 +445,14 @@ footer a:hover {
   }
 
   .divider-text {
+    text-align: center;
+  }
+
+  .meeting-history {
+    text-align: left;
+  }
+
+  .meeting-history-title {
     text-align: center;
   }
 

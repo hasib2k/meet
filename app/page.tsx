@@ -1,23 +1,42 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { generateRoomId } from '@/lib/client-utils';
 import { useSession, signOut } from 'next-auth/react';
+import { getMeetingHistory, saveMeeting, removeMeeting, formatTimeAgo, type MeetingRecord } from '@/lib/meetingHistory';
 
 function HomeContent() {
   const router = useRouter();
   const { data: session } = useSession();
   const [roomCode, setRoomCode] = useState('');
+  const [history, setHistory] = useState<MeetingRecord[]>([]);
+
+  useEffect(() => {
+    setHistory(getMeetingHistory());
+  }, []);
 
   const handleJoinMeeting = () => {
     if (roomCode.trim()) {
+      saveMeeting(roomCode.trim(), 'listener');
       router.push(`/rooms/${roomCode.trim()}`);
     }
   };
 
   const handleNewMeeting = () => {
-    router.push(`/rooms/${generateRoomId()}?role=host`);
+    const roomId = generateRoomId();
+    saveMeeting(roomId, 'host');
+    router.push(`/rooms/${roomId}?role=host`);
+  };
+
+  const handleRejoin = (roomName: string, role: string) => {
+    saveMeeting(roomName, role);
+    router.push(`/rooms/${roomName}${role === 'host' ? '?role=host' : ''}`);
+  };
+
+  const handleRemove = (roomName: string) => {
+    removeMeeting(roomName);
+    setHistory(getMeetingHistory());
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -116,6 +135,39 @@ function HomeContent() {
                 </button>
               </div>
             </div>
+
+            {/* Meeting History */}
+            {history.length > 0 && (
+              <div className="meeting-history">
+                <h3 className="meeting-history-title">Recent Meetings</h3>
+                <div className="meeting-history-list">
+                  {history.map((m) => (
+                    <div key={m.roomName} className="meeting-history-item">
+                      <div className="meeting-history-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                      <div className="meeting-history-info" onClick={() => handleRejoin(m.roomName, m.role)}>
+                        <span className="meeting-history-name">{m.roomName}</span>
+                        <span className="meeting-history-meta">
+                          {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
+                        </span>
+                      </div>
+                      <button
+                        className="meeting-history-remove"
+                        onClick={() => handleRemove(m.roomName)}
+                        title="Remove"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right section - illustration */}

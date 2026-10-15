@@ -28,6 +28,7 @@ import { useSetupE2EE } from '@/lib/useSetupE2EE';
 import { AudioOnlyPreJoin } from '@/lib/AudioOnlyPreJoin';
 import { ParticipantsSidebar } from '@/lib/ParticipantsSidebar';
 import { PinnedProvider, usePinned } from '@/lib/PinnedContext';
+import { saveMeeting } from '@/lib/meetingHistory';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
