@@ -103,14 +103,17 @@ export function SettingsMenu(props: SettingsMenuProps) {
     .filter((p) => p.identity !== room.localParticipant.identity)
     .map((p) => {
       let role = 'listener';
+      let imageUrl = '';
       try {
         const meta = JSON.parse(p.metadata || '{}');
         role = meta.role || 'listener';
+        imageUrl = meta.imageUrl || '';
       } catch {}
       return {
         identity: p.identity,
         name: p.name || p.identity,
         role,
+        imageUrl,
         canPublish: p.permissions?.canPublish ?? false,
       };
     });
@@ -159,13 +162,14 @@ export function SettingsMenu(props: SettingsMenuProps) {
               </p>
             )}
 
-            {/* You (Host) */}
+            {/* You */}
             <section style={pStyles.row}>
+              <ParticipantAvatar metadata={room.localParticipant.metadata} name={room.localParticipant.name || room.localParticipant.identity} />
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 500 }}>
                   {room.localParticipant.name || room.localParticipant.identity}
                 </span>
-                <span style={pStyles.hostBadge}> — Host (You)</span>
+                <span style={pStyles.hostBadge}> — {localRole === 'host' ? 'Host' : localRole === 'moderator' ? 'Moderator' : 'Listener'} (You)</span>
               </div>
             </section>
 
@@ -177,6 +181,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
             )}
             {otherParticipants.map((p) => (
               <section key={p.identity} style={pStyles.row}>
+                <ParticipantAvatar imageUrl={p.imageUrl} name={p.name} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {p.name}
@@ -254,6 +259,27 @@ export function SettingsMenu(props: SettingsMenuProps) {
   );
 }
 
+function ParticipantAvatar(props: { metadata?: string | null; imageUrl?: string; name: string }) {
+  let imgUrl = props.imageUrl || '';
+  if (!imgUrl && props.metadata) {
+    try {
+      const meta = JSON.parse(props.metadata);
+      imgUrl = meta.imageUrl || '';
+    } catch {}
+  }
+  const initial = (props.name || '?').charAt(0).toUpperCase();
+
+  return (
+    <div style={pStyles.avatar}>
+      {imgUrl ? (
+        <img src={imgUrl} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+      ) : (
+        <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 600 }}>{initial}</span>
+      )}
+    </div>
+  );
+}
+
 function getRoleColor(role: string): string {
   if (role === 'host') return '#5b8dee';
   if (role === 'moderator') return '#e8a85d';
@@ -261,6 +287,17 @@ function getRoleColor(role: string): string {
 }
 
 const pStyles: Record<string, React.CSSProperties> = {
+  avatar: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #5b8dee, #4a7dd4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    overflow: 'hidden',
+  },
   row: {
     display: 'flex',
     alignItems: 'center',

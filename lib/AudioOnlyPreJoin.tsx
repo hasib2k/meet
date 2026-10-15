@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { LocalUserChoices } from '@livekit/components-react';
+import { useSession } from 'next-auth/react';
 
 const containerStyle: React.CSSProperties = {
   display: 'flex',
@@ -24,17 +25,7 @@ const iconStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.875rem 1rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-  border: '1px solid rgba(255, 255, 255, 0.15)',
-  borderRadius: '0.5rem',
-  color: '#fff',
-  fontSize: '0.95rem',
-  outline: 'none',
+  overflow: 'hidden',
 };
 
 const buttonStyle: React.CSSProperties = {
@@ -53,22 +44,21 @@ export function AudioOnlyPreJoin(props: {
   onSubmit: (choices: LocalUserChoices) => void;
   role?: string;
 }) {
-  const [username, setUsername] = useState('');
+  const { data: session } = useSession();
+  const userName = session?.user?.name || '';
+  const userImage = session?.user?.image || '';
 
   const handleSubmit = useCallback(() => {
-    if (!username.trim()) return;
+    if (!userName) return;
     props.onSubmit({
-      username: username.trim(),
+      username: userName,
       videoEnabled: false,
       audioEnabled: true,
       videoDeviceId: '',
       audioDeviceId: '',
-    });
-  }, [username, props.onSubmit]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSubmit();
-  };
+      imageUrl: userImage,
+    } as any);
+  }, [userName, userImage, props.onSubmit]);
 
   const roleLabel = props.role === 'host' ? 'Host' : props.role === 'moderator' ? 'Moderator' : 'Listener';
   const roleColor = props.role === 'host' ? '#5b8dee' : props.role === 'moderator' ? '#e8a85d' : 'rgba(255,255,255,0.4)';
@@ -76,40 +66,28 @@ export function AudioOnlyPreJoin(props: {
   return (
     <div style={containerStyle}>
       <div style={iconStyle}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-        </svg>
+        {userImage ? (
+          <img src={userImage} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+          </svg>
+        )}
       </div>
       <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#fff', margin: 0, textAlign: 'center' }}>
-        Ready to join?
+        {userName ? `Hi, ${userName}!` : 'Ready to join?'}
       </h2>
       <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
         Audio-only meeting &middot; Joining as{' '}
         <span style={{ color: roleColor, fontWeight: 600 }}>{roleLabel}</span>
       </p>
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <input
-          style={inputStyle}
-          type="text"
-          placeholder="Enter your name"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyDown={handleKeyDown}
-          autoFocus
-        />
-        <button
-          style={{
-            ...buttonStyle,
-            opacity: username.trim() ? 1 : 0.5,
-            cursor: username.trim() ? 'pointer' : 'not-allowed',
-          }}
-          onClick={handleSubmit}
-          disabled={!username.trim()}
-        >
-          Join Meeting
-        </button>
-      </div>
+      <button
+        style={buttonStyle}
+        onClick={handleSubmit}
+      >
+        Join Meeting
+      </button>
       {props.role === 'listener' && (
         <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>
           You will join as a listener. The host can grant you speaking permission.

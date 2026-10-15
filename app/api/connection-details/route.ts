@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
     const region = request.nextUrl.searchParams.get('region');
     const role = request.nextUrl.searchParams.get('role') ?? 'listener';
+    const imageUrl = request.nextUrl.searchParams.get('imageUrl') ?? '';
 
     if (!LIVEKIT_URL) {
       throw new Error('LIVEKIT_URL is not defined');
@@ -39,9 +40,10 @@ export async function GET(request: NextRequest) {
       randomParticipantPostfix = randomString(4);
     }
 
-    // Build metadata with role
+    // Build metadata with role and image
     const participantMetadata = JSON.stringify({
       role,
+      imageUrl,
       ...(metadata ? JSON.parse(metadata) : {}),
     });
 

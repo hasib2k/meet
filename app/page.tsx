@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
 import { generateRoomId } from '@/lib/client-utils';
+import { useSession, signOut } from 'next-auth/react';
 
 function HomeContent() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [roomCode, setRoomCode] = useState('');
 
   const handleJoinMeeting = () => {
@@ -39,6 +41,40 @@ function HomeContent() {
           </svg>
           <span>MyTalk</span>
         </div>
+        {session?.user && (
+          <div className="topbar-user">
+            {session.user.image && (
+              <img
+                src={session.user.image}
+                alt=""
+                referrerPolicy="no-referrer"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  border: '2px solid rgba(255,255,255,0.15)',
+                }}
+              />
+            )}
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem' }}>
+              {session.user.name}
+            </span>
+            <button
+              onClick={() => signOut()}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.6)',
+                padding: '0.375rem 0.75rem',
+                borderRadius: '1.5rem',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}

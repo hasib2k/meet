@@ -49,9 +49,10 @@ body {
   letter-spacing: -0.01em;
 }
 
-.topbar-time {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.875rem;
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
 }
 
 /* Main content area */
