@@ -7,16 +7,18 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'admin123';
 
 const COOKIE_KEY = 'random-participant-postfix';
 
 export async function GET(request: NextRequest) {
   try {
-    // Parse query parameters
     const roomName = request.nextUrl.searchParams.get('roomName');
     const participantName = request.nextUrl.searchParams.get('participantName');
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
     const region = request.nextUrl.searchParams.get('region');
+    const role = request.nextUrl.searchParams.get('role') ?? 'listener';
+
     if (!LIVEKIT_URL) {
       throw new Error('LIVEKIT_URL is not defined');
     }
@@ -33,20 +35,26 @@ export async function GET(request: NextRequest) {
       return new NextResponse('Missing required query parameter: participantName', { status: 400 });
     }
 
-    // Generate participant token
     if (!randomParticipantPostfix) {
       randomParticipantPostfix = randomString(4);
     }
+
+    // Build metadata with role
+    const participantMetadata = JSON.stringify({
+      role,
+      ...(metadata ? JSON.parse(metadata) : {}),
+    });
+
     const participantToken = await createParticipantToken(
       {
         identity: `${participantName}__${randomParticipantPostfix}`,
         name: participantName,
-        metadata,
+        metadata: participantMetadata,
       },
       roomName,
+      role,
     );
 
-    // Return connection details
     const data: ConnectionDetails = {
       serverUrl: livekitServerUrl,
       roomName: roomName,
@@ -66,16 +74,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function createParticipantToken(userInfo: AccessTokenOptions, roomName: string) {
+function createParticipantToken(
+  userInfo: AccessTokenOptions,
+  roomName: string,
+  role: string,
+) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
   at.ttl = '5m';
-  const grant: VideoGrant = {
-    room: roomName,
-    roomJoin: true,
-    canPublish: true,
-    canPublishData: true,
-    canSubscribe: true,
-  };
+
+  let grant: VideoGrant;
+
+  if (role === 'host' || role === 'moderator') {
+    // Host and moderators can publish audio and data, subscribe to everything
+    grant = {
+      room: roomName,
+      roomJoin: true,
+      canPublish: true,
+      canPublishData: true,
+      canSubscribe: true,
+    };
+  } else {
+    // Listeners can only subscribe (listen), cannot publish audio
+    grant = {
+      room: roomName,
+      roomJoin: true,
+      canPublish: false,
+      canPublishData: true, // Allow data for raise hand, chat etc.
+      canSubscribe: true,
+    };
+  }
+
   at.addGrant(grant);
   return at.toJwt();
 }

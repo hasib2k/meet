@@ -1,201 +1,132 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
-import { encodePassphrase, generateRoomId, randomString } from '@/lib/client-utils';
-import styles from '../styles/Home.module.css';
+import { generateRoomId } from '@/lib/client-utils';
 
-function Tabs(props: React.PropsWithChildren<{}>) {
-  const searchParams = useSearchParams();
-  const tabIndex = searchParams?.get('tab') === 'custom' ? 1 : 0;
-
+function HomeContent() {
   const router = useRouter();
-  function onTabSelected(index: number) {
-    const tab = index === 1 ? 'custom' : 'demo';
-    router.push(`/?tab=${tab}`);
-  }
+  const [roomCode, setRoomCode] = useState('');
 
-  let tabs = React.Children.map(props.children, (child, index) => {
-    return (
-      <button
-        className="lk-button"
-        onClick={() => {
-          if (onTabSelected) {
-            onTabSelected(index);
-          }
-        }}
-        aria-pressed={tabIndex === index}
-      >
-        {/* @ts-ignore */}
-        {child?.props.label}
-      </button>
-    );
-  });
-
-  return (
-    <div className={styles.tabContainer}>
-      <div className={styles.tabSelect}>{tabs}</div>
-      {/* @ts-ignore */}
-      {props.children[tabIndex]}
-    </div>
-  );
-}
-
-function DemoMeetingTab(props: { label: string }) {
-  const router = useRouter();
-  const [e2ee, setE2ee] = useState(false);
-  const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
-  const startMeeting = () => {
-    if (e2ee) {
-      router.push(`/rooms/${generateRoomId()}#${encodePassphrase(sharedPassphrase)}`);
-    } else {
-      router.push(`/rooms/${generateRoomId()}`);
+  const handleJoinMeeting = () => {
+    if (roomCode.trim()) {
+      router.push(`/rooms/${roomCode.trim()}`);
     }
   };
-  return (
-    <div className={styles.tabContent}>
-      <p style={{ margin: 0 }}>Try LiveKit Meet for free with our live demo project.</p>
-      <button style={{ marginTop: '1rem' }} className="lk-button" onClick={startMeeting}>
-        Start Meeting
-      </button>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-          <input
-            id="use-e2ee"
-            type="checkbox"
-            checked={e2ee}
-            onChange={(ev) => setE2ee(ev.target.checked)}
-          ></input>
-          <label htmlFor="use-e2ee">Enable end-to-end encryption</label>
-        </div>
-        {e2ee && (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-            <label htmlFor="passphrase">Passphrase</label>
-            <input
-              id="passphrase"
-              type="password"
-              value={sharedPassphrase}
-              onChange={(ev) => setSharedPassphrase(ev.target.value)}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function CustomConnectionTab(props: { label: string }) {
-  const router = useRouter();
+  const handleNewMeeting = () => {
+    router.push(`/rooms/${generateRoomId()}`);
+  };
 
-  const [e2ee, setE2ee] = useState(false);
-  const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
-
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
-    const serverUrl = formData.get('serverUrl');
-    const token = formData.get('token');
-    if (e2ee) {
-      router.push(
-        `/custom/?liveKitUrl=${serverUrl}&token=${token}#${encodePassphrase(sharedPassphrase)}`,
-      );
-    } else {
-      router.push(`/custom/?liveKitUrl=${serverUrl}&token=${token}`);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && roomCode.trim()) {
+      handleJoinMeeting();
     }
   };
+
   return (
-    <form className={styles.tabContent} onSubmit={onSubmit}>
-      <p style={{ marginTop: 0 }}>
-        Connect LiveKit Meet with a custom server using LiveKit Cloud or LiveKit Server.
-      </p>
-      <input
-        id="serverUrl"
-        name="serverUrl"
-        type="url"
-        placeholder="LiveKit Server URL: wss://*.livekit.cloud"
-        required
-      />
-      <textarea
-        id="token"
-        name="token"
-        placeholder="Token"
-        required
-        rows={5}
-        style={{ padding: '1px 2px', fontSize: 'inherit', lineHeight: 'inherit' }}
-      />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-          <input
-            id="use-e2ee"
-            type="checkbox"
-            checked={e2ee}
-            onChange={(ev) => setE2ee(ev.target.checked)}
-          ></input>
-          <label htmlFor="use-e2ee">Enable end-to-end encryption</label>
-        </div>
-        {e2ee && (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-            <label htmlFor="passphrase">Passphrase</label>
-            <input
-              id="passphrase"
-              type="password"
-              value={sharedPassphrase}
-              onChange={(ev) => setSharedPassphrase(ev.target.value)}
+    <>
+      {/* Top bar */}
+      <div className="topbar">
+        <div className="topbar-logo">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="10" fill="#5b8dee" />
+            <path
+              d="M12 15C12 13.8954 12.8954 13 14 13H20C21.1046 13 22 13.8954 22 15V25C22 26.1046 21.1046 27 20 27H14C12.8954 27 12 26.1046 12 25V15Z"
+              fill="white"
             />
-          </div>
-        )}
+            <path d="M24 17L28 14V26L24 23V17Z" fill="white" />
+          </svg>
+          <span>MyTalk</span>
+        </div>
       </div>
 
-      <hr
-        style={{ width: '100%', borderColor: 'rgba(255, 255, 255, 0.15)', marginBlock: '1rem' }}
-      />
-      <button
-        style={{ paddingInline: '1.25rem', width: '100%' }}
-        className="lk-button"
-        type="submit"
-      >
-        Connect
-      </button>
-    </form>
+      {/* Main content */}
+      <main className="home-main">
+        <div className="home-container">
+          {/* Left section */}
+          <div className="home-left">
+            <h1>
+              Premium audio meetings.
+              <br />
+              Now free for <span>everyone</span>.
+            </h1>
+            <p>
+              Connect, collaborate, and communicate with crystal-clear audio.
+              Built for large meetings with up to 2,500 participants.
+            </p>
+            <div className="home-actions">
+              <button className="btn-primary" onClick={handleNewMeeting}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                </svg>
+                New Meeting
+              </button>
+              <span className="divider-text">or</span>
+              <div className="join-input-group">
+                <input
+                  type="text"
+                  placeholder="Enter a meeting code"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button
+                  className="btn-join"
+                  onClick={handleJoinMeeting}
+                  disabled={!roomCode.trim()}
+                >
+                  Join
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right section - illustration */}
+          <div className="home-right">
+            <div className="illustration-card">
+              <div className="illustration-grid">
+                <div className="illustration-avatar">
+                  <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+                <div className="illustration-avatar">
+                  <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+                <div className="illustration-avatar">
+                  <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+                <div className="illustration-avatar">
+                  <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="illustration-text">
+                Audio-only meetings for up to 2,500 participants
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer>
+        Powered by LiveKit &middot; Built with Next.js
+      </footer>
+    </>
   );
 }
 
 export default function Page() {
   return (
-    <>
-      <main className={styles.main} data-lk-theme="default">
-        <div className="header">
-          <img src="/images/livekit-meet-home.svg" alt="LiveKit Meet" width="360" height="45" />
-          <h2>
-            Open source video conferencing app built on{' '}
-            <a href="https://github.com/livekit/components-js?ref=meet" rel="noopener">
-              LiveKit&nbsp;Components
-            </a>
-            ,{' '}
-            <a href="https://livekit.io/cloud?ref=meet" rel="noopener">
-              LiveKit&nbsp;Cloud
-            </a>{' '}
-            and Next.js.
-          </h2>
-        </div>
-        <Suspense fallback="Loading">
-          <Tabs>
-            <DemoMeetingTab label="Demo" />
-            <CustomConnectionTab label="Custom" />
-          </Tabs>
-        </Suspense>
-      </main>
-      <footer data-lk-theme="default">
-        Hosted on{' '}
-        <a href="https://livekit.io/cloud?ref=meet" rel="noopener">
-          LiveKit Cloud
-        </a>
-        . Source code on{' '}
-        <a href="https://github.com/livekit/meet?ref=meet" rel="noopener">
-          GitHub
-        </a>
-        .
-      </footer>
-    </>
+    <Suspense fallback="Loading">
+      <HomeContent />
+    </Suspense>
   );
 }

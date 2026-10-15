@@ -9,11 +9,11 @@ export default async function Page({
 }: {
   params: Promise<{ roomName: string }>;
   searchParams: Promise<{
-    // FIXME: We should not allow values for regions if in playground mode.
     region?: string;
     hq?: string;
     codec?: string;
     singlePC?: string;
+    role?: string;
   }>;
 }) {
   const _params = await params;
@@ -24,6 +24,7 @@ export default async function Page({
       : 'vp9';
   const hq = _searchParams.hq === 'true' ? true : false;
   const singlePC = _searchParams.singlePC !== 'false';
+  const role = _searchParams.role ?? 'listener';
   const serverUrl = process.env.LIVEKIT_URL
     ? getLiveKitURL(process.env.LIVEKIT_URL, _searchParams.region ?? null)
     : undefined;
@@ -36,6 +37,7 @@ export default async function Page({
       hq={hq}
       codec={codec}
       singlePeerConnection={singlePC}
+      role={role}
     />
   );
 }
