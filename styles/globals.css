@@ -1097,6 +1097,19 @@ h2 a {
     background: linear-gradient(145deg, #e84a3c, #c7392d) !important;
   }
 
+  .lk-control-bar .lk-raise-hand-toggle.hand-raised {
+    background: linear-gradient(145deg, #e8a85d, #d49545) !important;
+    box-shadow: 3px 3px 6px #151528, -3px -3px 6px #27273c, 0 0 6px rgba(232, 168, 93, 0.3) !important;
+  }
+
+  .lk-raise-hand-badge {
+    top: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    font-size: 0.55rem !important;
+  }
+
   .lk-control-bar .lk-button svg,
   .lk-control-bar .lk-chat-toggle svg,
   .lk-control-bar .lk-disconnect-button svg,
@@ -1210,6 +1223,65 @@ h2 a {
     width: 32px !important;
     height: 32px !important;
   }
+}
+
+/* Raise Hand button */
+.lk-raise-hand-toggle {
+  position: relative;
+  border-radius: 50px !important;
+  background: #1e1e32 !important;
+  color: #e8eaed !important;
+  box-shadow: 3px 3px 8px #151528, -3px -3px 8px #27273c !important;
+  transition: all 0.2s;
+}
+
+.lk-raise-hand-toggle:hover {
+  background: #222238 !important;
+  box-shadow: 4px 4px 10px #151528, -4px -4px 10px #27273c !important;
+}
+
+.lk-raise-hand-toggle.hand-raised {
+  background: linear-gradient(145deg, #e8a85d, #d49545) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 8px #151528, -3px -3px 8px #27273c, 0 0 8px rgba(232, 168, 93, 0.3) !important;
+}
+
+.lk-raise-hand-toggle.hand-raised:hover {
+  background: linear-gradient(145deg, #f0b56a, #e8a85d) !important;
+}
+
+.lk-raise-hand-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ea4335;
+  color: #fff;
+  font-size: 0.6rem !important;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Hand raised indicator on participant tile */
+.lk-participant-tile .hand-raised-indicator {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 1.25rem;
+  z-index: 10;
+  animation: handWave 1s ease-in-out 3;
+}
+
+@keyframes handWave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
 }
 
 /* Speaking animation */

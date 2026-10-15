@@ -27,10 +27,12 @@ export function ParticipantsSidebar() {
     .map((p) => {
       let role = 'listener';
       let imageUrl = '';
+      let isHandRaised = false;
       try {
         const meta = JSON.parse(p.metadata || '{}');
         role = meta.role || 'listener';
         imageUrl = meta.imageUrl || '';
+        isHandRaised = !!meta.isHandRaised;
       } catch {}
       return {
         identity: p.identity,
@@ -40,15 +42,27 @@ export function ParticipantsSidebar() {
         canPublish: p.permissions?.canPublish ?? false,
         isSpeaking: p.isSpeaking,
         isPinned: isPinned(p.identity),
+        isHandRaised,
       };
     });
 
-  // Sort: pinned first, then speaking, then rest
+  // Sort: hand raised first, then pinned, then speaking, then rest
   const sortedParticipants = [...otherParticipants].sort((a, b) => {
+    if (a.isHandRaised !== b.isHandRaised) return a.isHandRaised ? -1 : 1;
     if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
     if (a.isSpeaking !== b.isSpeaking) return a.isSpeaking ? -1 : 1;
     return 0;
   });
+
+  const lowerHand = async (identity: string) => {
+    try {
+      await fetch('/api/raise-hand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName: room.name, identity, raised: false }),
+      });
+    } catch {}
+  };
 
   const doAction = async (action: string, identity: string) => {
     setLoadingAction(identity);
@@ -201,6 +215,9 @@ export function ParticipantsSidebar() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     {p.name}
+                    {p.isHandRaised && (
+                      <span style={{ fontSize: '0.85rem', flexShrink: 0 }} title="Hand raised">&#9995;</span>
+                    )}
                     {p.isPinned && (
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="#5b8dee" style={{ flexShrink: 0 }}>
                         <path d="M14 4v5c0 1.12.37 2.16 1 3H9c.65-.86 1-1.9 1-3V4h4zm3-2H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3V4h1c.55 0 1-.45 1-1s-.45-1-1-1z" />
@@ -216,6 +233,17 @@ export function ParticipantsSidebar() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0, alignItems: 'center' }}>
+                  {/* Lower hand button - host only */}
+                  {isHost && p.isHandRaised && (
+                    <button
+                      className="lk-button"
+                      onClick={() => lowerHand(p.identity)}
+                      title="Lower hand"
+                      style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#e8a85d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
+                    >
+                      Lower
+                    </button>
+                  )}
                   {/* Pin button - host only */}
                   {isHost && (
                     <button

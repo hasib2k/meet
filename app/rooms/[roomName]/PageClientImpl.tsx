@@ -29,6 +29,7 @@ import { AudioOnlyPreJoin } from '@/lib/AudioOnlyPreJoin';
 import { ParticipantsSidebar } from '@/lib/ParticipantsSidebar';
 import { PinnedProvider, usePinned } from '@/lib/PinnedContext';
 import { saveMeeting } from '@/lib/meetingHistory';
+import { RaiseHandButton } from '@/lib/RaiseHandButton';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
@@ -212,6 +213,7 @@ function AudioConferenceComponent(props: {
             chatMessageFormatter={formatChatMessageLinks}
             SettingsComponent={SettingsMenu}
           />
+          <RaiseHandButton />
           <ParticipantsSidebar />
           <ParticipantProfileImages />
           <DebugMode />
@@ -228,18 +230,19 @@ function ParticipantProfileImages() {
   const room = React.useContext(RoomContext);
   const localName = room?.localParticipant?.name || room?.localParticipant?.identity || '';
 
-  // Build maps of participant name -> imageUrl and name -> identity
-  const imageMap = React.useMemo(() => {
-    const map = new Map<string, string>();
+  // Build maps of participant name -> imageUrl and name -> handRaised
+  const { imageMap, handRaisedMap } = React.useMemo(() => {
+    const imgMap = new Map<string, string>();
+    const handMap = new Map<string, boolean>();
     participants.forEach((p) => {
       try {
         const meta = JSON.parse(p.metadata || '{}');
-        if (meta.imageUrl) {
-          map.set(p.name || p.identity, meta.imageUrl);
-        }
+        const name = p.name || p.identity;
+        if (meta.imageUrl) imgMap.set(name, meta.imageUrl);
+        if (meta.isHandRaised) handMap.set(name, true);
       } catch {}
     });
-    return map;
+    return { imageMap: imgMap, handRaisedMap: handMap };
   }, [participants]);
 
 
@@ -282,12 +285,29 @@ function ParticipantProfileImages() {
         el.appendChild(img);
       });
 
+      // 2. Inject/remove hand raised indicators on tiles
+      allTiles.forEach((tile) => {
+        const nameEl = tile.querySelector('.lk-participant-name');
+        const name = nameEl?.textContent?.trim() || '';
+        const existing = tile.querySelector('.hand-raised-indicator');
+        if (handRaisedMap.has(name)) {
+          if (!existing) {
+            const span = document.createElement('span');
+            span.className = 'hand-raised-indicator';
+            span.textContent = '\u270B';
+            (tile as HTMLElement).style.position = 'relative';
+            tile.appendChild(span);
+          }
+        } else if (existing) {
+          existing.remove();
+        }
+      });
     };
 
     injectAndReorder();
     const interval = setInterval(injectAndReorder, 1000);
     return () => clearInterval(interval);
-  }, [imageMap, localName]);
+  }, [imageMap, handRaisedMap, localName]);
 
   return null;
 }
