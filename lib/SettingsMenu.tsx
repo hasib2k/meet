@@ -47,6 +47,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
   const [processingRecRequest, setProcessingRecRequest] = React.useState(false);
   const [actionMsg, setActionMsg] = React.useState('');
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = React.useState(false);
 
   React.useEffect(() => {
     if (initialRecStatus !== isRecording) {
@@ -156,6 +157,29 @@ export function SettingsMenu(props: SettingsMenuProps) {
         {activeTab === 'participants' && (
           <>
             <h3>Participants ({participants.length})</h3>
+            {isHost && (
+              <button
+                className="lk-button"
+                onClick={() => {
+                  const meetingUrl = `${window.location.origin}/rooms/${room.name}`;
+                  navigator.clipboard.writeText(meetingUrl).then(() => {
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  });
+                }}
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '0.4rem 0.75rem',
+                  marginBottom: '0.5rem',
+                  background: linkCopied ? 'rgba(91,200,141,0.15)' : 'rgba(91,141,238,0.15)',
+                  color: linkCopied ? '#5bc88d' : '#5b8dee',
+                  border: `1px solid ${linkCopied ? 'rgba(91,200,141,0.25)' : 'rgba(91,141,238,0.25)'}`,
+                  width: '100%',
+                }}
+              >
+                {linkCopied ? 'Link Copied!' : 'Copy Meeting Link'}
+              </button>
+            )}
             {actionMsg && (
               <p style={{ color: '#5bc88d', fontSize: '0.85rem', margin: '0.25rem 0' }}>
                 {actionMsg}

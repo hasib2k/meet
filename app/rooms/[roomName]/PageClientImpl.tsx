@@ -12,6 +12,7 @@ import {
   LocalUserChoices,
   RoomContext,
   VideoConference,
+  useParticipants,
 } from '@livekit/components-react';
 import {
   ExternalE2EEKeyProvider,
@@ -25,6 +26,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useSetupE2EE } from '@/lib/useSetupE2EE';
 import { AudioOnlyPreJoin } from '@/lib/AudioOnlyPreJoin';
+import { ParticipantsSidebar } from '@/lib/ParticipantsSidebar';
+import { PinnedProvider, usePinned } from '@/lib/PinnedContext';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
@@ -201,14 +204,122 @@ function AudioConferenceComponent(props: {
   return (
     <div className="lk-room-container">
       <RoomContext.Provider value={room}>
-        <KeyboardShortcuts />
-        <VideoConference
-          chatMessageFormatter={formatChatMessageLinks}
-          SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
-        />
-        <DebugMode />
-        <RecordingIndicator />
+        <PinnedProvider>
+          <KeyboardShortcuts />
+          <VideoConference
+            chatMessageFormatter={formatChatMessageLinks}
+            SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+          />
+          <ParticipantsSidebar />
+          <ParticipantProfileImages />
+          <DebugMode />
+          <RecordingIndicator />
+        </PinnedProvider>
       </RoomContext.Provider>
     </div>
   );
+}
+
+/** Replaces default placeholder avatars with Google profile images and reorders tiles */
+function ParticipantProfileImages() {
+  const participants = useParticipants();
+  const { pinnedIds } = usePinned();
+  const room = React.useContext(RoomContext);
+  const localName = room?.localParticipant?.name || room?.localParticipant?.identity || '';
+
+  // Build maps of participant name -> imageUrl and name -> identity
+  const imageMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    participants.forEach((p) => {
+      try {
+        const meta = JSON.parse(p.metadata || '{}');
+        if (meta.imageUrl) {
+          map.set(p.name || p.identity, meta.imageUrl);
+        }
+      } catch {}
+    });
+    return map;
+  }, [participants]);
+
+  // Build a map of name -> sort priority (lower = first)
+  const sortMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    participants.forEach((p) => {
+      const name = p.name || p.identity;
+      const pinned = pinnedIds.has(p.identity);
+      const speaking = p.isSpeaking;
+      // Pinned: 0, Speaking: 1, Others: 2
+      let priority = 2;
+      if (pinned) priority = 0;
+      else if (speaking) priority = 1;
+      map.set(name, priority);
+    });
+    return map;
+  }, [participants, pinnedIds]);
+
+  React.useEffect(() => {
+    const injectAndReorder = () => {
+      // 0. Hide local participant tile (shown as "You" thumbnail instead)
+      const allTiles = document.querySelectorAll('.lk-participant-tile');
+      allTiles.forEach((tile) => {
+        const nameEl = tile.querySelector('.lk-participant-name');
+        const name = nameEl?.textContent?.trim() || '';
+        if (name === localName) {
+          (tile as HTMLElement).style.display = 'none';
+        } else {
+          (tile as HTMLElement).style.display = '';
+        }
+      });
+
+      // 1. Inject profile images
+      const placeholders = document.querySelectorAll('.lk-participant-placeholder');
+      placeholders.forEach((placeholder) => {
+        if (placeholder.querySelector('.profile-img-overlay')) return;
+        const tile = placeholder.closest('.lk-participant-tile');
+        if (!tile) return;
+        const nameEl = tile.querySelector('.lk-participant-name');
+        if (!nameEl) return;
+        const name = nameEl.textContent?.trim() || '';
+        const imageUrl = imageMap.get(name);
+        if (!imageUrl) return;
+        const el = placeholder as HTMLElement;
+        el.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = '';
+        img.className = 'profile-img-overlay';
+        img.referrerPolicy = 'no-referrer';
+        img.style.cssText = 'width:200px;height:200px;object-fit:cover;border-radius:50%;';
+        el.style.cssText = 'display:flex;align-items:center;justify-content:center;';
+        el.appendChild(img);
+      });
+
+      // 2. Reorder tiles: pinned first, then speaking, then rest
+      const gridLayout = document.querySelector('.lk-grid-layout');
+      if (!gridLayout) return;
+      const tiles = Array.from(gridLayout.querySelectorAll(':scope > .lk-participant-tile'));
+      if (tiles.length < 2) return;
+
+      const sorted = [...tiles].sort((a, b) => {
+        const nameA = a.querySelector('.lk-participant-name')?.textContent?.trim() || '';
+        const nameB = b.querySelector('.lk-participant-name')?.textContent?.trim() || '';
+        const priA = sortMap.get(nameA) ?? 2;
+        const priB = sortMap.get(nameB) ?? 2;
+        return priA - priB;
+      });
+
+      // Only reorder if order actually changed
+      const currentOrder = tiles.map((t) => t.querySelector('.lk-participant-name')?.textContent?.trim());
+      const newOrder = sorted.map((t) => t.querySelector('.lk-participant-name')?.textContent?.trim());
+      if (JSON.stringify(currentOrder) !== JSON.stringify(newOrder)) {
+        sorted.forEach((tile) => gridLayout.appendChild(tile));
+      }
+    };
+
+    injectAndReorder();
+    const interval = setInterval(injectAndReorder, 1000);
+    return () => clearInterval(interval);
+  }, [imageMap, sortMap, localName]);
+
+  return null;
 }
