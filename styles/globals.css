@@ -1225,6 +1225,118 @@ h2 a {
   }
 }
 
+/* Hide default disconnect button for host - replaced by HostLeaveButton */
+body.is-host .lk-control-bar .lk-disconnect-button:not(.lk-host-leave-btn) {
+  display: none !important;
+}
+
+/* Host Leave button with dropdown */
+.lk-host-leave-btn {
+  background: linear-gradient(145deg, #e84a3c, #c7392d) !important;
+  color: #fff !important;
+  border-radius: 50px !important;
+  padding: 0.625rem 1.5rem !important;
+  border: none !important;
+  box-shadow: 3px 3px 8px #151528, -3px -3px 8px #27273c !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lk-host-leave-btn:hover {
+  background: linear-gradient(145deg, #f05545, #d93025) !important;
+}
+
+/* Ensure host leave button stays red even with general .lk-button overrides */
+.lk-control-bar .lk-host-leave-btn {
+  background: linear-gradient(145deg, #e84a3c, #c7392d) !important;
+  color: #fff !important;
+}
+
+.lk-host-leave-menu {
+  position: absolute;
+  bottom: calc(100% + 0.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1e32;
+  border-radius: 1rem;
+  box-shadow: 8px 8px 20px #151528, -8px -8px 20px #27273c;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 220px;
+  z-index: 200;
+  animation: fadeInUp 0.15s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.lk-host-leave-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #1e1e32;
+  border: none;
+  border-radius: 0.75rem;
+  color: #e8eaed;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 2px 2px 6px #151528, -2px -2px 6px #27273c;
+  transition: all 0.15s;
+  font-size: 0.85rem;
+}
+
+.lk-host-leave-option:hover {
+  box-shadow: 3px 3px 8px #151528, -3px -3px 8px #27273c;
+}
+
+.lk-host-leave-option:active {
+  box-shadow: inset 2px 2px 4px #151528, inset -2px -2px 4px #27273c;
+}
+
+.lk-host-leave-option.leave-only svg {
+  color: #e8a85d;
+}
+
+.lk-host-leave-option.end-call {
+  color: #ff6b6b;
+}
+
+.lk-host-leave-option.end-call svg {
+  color: #ea4335;
+}
+
+/* Mobile: host leave button circular */
+@media (max-width: 600px) {
+  .lk-host-leave-btn {
+    padding: 0 !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+  }
+
+  .lk-host-leave-text {
+    display: none !important;
+  }
+
+  .lk-host-leave-menu {
+    min-width: 200px;
+    bottom: calc(100% + 0.5rem);
+  }
+}
+
 /* Raise Hand button */
 .lk-raise-hand-toggle {
   position: relative;

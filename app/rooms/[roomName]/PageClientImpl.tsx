@@ -30,6 +30,7 @@ import { ParticipantsSidebar } from '@/lib/ParticipantsSidebar';
 import { PinnedProvider, usePinned } from '@/lib/PinnedContext';
 import { saveMeeting } from '@/lib/meetingHistory';
 import { RaiseHandButton } from '@/lib/RaiseHandButton';
+import { HostLeaveButton } from '@/lib/HostLeaveButton';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
@@ -214,6 +215,7 @@ function AudioConferenceComponent(props: {
             SettingsComponent={SettingsMenu}
           />
           <RaiseHandButton />
+          <HostLeaveButton />
           <ParticipantsSidebar />
           <ParticipantProfileImages />
           <DebugMode />
