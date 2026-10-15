@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
       roomName: roomName,
       participantToken: participantToken,
       participantName: participantName,
+      // Include admin token for hosts so they can manage participants from within the meeting
+      ...(role === 'host' ? { adminToken: ADMIN_PASSWORD } : {}),
     };
     return new NextResponse(JSON.stringify(data), {
       headers: {

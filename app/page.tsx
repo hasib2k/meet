@@ -15,7 +15,7 @@ function HomeContent() {
   };
 
   const handleNewMeeting = () => {
-    router.push(`/rooms/${generateRoomId()}`);
+    router.push(`/rooms/${generateRoomId()}?role=host`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

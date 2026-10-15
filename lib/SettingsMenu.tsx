@@ -7,29 +7,34 @@ import {
   TrackToggle,
   useRoomContext,
   useIsRecording,
+  useParticipants,
 } from '@livekit/components-react';
 import styles from '../styles/SettingsMenu.module.css';
-import { CameraSettings } from './CameraSettings';
 import { MicrophoneSettings } from './MicrophoneSettings';
-/**
- * @alpha
- */
+
 export interface SettingsMenuProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-/**
- * @alpha
- */
 export function SettingsMenu(props: SettingsMenuProps) {
   const layoutContext = useMaybeLayoutContext();
   const room = useRoomContext();
   const recordingEndpoint = process.env.NEXT_PUBLIC_LK_RECORD_ENDPOINT;
+  const participants = useParticipants();
+
+  // Check if current user is host
+  let localRole = 'listener';
+  try {
+    const meta = JSON.parse(room.localParticipant.metadata || '{}');
+    localRole = meta.role || 'listener';
+  } catch {}
+  const isHost = localRole === 'host';
 
   const settings = React.useMemo(() => {
     return {
-      media: { camera: true, microphone: true, label: 'Media Devices', speaker: true },
-      recording: recordingEndpoint ? { label: 'Recording' } : undefined,
+      media: { microphone: true, label: 'Media Devices', speaker: true },
+      participants: { label: 'Participants' },
+      ...(recordingEndpoint ? { recording: { label: 'Recording' } } : {}),
     };
-  }, []);
+  }, [isHost, recordingEndpoint]);
 
   const tabs = React.useMemo(
     () => Object.keys(settings).filter((t) => t !== undefined) as Array<keyof typeof settings>,
@@ -40,6 +45,8 @@ export function SettingsMenu(props: SettingsMenuProps) {
   const isRecording = useIsRecording();
   const [initialRecStatus, setInitialRecStatus] = React.useState(isRecording);
   const [processingRecRequest, setProcessingRecRequest] = React.useState(false);
+  const [actionMsg, setActionMsg] = React.useState('');
+  const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (initialRecStatus !== isRecording) {
@@ -62,16 +69,51 @@ export function SettingsMenu(props: SettingsMenuProps) {
     } else {
       response = await fetch(recordingEndpoint + `/start?roomName=${room.name}`);
     }
-    if (response.ok) {
-    } else {
-      console.error(
-        'Error handling recording request, check server logs:',
-        response.status,
-        response.statusText,
-      );
+    if (!response.ok) {
+      console.error('Error handling recording request:', response.status, response.statusText);
       setProcessingRecRequest(false);
     }
   };
+
+  const doParticipantAction = async (action: string, identity: string) => {
+    setLoadingAction(identity);
+    try {
+      const adminToken = sessionStorage.getItem('adminToken') || '';
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ action, roomName: room.name, identity }),
+      });
+      const data = await res.json();
+      setActionMsg(data.message || 'Done');
+      setTimeout(() => setActionMsg(''), 2500);
+    } catch {
+      setActionMsg('Action failed');
+      setTimeout(() => setActionMsg(''), 2500);
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  // Build participant list for host controls
+  const otherParticipants = participants
+    .filter((p) => p.identity !== room.localParticipant.identity)
+    .map((p) => {
+      let role = 'listener';
+      try {
+        const meta = JSON.parse(p.metadata || '{}');
+        role = meta.role || 'listener';
+      } catch {}
+      return {
+        identity: p.identity,
+        name: p.name || p.identity,
+        role,
+        canPublish: p.permissions?.canPublish ?? false,
+      };
+    });
 
   return (
     <div className="settings-menu" style={{ width: '100%', position: 'relative' }} {...props}>
@@ -85,10 +127,8 @@ export function SettingsMenu(props: SettingsMenuProps) {
                 onClick={() => setActiveTab(tab)}
                 aria-pressed={tab === activeTab}
               >
-                {
-                  // @ts-ignore
-                  settings[tab].label
-                }
+                {/* @ts-ignore */}
+                {settings[tab].label}
               </button>
             ),
         )}
@@ -96,35 +136,96 @@ export function SettingsMenu(props: SettingsMenuProps) {
       <div className="tab-content">
         {activeTab === 'media' && (
           <>
-            {settings.media && settings.media.camera && (
-              <>
-                <h3>Camera</h3>
-                <section>
-                  <CameraSettings />
-                </section>
-              </>
-            )}
-            {settings.media && settings.media.microphone && (
-              <>
-                <h3>Microphone</h3>
-                <section>
-                  <MicrophoneSettings />
-                </section>
-              </>
-            )}
-            {settings.media && settings.media.speaker && (
-              <>
-                <h3>Speaker & Headphones</h3>
-                <section className="lk-button-group">
-                  <span className="lk-button">Audio Output</span>
-                  <div className="lk-button-group-menu">
-                    <MediaDeviceMenu kind="audiooutput"></MediaDeviceMenu>
-                  </div>
-                </section>
-              </>
-            )}
+            <h3>Microphone</h3>
+            <section>
+              <MicrophoneSettings />
+            </section>
+            <h3>Speaker & Headphones</h3>
+            <section className="lk-button-group">
+              <span className="lk-button">Audio Output</span>
+              <div className="lk-button-group-menu">
+                <MediaDeviceMenu kind="audiooutput"></MediaDeviceMenu>
+              </div>
+            </section>
           </>
         )}
+
+        {activeTab === 'participants' && (
+          <>
+            <h3>Participants ({participants.length})</h3>
+            {actionMsg && (
+              <p style={{ color: '#5bc88d', fontSize: '0.85rem', margin: '0.25rem 0' }}>
+                {actionMsg}
+              </p>
+            )}
+
+            {/* You (Host) */}
+            <section style={pStyles.row}>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontWeight: 500 }}>
+                  {room.localParticipant.name || room.localParticipant.identity}
+                </span>
+                <span style={pStyles.hostBadge}> — Host (You)</span>
+              </div>
+            </section>
+
+            {/* Other participants */}
+            {otherParticipants.length === 0 && (
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
+                No other participants yet
+              </p>
+            )}
+            {otherParticipants.map((p) => (
+              <section key={p.identity} style={pStyles.row}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.name}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: getRoleColor(p.role), marginTop: '0.125rem' }}>
+                    {p.canPublish ? '🎙 Can speak' : '🔇 Listener'}
+                    {p.role === 'moderator' && ' (Moderator)'}
+                  </div>
+                </div>
+                {isHost && (
+                  <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
+                    {!p.canPublish ? (
+                      <button
+                        className="lk-button"
+                        onClick={() => doParticipantAction('grant_speak', p.identity)}
+                        disabled={loadingAction === p.identity}
+                        style={pStyles.grantBtn}
+                      >
+                        Grant Speak
+                      </button>
+                    ) : (
+                      <button
+                        className="lk-button"
+                        onClick={() => doParticipantAction('revoke_speak', p.identity)}
+                        disabled={loadingAction === p.identity}
+                        style={pStyles.muteBtn}
+                      >
+                        Mute
+                      </button>
+                    )}
+                    <button
+                      className="lk-button"
+                      onClick={() => {
+                        if (confirm(`Remove ${p.name}?`)) {
+                          doParticipantAction('remove_participant', p.identity);
+                        }
+                      }}
+                      disabled={loadingAction === p.identity}
+                      style={pStyles.removeBtn}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </section>
+            ))}
+          </>
+        )}
+
         {activeTab === 'recording' && (
           <>
             <h3>Record Meeting</h3>
@@ -152,3 +253,45 @@ export function SettingsMenu(props: SettingsMenuProps) {
     </div>
   );
 }
+
+function getRoleColor(role: string): string {
+  if (role === 'host') return '#5b8dee';
+  if (role === 'moderator') return '#e8a85d';
+  return 'rgba(255,255,255,0.5)';
+}
+
+const pStyles: Record<string, React.CSSProperties> = {
+  row: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.5rem 0',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+  },
+  hostBadge: {
+    color: '#5b8dee',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+  },
+  grantBtn: {
+    fontSize: '0.75rem',
+    padding: '0.25rem 0.5rem',
+    background: 'rgba(91,200,141,0.15)',
+    color: '#5bc88d',
+    border: '1px solid rgba(91,200,141,0.25)',
+  },
+  muteBtn: {
+    fontSize: '0.75rem',
+    padding: '0.25rem 0.5rem',
+    background: 'rgba(232,168,93,0.15)',
+    color: '#e8a85d',
+    border: '1px solid rgba(232,168,93,0.25)',
+  },
+  removeBtn: {
+    fontSize: '0.75rem',
+    padding: '0.25rem 0.5rem',
+    background: 'rgba(220,50,50,0.1)',
+    color: '#ff6b6b',
+    border: '1px solid rgba(220,50,50,0.2)',
+  },
+};

@@ -333,3 +333,17 @@ h2 a {
   color: #5b8dee;
   text-decoration: none;
 }
+
+/* Hide Camera and Share Screen buttons in meeting room */
+[data-lk-source="camera"],
+[data-lk-source="screen_share"],
+.lk-button-group:has([data-lk-source="camera"]),
+.lk-button-group:has([data-lk-source="screen_share"]) {
+  display: none !important;
+}
+
+/* Speaking animation */
+@keyframes pulse {
+  0% { height: 4px; }
+  100% { height: 14px; }
+}

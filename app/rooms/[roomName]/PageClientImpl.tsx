@@ -63,6 +63,9 @@ export function PageClientImpl(props: {
     }
     const connectionDetailsResp = await fetch(url.toString());
     const connectionDetailsData = await connectionDetailsResp.json();
+    if (connectionDetailsData.adminToken) {
+      sessionStorage.setItem('adminToken', connectionDetailsData.adminToken);
+    }
     setConnectionDetails(connectionDetailsData);
   }, [props.roomName, props.region, props.role]);
 
@@ -130,7 +133,7 @@ function AudioConferenceComponent(props: {
           room.setE2EEEnabled(true).catch((e) => {
             if (e instanceof DeviceUnsupportedError) {
               alert(
-                `You're trying to join an encrypted meeting, but your browser does not support it. Please update it to the latest version and try again.`,
+                `You're trying to join an encrypted meeting, but your browser does not support it.`,
               );
               console.error(e);
             } else {
@@ -166,14 +169,12 @@ function AudioConferenceComponent(props: {
           handleError(error);
         });
 
-      // Only enable mic for host/moderator, listeners stay muted
       const canSpeak = props.role === 'host' || props.role === 'moderator';
       if (canSpeak && props.userChoices.audioEnabled) {
         room.localParticipant.setMicrophoneEnabled(true).catch((error) => {
           handleError(error);
         });
       }
-      // Always disable camera
       room.localParticipant.setCameraEnabled(false).catch(() => {});
     }
     return () => {
@@ -187,13 +188,11 @@ function AudioConferenceComponent(props: {
   const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
   const handleError = React.useCallback((error: Error) => {
     console.error(error);
-    alert(`Encountered an unexpected error, check the console logs for details: ${error.message}`);
+    alert(`Error: ${error.message}`);
   }, []);
   const handleEncryptionError = React.useCallback((error: Error) => {
     console.error(error);
-    alert(
-      `Encountered an unexpected encryption error, check the console logs for details: ${error.message}`,
-    );
+    alert(`Encryption error: ${error.message}`);
   }, []);
 
   return (
