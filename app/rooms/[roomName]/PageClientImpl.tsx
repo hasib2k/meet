@@ -11,9 +11,9 @@ import {
   formatChatMessageLinks,
   LocalUserChoices,
   RoomContext,
-  VideoConference,
   useParticipants,
 } from '@livekit/components-react';
+import { CustomVideoConference } from '@/lib/CustomVideoConference';
 import {
   ExternalE2EEKeyProvider,
   RoomOptions,
@@ -206,7 +206,7 @@ function AudioConferenceComponent(props: {
       <RoomContext.Provider value={room}>
         <PinnedProvider>
           <KeyboardShortcuts />
-          <VideoConference
+          <CustomVideoConference
             chatMessageFormatter={formatChatMessageLinks}
             SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
           />
@@ -259,12 +259,14 @@ function ParticipantProfileImages() {
 
   React.useEffect(() => {
     const injectAndReorder = () => {
-      // 0. Hide local participant tile (shown as "You" thumbnail instead)
+      // 0. Hide local participant tile on desktop only (shown as "You" thumbnail)
+      // On mobile, LiveKit renders fewer tiles per page so hiding causes blank screen
+      const isMobile = window.innerWidth < 768;
       const allTiles = document.querySelectorAll('.lk-participant-tile');
       allTiles.forEach((tile) => {
         const nameEl = tile.querySelector('.lk-participant-name');
         const name = nameEl?.textContent?.trim() || '';
-        if (name === localName) {
+        if (!isMobile && name === localName) {
           (tile as HTMLElement).style.display = 'none';
         } else {
           (tile as HTMLElement).style.display = '';

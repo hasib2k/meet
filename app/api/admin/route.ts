@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
               name: p.name,
               sid: p.sid,
               role,
-              isSpeaking: p.isSpeaking,
+              isSpeaking: (p as any).isSpeaking ?? false,
               joinedAt: Number(p.joinedAt),
               canPublish: p.permission?.canPublish ?? false,
             };

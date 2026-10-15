@@ -354,6 +354,11 @@ h2 a {
   display: none !important;
 }
 
+/* Hide microphone device selector dropdown (arrow + menu) */
+.lk-control-bar .lk-button-group:has([data-lk-source="microphone"]) .lk-button-group-menu {
+  display: none !important;
+}
+
 /* Participants toggle button - inside control bar, Google Meet style */
 .lk-participants-toggle {
   display: flex !important;
@@ -654,11 +659,11 @@ h2 a {
 
 /* ===== Mobile Responsive - Google Meet Style ===== */
 
-/* Tablet: 2x2 grid */
+/* Tablet */
 @media (max-width: 959px) and (min-width: 601px) {
   .lk-grid-layout {
-    grid-template-columns: repeat(2, 1fr) !important;
-    grid-template-rows: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(3, 1fr) !important;
     padding: 0.375rem !important;
     gap: 0.375rem !important;
   }
@@ -684,7 +689,7 @@ h2 a {
 
 /* Mobile */
 @media (max-width: 600px) {
-  /* Grid: 2 columns, 4 rows = 8 per page */
+  /* 2-column grid for mobile - CustomGridLayout renders 8 tiles at this width */
   .lk-grid-layout {
     grid-template-columns: repeat(2, 1fr) !important;
     grid-template-rows: repeat(4, 1fr) !important;
@@ -726,51 +731,57 @@ h2 a {
     min-height: 56px;
   }
 
-  .lk-control-bar .lk-button {
-    padding: 0.5rem !important;
-    border-radius: 50% !important;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    font-size: 0 !important; /* Hide text, show only icon */
+  /* Button group wrapper - reset so mic button can be circular */
+  .lk-control-bar .lk-button-group {
+    display: contents !important;
   }
 
-  .lk-control-bar .lk-button svg {
-    width: 20px;
-    height: 20px;
+  /* All control bar buttons */
+  .lk-control-bar .lk-button,
+  .lk-control-bar .lk-chat-toggle,
+  .lk-control-bar .lk-disconnect-button,
+  .lk-control-bar .lk-participants-toggle {
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 50% !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
   }
 
-  /* Leave button - circular on mobile */
-  .lk-disconnect-button {
-    padding: 0.5rem !important;
-    border-radius: 50% !important;
+  .lk-control-bar .lk-disconnect-button {
     width: 48px !important;
     height: 48px !important;
-    min-width: 48px;
-    font-size: 0 !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
   }
 
-  /* Participants toggle - icon only on mobile */
-  .lk-participants-toggle {
-    padding: 0.5rem !important;
-    border-radius: 50% !important;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    font-size: 0 !important;
+  .lk-control-bar .lk-button svg,
+  .lk-control-bar .lk-chat-toggle svg,
+  .lk-control-bar .lk-disconnect-button svg,
+  .lk-control-bar .lk-participants-toggle svg {
+    width: 20px !important;
+    height: 20px !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
   }
 
-  .lk-participants-toggle svg {
-    margin-right: 0 !important;
-  }
-
-  /* Self-view - smaller on mobile */
+  /* Hide self-view on mobile - local tile is visible in grid */
   .lk-self-view {
-    width: 100px;
-    height: 75px;
-    right: 0.375rem;
-    bottom: calc(56px + 0.5rem);
-    border-radius: 0.5rem;
+    display: none !important;
   }
 
   .lk-self-view-avatar img {
