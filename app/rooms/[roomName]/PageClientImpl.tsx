@@ -220,10 +220,9 @@ function AudioConferenceComponent(props: {
   );
 }
 
-/** Replaces default placeholder avatars with Google profile images and reorders tiles */
+/** Replaces default placeholder avatars with Google profile images */
 function ParticipantProfileImages() {
   const participants = useParticipants();
-  const { pinnedIds } = usePinned();
   const room = React.useContext(RoomContext);
   const localName = room?.localParticipant?.name || room?.localParticipant?.identity || '';
 
@@ -241,21 +240,6 @@ function ParticipantProfileImages() {
     return map;
   }, [participants]);
 
-  // Build a map of name -> sort priority (lower = first)
-  const sortMap = React.useMemo(() => {
-    const map = new Map<string, number>();
-    participants.forEach((p) => {
-      const name = p.name || p.identity;
-      const pinned = pinnedIds.has(p.identity);
-      const speaking = p.isSpeaking;
-      // Pinned: 0, Speaking: 1, Others: 2
-      let priority = 2;
-      if (pinned) priority = 0;
-      else if (speaking) priority = 1;
-      map.set(name, priority);
-    });
-    return map;
-  }, [participants, pinnedIds]);
 
   React.useEffect(() => {
     const injectAndReorder = () => {
@@ -296,32 +280,12 @@ function ParticipantProfileImages() {
         el.appendChild(img);
       });
 
-      // 2. Reorder tiles: pinned first, then speaking, then rest
-      const gridLayout = document.querySelector('.lk-grid-layout');
-      if (!gridLayout) return;
-      const tiles = Array.from(gridLayout.querySelectorAll(':scope > .lk-participant-tile'));
-      if (tiles.length < 2) return;
-
-      const sorted = [...tiles].sort((a, b) => {
-        const nameA = a.querySelector('.lk-participant-name')?.textContent?.trim() || '';
-        const nameB = b.querySelector('.lk-participant-name')?.textContent?.trim() || '';
-        const priA = sortMap.get(nameA) ?? 2;
-        const priB = sortMap.get(nameB) ?? 2;
-        return priA - priB;
-      });
-
-      // Only reorder if order actually changed
-      const currentOrder = tiles.map((t) => t.querySelector('.lk-participant-name')?.textContent?.trim());
-      const newOrder = sorted.map((t) => t.querySelector('.lk-participant-name')?.textContent?.trim());
-      if (JSON.stringify(currentOrder) !== JSON.stringify(newOrder)) {
-        sorted.forEach((tile) => gridLayout.appendChild(tile));
-      }
     };
 
     injectAndReorder();
     const interval = setInterval(injectAndReorder, 1000);
     return () => clearInterval(interval);
-  }, [imageMap, sortMap, localName]);
+  }, [imageMap, localName]);
 
   return null;
 }

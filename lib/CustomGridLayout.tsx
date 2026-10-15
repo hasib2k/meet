@@ -8,6 +8,7 @@ import {
   useSwipe,
   TrackLoop,
 } from '@livekit/components-react';
+import { usePinned } from './PinnedContext';
 
 /**
  * Custom grid layouts with lowered minWidth thresholds so mobile devices
@@ -37,11 +38,25 @@ export interface CustomGridLayoutProps extends React.HTMLAttributes<HTMLDivEleme
  */
 export function CustomGridLayout({ tracks, children, ...props }: CustomGridLayoutProps) {
   const gridEl = React.createRef<HTMLDivElement>();
+  const { pinnedIds } = usePinned();
 
-  const { layout } = useGridLayout(gridEl, tracks.length, {
+  // Sort tracks: pinned first, then speaking, then rest
+  const sortedTracks = React.useMemo(() => {
+    return [...tracks].sort((a, b) => {
+      const aPinned = pinnedIds.has(a.participant?.identity ?? '') ? 0 : 1;
+      const bPinned = pinnedIds.has(b.participant?.identity ?? '') ? 0 : 1;
+      if (aPinned !== bPinned) return aPinned - bPinned;
+
+      const aSpeaking = a.participant?.isSpeaking ? 0 : 1;
+      const bSpeaking = b.participant?.isSpeaking ? 0 : 1;
+      return aSpeaking - bSpeaking;
+    });
+  }, [tracks, pinnedIds]);
+
+  const { layout } = useGridLayout(gridEl, sortedTracks.length, {
     gridLayouts: CUSTOM_GRID_LAYOUTS,
   });
-  const pagination = usePagination(layout.maxTiles, tracks);
+  const pagination = usePagination(layout.maxTiles, sortedTracks);
 
   useSwipe(gridEl, {
     onLeftSwipe: pagination.nextPage,
