@@ -652,6 +652,221 @@ h2 a {
   border-radius: 0.25rem;
 }
 
+/* ===== Mobile Responsive - Google Meet Style ===== */
+
+/* Tablet: 2x2 grid */
+@media (max-width: 959px) and (min-width: 601px) {
+  .lk-grid-layout {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+    padding: 0.375rem !important;
+    gap: 0.375rem !important;
+  }
+
+  .profile-img-overlay {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  .lk-participant-placeholder > svg {
+    width: 64px !important;
+    height: 64px !important;
+    padding: 12px;
+  }
+
+  .lk-self-view {
+    width: 120px;
+    height: 90px;
+    right: 0.5rem;
+    bottom: calc(var(--lk-control-bar-height, 69px) + 0.5rem);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  /* Grid: 2 columns, 4 rows = 8 per page */
+  .lk-grid-layout {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(4, 1fr) !important;
+    padding: 0.25rem !important;
+    gap: 0.25rem !important;
+  }
+
+  /* Smaller profile images on mobile */
+  .profile-img-overlay {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .lk-participant-placeholder > svg {
+    width: 48px !important;
+    height: 48px !important;
+    padding: 10px;
+  }
+
+  /* Smaller tile border radius */
+  .lk-participant-tile {
+    border-radius: 0.5rem !important;
+  }
+
+  /* Compact metadata */
+  .lk-participant-metadata {
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  .lk-participant-name {
+    font-size: 0.7rem !important;
+  }
+
+  /* Control bar - compact, icon-only style like Google Meet mobile */
+  .lk-control-bar {
+    padding: 0.375rem 0.5rem !important;
+    gap: 0.5rem !important;
+    height: auto !important;
+    min-height: 56px;
+  }
+
+  .lk-control-bar .lk-button {
+    padding: 0.5rem !important;
+    border-radius: 50% !important;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    font-size: 0 !important; /* Hide text, show only icon */
+  }
+
+  .lk-control-bar .lk-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Leave button - circular on mobile */
+  .lk-disconnect-button {
+    padding: 0.5rem !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px;
+    font-size: 0 !important;
+  }
+
+  /* Participants toggle - icon only on mobile */
+  .lk-participants-toggle {
+    padding: 0.5rem !important;
+    border-radius: 50% !important;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    font-size: 0 !important;
+  }
+
+  .lk-participants-toggle svg {
+    margin-right: 0 !important;
+  }
+
+  /* Self-view - smaller on mobile */
+  .lk-self-view {
+    width: 100px;
+    height: 75px;
+    right: 0.375rem;
+    bottom: calc(56px + 0.5rem);
+    border-radius: 0.5rem;
+  }
+
+  .lk-self-view-avatar img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .lk-self-view-label {
+    font-size: 0.6rem;
+    bottom: 0.25rem;
+    left: 0.375rem;
+    padding: 0.1rem 0.25rem;
+  }
+
+  /* Participants sidebar - full screen on mobile */
+  .lk-participants-panel {
+    width: 100%;
+    bottom: 0;
+  }
+
+  .lk-participants-panel .lk-chat-header {
+    height: 56px;
+    min-height: 56px;
+  }
+
+  /* Chat panel - full width on mobile */
+  .lk-chat {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 56px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Focus layout - no padding on mobile */
+  .lk-focus-layout-wrapper,
+  .lk-grid-layout-wrapper {
+    padding: 0 !important;
+  }
+
+  /* Full screen toggle - smaller */
+  .lk-focus-toggle-button {
+    width: 28px !important;
+    height: 28px !important;
+    top: 0.25rem !important;
+    right: 0.25rem !important;
+  }
+
+  /* Pagination on mobile */
+  .lk-pagination-control {
+    bottom: 0.25rem !important;
+  }
+
+  .lk-pagination-count {
+    font-size: 0.65rem;
+  }
+}
+
+/* Very small screens (iPhone SE etc) */
+@media (max-width: 375px) {
+  .lk-control-bar .lk-button {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    padding: 0.375rem !important;
+  }
+
+  .lk-disconnect-button {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px;
+  }
+
+  .lk-participants-toggle {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+
+  .lk-control-bar {
+    gap: 0.375rem !important;
+  }
+
+  .lk-self-view {
+    width: 80px;
+    height: 60px;
+  }
+
+  .lk-self-view-avatar img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
 /* Speaking animation */
 @keyframes pulse {
   0% { height: 4px; }
