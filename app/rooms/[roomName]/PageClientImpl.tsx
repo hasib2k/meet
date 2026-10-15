@@ -208,7 +208,7 @@ function AudioConferenceComponent(props: {
           <KeyboardShortcuts />
           <CustomVideoConference
             chatMessageFormatter={formatChatMessageLinks}
-            SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+            SettingsComponent={SettingsMenu}
           />
           <ParticipantsSidebar />
           <ParticipantProfileImages />

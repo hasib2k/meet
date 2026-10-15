@@ -742,6 +742,33 @@ h2 a {
   }
 }
 
+/* Settings modal - mobile responsive */
+@media (max-width: 600px) {
+  .lk-settings-menu-modal {
+    min-width: 90vw !important;
+    min-height: auto !important;
+    max-height: 80vh !important;
+    padding: 0.75rem !important;
+    top: auto !important;
+    bottom: 70px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .settings-menu {
+    width: 100% !important;
+  }
+
+  .settings-menu h3 {
+    font-size: 0.9rem !important;
+  }
+
+  .settings-menu .lk-button-group {
+    flex-direction: column !important;
+  }
+}
+
 /* Mobile */
 @media (max-width: 600px) {
   /* 2-column grid for mobile - CustomGridLayout renders 8 tiles at this width */

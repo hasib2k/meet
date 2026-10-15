@@ -116,12 +116,20 @@ export function CustomVideoConference({
               </FocusLayoutContainer>
             </div>
           )}
-          <ControlBar controls={{ chat: true, settings: false, camera: false, screenShare: false }} />
+          <ControlBar controls={{ chat: true, settings: !!SettingsComponent, camera: false, screenShare: false }} />
         </div>
         <Chat
           style={{ display: widgetState.showChat ? 'grid' : 'none' }}
           messageFormatter={chatMessageFormatter}
         />
+        {SettingsComponent && (
+          <div
+            className="lk-settings-menu-modal"
+            style={{ display: widgetState.showSettings ? 'block' : 'none' }}
+          >
+            <SettingsComponent />
+          </div>
+        )}
       </LayoutContextProvider>
       <RoomAudioRenderer />
       <ConnectionStateToast />
