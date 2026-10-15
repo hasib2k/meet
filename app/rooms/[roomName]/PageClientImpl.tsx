@@ -74,6 +74,7 @@ export function PageClientImpl(props: {
       sessionStorage.setItem('adminToken', connectionDetailsData.adminToken);
     }
     setConnectionDetails(connectionDetailsData);
+    saveMeeting(props.roomName, props.role);
   }, [props.roomName, props.region, props.role]);
 
   return (
