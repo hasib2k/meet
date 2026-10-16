@@ -81,6 +81,12 @@ export function ParticipantsSidebar() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
         body: JSON.stringify({ action, roomName: room.name, identity }),
       });
+      if (!res.ok) {
+        const text = await res.text();
+        setActionMsg(`Failed: ${text || res.statusText}`);
+        setTimeout(() => setActionMsg(''), 3000);
+        return;
+      }
       const data = await res.json();
       setActionMsg(data.message || 'Done');
       setTimeout(() => setActionMsg(''), 2500);
