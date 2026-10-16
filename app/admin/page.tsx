@@ -240,7 +240,19 @@ export default function AdminPage() {
                   Started {new Date(room.creationTime * 1000).toLocaleTimeString()}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => doAction('unmute_all', room.name)}
+                  style={{ ...pageStyles.btnSmall, backgroundColor: 'rgba(45,122,79,0.2)', color: '#5bc88d', borderColor: 'rgba(45,122,79,0.3)' }}
+                >
+                  🔊 Unmute All
+                </button>
+                <button
+                  onClick={() => doAction('mute_all', room.name)}
+                  style={{ ...pageStyles.btnSmall, backgroundColor: 'rgba(107,91,30,0.2)', color: '#e8a85d', borderColor: 'rgba(107,91,30,0.3)' }}
+                >
+                  🔇 Mute All
+                </button>
                 <button
                   onClick={() => {
                     const link = `${window.location.origin}/rooms/${room.name}`;

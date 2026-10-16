@@ -74,7 +74,7 @@ export function ParticipantsSidebar() {
   };
 
   const doAction = async (action: string, identity: string) => {
-    setLoadingAction(identity);
+    setLoadingAction(identity || action);
     setOpenMenuId(null);
     try {
       const adminToken = sessionStorage.getItem('adminToken') || '';
@@ -206,32 +206,78 @@ export function ParticipantsSidebar() {
           <div className="lk-participants-list">
             {/* Copy link for host */}
             {isHost && (
-              <button
-                className="lk-button"
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/rooms/${room.name}`).then(() => {
-                    setLinkCopied(true);
-                    setTimeout(() => setLinkCopied(false), 2000);
-                  });
-                }}
-                style={{
-                  fontSize: '0.8rem',
-                  padding: '0.5rem',
-                  margin: '0 0.75rem 0.5rem',
-                  background: '#1e1e32',
-                  color: linkCopied ? '#5bc88d' : '#5b8dee',
-                  border: 'none',
-                  borderRadius: '0.75rem',
-                  boxShadow: linkCopied
-                    ? 'inset 2px 2px 5px #151528, inset -2px -2px 5px #27273c'
-                    : '3px 3px 8px #151528, -3px -3px 8px #27273c',
-                  width: 'calc(100% - 1.5rem)',
-                  textAlign: 'center',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {linkCopied ? 'Link Copied!' : 'Copy Meeting Link'}
-              </button>
+              <>
+                <button
+                  className="lk-button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/rooms/${room.name}`).then(() => {
+                      setLinkCopied(true);
+                      setTimeout(() => setLinkCopied(false), 2000);
+                    });
+                  }}
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '0.5rem',
+                    margin: '0 0.75rem 0.5rem',
+                    background: '#1e1e32',
+                    color: linkCopied ? '#5bc88d' : '#5b8dee',
+                    border: 'none',
+                    borderRadius: '0.75rem',
+                    boxShadow: linkCopied
+                      ? 'inset 2px 2px 5px #151528, inset -2px -2px 5px #27273c'
+                      : '3px 3px 8px #151528, -3px -3px 8px #27273c',
+                    width: 'calc(100% - 1.5rem)',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {linkCopied ? 'Link Copied!' : 'Copy Meeting Link'}
+                </button>
+
+                {/* Unmute All / Mute All toggle */}
+                <div style={{ display: 'flex', gap: '0.5rem', margin: '0 0.75rem 0.5rem' }}>
+                  <button
+                    className="lk-button"
+                    onClick={() => doAction('unmute_all', '')}
+                    disabled={loadingAction === 'unmute_all'}
+                    style={{
+                      flex: 1,
+                      fontSize: '0.75rem',
+                      padding: '0.5rem',
+                      background: '#1e1e32',
+                      color: '#5bc88d',
+                      border: 'none',
+                      borderRadius: '0.75rem',
+                      boxShadow: '3px 3px 8px #151528, -3px -3px 8px #27273c',
+                      textAlign: 'center',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🔊 Unmute All
+                  </button>
+                  <button
+                    className="lk-button"
+                    onClick={() => doAction('mute_all', '')}
+                    disabled={loadingAction === 'mute_all'}
+                    style={{
+                      flex: 1,
+                      fontSize: '0.75rem',
+                      padding: '0.5rem',
+                      background: '#1e1e32',
+                      color: '#e8a85d',
+                      border: 'none',
+                      borderRadius: '0.75rem',
+                      boxShadow: '3px 3px 8px #151528, -3px -3px 8px #27273c',
+                      textAlign: 'center',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🔇 Mute All
+                  </button>
+                </div>
+              </>
             )}
 
             {actionMsg && (

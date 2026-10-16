@@ -253,6 +253,54 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'Participant muted' });
       }
 
+      case 'unmute_all': {
+        const allParts = await svc.listParticipants(roomName);
+        let unmutedCount = 0;
+        await Promise.all(
+          allParts.map(async (p) => {
+            let meta: Record<string, unknown> = {};
+            try { meta = JSON.parse(p.metadata || '{}'); } catch {}
+            // Skip hosts — they already have publish rights
+            if (meta.role === 'host') return;
+            meta.role = 'moderator';
+            await svc.updateParticipant(roomName, p.identity, {
+              metadata: JSON.stringify(meta),
+              permission: {
+                canPublish: true,
+                canPublishData: true,
+                canSubscribe: true,
+              },
+            });
+            unmutedCount++;
+          }),
+        );
+        return NextResponse.json({ success: true, message: `Unmuted all (${unmutedCount} participants)` });
+      }
+
+      case 'mute_all': {
+        const allPartsMute = await svc.listParticipants(roomName);
+        let mutedCount = 0;
+        await Promise.all(
+          allPartsMute.map(async (p) => {
+            let meta: Record<string, unknown> = {};
+            try { meta = JSON.parse(p.metadata || '{}'); } catch {}
+            // Skip hosts — don't mute hosts
+            if (meta.role === 'host') return;
+            meta.role = 'listener';
+            await svc.updateParticipant(roomName, p.identity, {
+              metadata: JSON.stringify(meta),
+              permission: {
+                canPublish: false,
+                canPublishData: true,
+                canSubscribe: true,
+              },
+            });
+            mutedCount++;
+          }),
+        );
+        return NextResponse.json({ success: true, message: `Muted all (${mutedCount} participants)` });
+      }
+
       case 'create_room': {
         const { meetingTitle } = body;
         await svc.createRoom({ name: roomName });
