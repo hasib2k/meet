@@ -278,6 +278,7 @@ function AudioConferenceComponent(props: {
           <AdminTokenWatcher />
           <ParticipantsSidebar />
           <ParticipantProfileImages />
+          <KeepAlive />
           <DebugMode />
           <RecordingIndicator />
         </PinnedProvider>
@@ -612,4 +613,59 @@ function ParticipantProfileImages() {
       )}
     </>
   );
+}
+
+/**
+ * Keeps WebRTC audio alive when screen is off / locked.
+ * Uses Screen Wake Lock API + silent audio oscillator as fallback
+ * to prevent the browser from suspending the tab.
+ */
+function KeepAlive() {
+  React.useEffect(() => {
+    let wakeLock: WakeLockSentinel | null = null;
+    let audioCtx: AudioContext | null = null;
+
+    // 1. Screen Wake Lock API — prevents screen from turning off
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await (navigator as Navigator & { wakeLock: { request: (type: string) => Promise<WakeLockSentinel> } }).wakeLock.request('screen');
+        }
+      } catch {}
+    };
+
+    requestWakeLock();
+
+    // Re-acquire wake lock when page becomes visible again
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // 2. Silent audio oscillator — keeps audio pipeline alive on mobile
+    try {
+      audioCtx = new AudioContext();
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.001; // near-silent
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start();
+    } catch {}
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      wakeLock?.release().catch(() => {});
+      audioCtx?.close().catch(() => {});
+    };
+  }, []);
+
+  return null;
+}
+
+interface WakeLockSentinel {
+  release: () => Promise<void>;
+  addEventListener: (type: string, listener: () => void) => void;
 }

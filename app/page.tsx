@@ -191,7 +191,7 @@ function HomeContent() {
 
       {/* Footer */}
       <footer>
-        Powered by LiveKit &middot; Built with Next.js
+        Developed by Hasib Talukder &middot; Built with Next.js
       </footer>
     </>
   );
