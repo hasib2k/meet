@@ -54,22 +54,32 @@ export async function GET(request: NextRequest) {
       return new NextResponse('Metadata too large: max 4096 bytes', { status: 400 });
     }
 
-    // Check if room has been ended (stored in LiveKit room metadata)
+    // Check room metadata: ended status + auto-host assignment
+    let isAutoHost = false;
     try {
       const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY!, API_SECRET!);
       const rooms = await svc.listRooms([roomName!]);
-      if (rooms.length > 0) {
+      // Find the exact room by name (listRooms may return multiple)
+      const targetRoom = rooms.find((r) => r.name === roomName);
+      if (targetRoom) {
         try {
-          const roomMeta = JSON.parse(rooms[0].metadata || '{}');
+          const roomMeta = JSON.parse(targetRoom.metadata || '{}');
+          console.log(`[connection-details] Room "${roomName}" metadata:`, roomMeta);
           if (roomMeta.ended === true) {
             return NextResponse.json(
               { error: 'room_ended', message: 'This meeting has expired. Please contact the admin for a new meeting room.' },
               { status: 410 },
             );
           }
+          // Check if this user was previously granted host in this room
+          if (Array.isArray(roomMeta.hosts) && roomMeta.hosts.includes(participantName)) {
+            isAutoHost = true;
+          }
         } catch {}
       }
-    } catch {}
+    } catch (err) {
+      console.error('[connection-details] Error checking room:', err);
+    }
 
     const livekitServerUrl = region ? getLiveKitURL(LIVEKIT_URL, region) : LIVEKIT_URL;
     let randomParticipantPostfix = request.cookies.get(COOKIE_KEY)?.value;
@@ -114,6 +124,11 @@ export async function GET(request: NextRequest) {
     // Only allow known roles
     if (!['host', 'moderator', 'listener'].includes(role)) {
       role = 'listener';
+    }
+
+    // Auto-assign host role if user was previously granted host in this room
+    if (isAutoHost && role === 'listener') {
+      role = 'host';
     }
 
     // Build metadata with role and image

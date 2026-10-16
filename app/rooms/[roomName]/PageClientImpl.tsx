@@ -308,14 +308,14 @@ function ParticipantProfileImages() {
 
   React.useEffect(() => {
     const injectAndReorder = () => {
-      // 0. Hide local participant tile on desktop only (shown as "You" thumbnail)
-      // On mobile, LiveKit renders fewer tiles per page so hiding causes blank screen
-      const isMobile = window.innerWidth < 768;
+      // 0. Hide local participant tile (shown as floating "You" thumbnail instead)
+      // Only hide if there are other participants, otherwise keep visible
       const allTiles = document.querySelectorAll('.lk-participant-tile');
+      const hasOthers = participants.length > 1;
       allTiles.forEach((tile) => {
         const nameEl = tile.querySelector('.lk-participant-name');
         const name = nameEl?.textContent?.trim() || '';
-        if (!isMobile && name === localName) {
+        if (hasOthers && name === localName) {
           (tile as HTMLElement).style.display = 'none';
         } else {
           (tile as HTMLElement).style.display = '';
@@ -367,7 +367,29 @@ function ParticipantProfileImages() {
     injectAndReorder();
     const interval = setInterval(injectAndReorder, 1000);
     return () => clearInterval(interval);
-  }, [imageMap, handRaisedMap, localName]);
+  }, [imageMap, handRaisedMap, localName, participants.length]);
 
-  return null;
+  // Floating "You" thumbnail
+  const localImageUrl = imageMap.get(localName);
+  const hasOthers = participants.length > 1;
+
+  if (!hasOthers) return null;
+
+  return (
+    <div className="you-thumbnail">
+      {localImageUrl ? (
+        <img
+          src={localImageUrl}
+          alt=""
+          referrerPolicy="no-referrer"
+          className="you-thumbnail-img"
+        />
+      ) : (
+        <div className="you-thumbnail-placeholder">
+          {localName.charAt(0).toUpperCase()}
+        </div>
+      )}
+      <span className="you-thumbnail-label">You</span>
+    </div>
+  );
 }

@@ -23,8 +23,14 @@ interface RoomInfo {
 }
 
 export default function AdminPage() {
-  const [password, setPassword] = useState('');
-  const [isAuthed, setIsAuthed] = useState(false);
+  const [password, setPassword] = useState(() => {
+    if (typeof window !== 'undefined') return sessionStorage.getItem('adminPwd') || '';
+    return '';
+  });
+  const [isAuthed, setIsAuthed] = useState(() => {
+    if (typeof window !== 'undefined') return !!sessionStorage.getItem('adminPwd');
+    return false;
+  });
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,6 +66,7 @@ export default function AdminPage() {
     });
     if (res.ok) {
       setIsAuthed(true);
+      sessionStorage.setItem('adminPwd', password);
       setError('');
       const data = await res.json();
       setRooms(data.rooms || []);
@@ -186,6 +193,7 @@ export default function AdminPage() {
             onClick={() => {
               setIsAuthed(false);
               setPassword('');
+              sessionStorage.removeItem('adminPwd');
             }}
             style={pageStyles.btnSecondary}
           >

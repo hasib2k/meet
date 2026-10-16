@@ -804,26 +804,44 @@ h2 a {
   justify-content: center;
   padding: 0.5rem 1rem;
   background: #1e1e32;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 10;
   flex-shrink: 0;
+  width: 100%;
 }
 
 .meeting-title-text {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: 0.01em;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  max-width: 80%;
+  max-width: 90%;
+}
+
+@media (max-width: 768px) {
+  .meeting-title-bar {
+    padding: 0.375rem 0.75rem;
+  }
+  .meeting-title-text {
+    font-size: 0.8rem;
+  }
+}
+
+/* Ensure video conference is flex column so title bar stays on top */
+.lk-video-conference {
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* Video conference inner */
 .lk-video-conference-inner {
   background: #1e1e32 !important;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Chat panel styling - neomorphic with visible left edge */
@@ -964,6 +982,48 @@ h2 a {
   background: rgba(21, 21, 40, 0.7);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
+}
+
+/* Floating "You" thumbnail */
+.you-thumbnail {
+  position: fixed;
+  bottom: calc(var(--lk-control-bar-height, 69px) + 1rem);
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem;
+  background: #1e1e32;
+  border-radius: 2rem;
+  z-index: 50;
+  box-shadow: 4px 4px 10px #151528, -4px -4px 10px #27273c;
+}
+
+.you-thumbnail-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.you-thumbnail-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b8dee, #4a7dd4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.you-thumbnail-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding-right: 0.5rem;
 }
 
 /* ===== Mobile Responsive ===== */
@@ -1144,9 +1204,24 @@ h2 a {
     margin: 0 !important;
   }
 
-  /* Hide self-view on mobile - local tile is visible in grid */
+  /* Hide old self-view on mobile - using you-thumbnail instead */
   .lk-self-view {
     display: none !important;
+  }
+
+  .you-thumbnail {
+    bottom: calc(var(--lk-control-bar-height, 56px) + 0.5rem);
+    left: 0.5rem;
+  }
+
+  .you-thumbnail-img,
+  .you-thumbnail-placeholder {
+    width: 30px;
+    height: 30px;
+  }
+
+  .you-thumbnail-label {
+    font-size: 0.65rem;
   }
 
   .lk-self-view-avatar img {

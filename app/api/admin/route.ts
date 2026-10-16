@@ -65,7 +65,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY, API_SECRET);
-    const rooms = await svc.listRooms();
+    const allRooms = await svc.listRooms();
+
+    // Filter out ended (tombstone) rooms
+    const rooms = allRooms.filter((room) => {
+      try {
+        const meta = JSON.parse(room.metadata || '{}');
+        return meta.ended !== true;
+      } catch {
+        return true;
+      }
+    });
 
     const roomsWithParticipants = await Promise.all(
       rooms.map(async (room) => {
@@ -128,22 +138,27 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'end_room': {
-        // Mark room as ended in LiveKit metadata (persistent, not in-memory)
+        // 1. Mark room as ended in metadata
         try {
+          let existingMeta: Record<string, unknown> = {};
           const rooms = await svc.listRooms([roomName]);
-          if (rooms.length > 0) {
-            let roomMeta: Record<string, unknown> = {};
-            try { roomMeta = JSON.parse(rooms[0].metadata || '{}'); } catch {}
-            roomMeta.ended = true;
-            roomMeta.endedAt = Date.now();
-            await svc.updateRoomMetadata(roomName, JSON.stringify(roomMeta));
+          const target = rooms.find((r) => r.name === roomName);
+          if (target?.metadata) {
+            try { existingMeta = JSON.parse(target.metadata); } catch {}
           }
-        } catch {}
-        // Remove all participants (they get disconnected)
+          existingMeta.ended = true;
+          existingMeta.endedAt = Date.now();
+          await svc.updateRoomMetadata(roomName, JSON.stringify(existingMeta));
+        } catch (err) {
+          console.error('Error setting ended metadata:', err);
+        }
+
+        // 2. Kick all participants (they get disconnected)
         try {
           const parts = await svc.listParticipants(roomName);
           await Promise.all(parts.map((p) => svc.removeParticipant(roomName, p.identity)));
         } catch {}
+
         return NextResponse.json({ success: true, message: 'Room ended' });
       }
 
@@ -207,6 +222,23 @@ export async function POST(request: NextRequest) {
             canSubscribe: true,
           },
         });
+
+        // Save this user's name to room metadata hosts list for auto-rejoin as host
+        const participantName = hostTarget?.name || identity.split('__')[0];
+        try {
+          const rooms = await svc.listRooms([roomName]);
+          if (rooms.length > 0) {
+            let roomMeta: Record<string, unknown> = {};
+            try { roomMeta = JSON.parse(rooms[0].metadata || '{}'); } catch {}
+            const hosts: string[] = Array.isArray(roomMeta.hosts) ? roomMeta.hosts as string[] : [];
+            if (!hosts.includes(participantName)) {
+              hosts.push(participantName);
+            }
+            roomMeta.hosts = hosts;
+            await svc.updateRoomMetadata(roomName, JSON.stringify(roomMeta));
+          }
+        } catch {}
+
         return NextResponse.json({ success: true, message: 'Host permission granted' });
       }
 
@@ -223,11 +255,11 @@ export async function POST(request: NextRequest) {
 
       case 'create_room': {
         const { meetingTitle } = body;
-        const roomMetadata = JSON.stringify({ title: meetingTitle || '' });
-        await svc.createRoom({
-          name: roomName,
-          metadata: roomMetadata,
-        });
+        await svc.createRoom({ name: roomName });
+        // Set metadata separately (createRoom doesn't support metadata field)
+        if (meetingTitle) {
+          await svc.updateRoomMetadata(roomName, JSON.stringify({ title: meetingTitle }));
+        }
         return NextResponse.json({ success: true, message: 'Room created', roomName });
       }
 

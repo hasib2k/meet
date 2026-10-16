@@ -96,11 +96,11 @@ export function CustomVideoConference({
 
   return (
     <div className="lk-video-conference" {...props}>
+      <MeetingTitleBar />
       <LayoutContextProvider
         value={layoutContext}
         onWidgetChange={widgetUpdate}
       >
-        <MeetingTitleBar />
         <div className="lk-video-conference-inner">
           {!focusTrack ? (
             <div className="lk-grid-layout-wrapper">
@@ -145,18 +145,39 @@ function MeetingTitleBar() {
   const [title, setTitle] = React.useState('');
 
   React.useEffect(() => {
-    const parseTitle = () => {
+    const parseTitle = (metadata?: string) => {
       try {
-        const meta = JSON.parse(room.metadata || '{}');
+        const meta = JSON.parse((metadata ?? room.metadata) || '{}');
         setTitle(meta.title || '');
       } catch {
         setTitle('');
       }
     };
+
+    // Parse on mount (may already be connected)
     parseTitle();
+
+    // Listen for metadata changes
     room.on(RoomEvent.RoomMetadataChanged, parseTitle);
+
+    // Also parse when room connects (metadata arrives after connect)
+    const onConnected = () => parseTitle();
+    room.on(RoomEvent.Connected, onConnected);
+
+    // Poll briefly for metadata arrival (backup for race conditions)
+    const interval = setInterval(() => {
+      if (room.metadata) {
+        parseTitle();
+        clearInterval(interval);
+      }
+    }, 500);
+    const timeout = setTimeout(() => clearInterval(interval), 10000);
+
     return () => {
       room.off(RoomEvent.RoomMetadataChanged, parseTitle);
+      room.off(RoomEvent.Connected, onConnected);
+      clearInterval(interval);
+      clearTimeout(timeout);
     };
   }, [room]);
 
