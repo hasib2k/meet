@@ -287,18 +287,22 @@ function AudioConferenceComponent(props: {
   );
 }
 
-/** Watches for host promotion and fetches adminToken automatically */
+/**
+ * Watches for host role and ensures a valid, room-scoped adminToken exists.
+ * Fetches a fresh token on connect, metadata change, and periodically.
+ * Clears stale tokens from previous rooms.
+ */
 function AdminTokenWatcher() {
   const room = React.useContext(RoomContext);
 
   React.useEffect(() => {
     if (!room) return;
 
-    const checkHostPromotion = () => {
+    const fetchAdminToken = () => {
       try {
         const meta = JSON.parse(room.localParticipant.metadata || '{}');
-        if (meta.role === 'host' && !sessionStorage.getItem('adminToken')) {
-          // Promoted to host but no adminToken — fetch one
+        if (meta.role === 'host') {
+          // Always fetch a fresh token — old one may be for a different room
           fetch(`/api/admin-token?roomName=${encodeURIComponent(room.name)}&identity=${encodeURIComponent(room.localParticipant.identity)}`)
             .then((res) => res.ok ? res.json() : null)
             .then((data) => {
@@ -311,13 +315,26 @@ function AdminTokenWatcher() {
       } catch {}
     };
 
-    // Check on metadata change
-    room.localParticipant.on('participantMetadataChanged', checkHostPromotion);
-    // Also check immediately (in case already promoted)
-    checkHostPromotion();
+    // Fetch on metadata change (promotion to host)
+    room.localParticipant.on('participantMetadataChanged', fetchAdminToken);
+
+    // Fetch on room connect
+    const onConnected = () => {
+      // Small delay to ensure metadata is available
+      setTimeout(fetchAdminToken, 1000);
+    };
+    room.on(RoomEvent.Connected, onConnected);
+
+    // Check immediately
+    fetchAdminToken();
+
+    // Refresh periodically (token may expire over long meetings)
+    const refreshInterval = setInterval(fetchAdminToken, 10 * 60 * 1000); // every 10 min
 
     return () => {
-      room.localParticipant.off('participantMetadataChanged', checkHostPromotion);
+      room.localParticipant.off('participantMetadataChanged', fetchAdminToken);
+      room.off(RoomEvent.Connected, onConnected);
+      clearInterval(refreshInterval);
     };
   }, [room]);
 
