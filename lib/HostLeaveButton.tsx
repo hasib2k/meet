@@ -50,6 +50,7 @@ export function HostLeaveButton() {
 
   const handleLeave = () => {
     setShowMenu(false);
+    sessionStorage.removeItem('adminToken');
     room.disconnect();
     router.push('/');
   };
@@ -64,6 +65,7 @@ export function HostLeaveButton() {
         body: JSON.stringify({ action: 'end_room', roomName: room.name }),
       });
     } catch {}
+    sessionStorage.removeItem('adminToken');
     room.disconnect();
     router.push('/');
   };

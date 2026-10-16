@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
+import { verifyAdminToken } from '@/lib/adminAuth';
+import { validateRoomName } from '@/lib/validation';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
 const API_SECRET = process.env.LIVEKIT_API_SECRET!;
@@ -10,16 +12,54 @@ function getHttpUrl(wsUrl: string): string {
   return wsUrl.replace('wss://', 'https://').replace('ws://', 'http://');
 }
 
-function verifyAdmin(request: NextRequest): boolean {
+// Basic in-memory rate limiting for the admin endpoint.
+// TODO: For production, replace with a Redis-based rate limiter that works
+// across multiple server instances and survives restarts.
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 30; // max requests per window
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+/**
+ * Verify admin access via either:
+ * 1. Room-scoped HMAC token (used by in-meeting host controls) - preferred
+ * 2. Raw admin password (used by the admin dashboard page) - fallback
+ */
+function verifyAdmin(request: NextRequest, roomName: string): boolean {
   const authHeader = request.headers.get('authorization');
   if (!authHeader) return false;
-  const password = authHeader.replace('Bearer ', '');
-  return password === ADMIN_PASSWORD;
+  const token = authHeader.replace('Bearer ', '');
+
+  // Try HMAC verification first (room-scoped, time-limited)
+  if (roomName && verifyAdminToken(token, roomName)) {
+    return true;
+  }
+
+  // Fallback: raw password check for the admin dashboard
+  // The admin dashboard is already behind NextAuth middleware (/admin/:path*)
+  return token === ADMIN_PASSWORD;
 }
 
 // GET: List active rooms and participants
 export async function GET(request: NextRequest) {
-  if (!verifyAdmin(request)) {
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  if (isRateLimited(ip)) {
+    return new NextResponse('Too many requests', { status: 429 });
+  }
+
+  // For GET (listing rooms), accept either HMAC for a specific room or raw password for dashboard
+  const roomName = request.nextUrl.searchParams.get('roomName') || '';
+  if (!verifyAdmin(request, roomName)) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -64,13 +104,25 @@ export async function GET(request: NextRequest) {
 
 // POST: Admin actions (create room, end room, etc.)
 export async function POST(request: NextRequest) {
-  if (!verifyAdmin(request)) {
-    return new NextResponse('Unauthorized', { status: 401 });
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  if (isRateLimited(ip)) {
+    return new NextResponse('Too many requests', { status: 429 });
   }
 
   try {
     const body = await request.json();
     const { action, roomName, identity } = body;
+
+    // Validate roomName
+    if (!validateRoomName(roomName)) {
+      return new NextResponse('Invalid roomName', { status: 400 });
+    }
+
+    // Verify admin token is valid for this specific room
+    if (!verifyAdmin(request, roomName)) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY, API_SECRET);
 
     switch (action) {

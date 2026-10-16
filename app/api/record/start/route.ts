@@ -1,19 +1,25 @@
 import { EgressClient, EncodedFileOutput, S3Upload } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminToken } from '@/lib/adminAuth';
+import { validateRoomName } from '@/lib/validation';
 
 export async function GET(req: NextRequest) {
   try {
     const roomName = req.nextUrl.searchParams.get('roomName');
 
-    /**
-     * CAUTION:
-     * for simplicity this implementation does not authenticate users and therefore allows anyone with knowledge of a roomName
-     * to start/stop recordings for that room.
-     * DO NOT USE THIS FOR PRODUCTION PURPOSES AS IS
-     */
-
     if (roomName === null) {
       return new NextResponse('Missing roomName parameter', { status: 403 });
+    }
+
+    if (!validateRoomName(roomName)) {
+      return new NextResponse('Invalid roomName', { status: 400 });
+    }
+
+    // Verify the caller is an authorized host for this room
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '') || '';
+    if (!verifyAdminToken(token, roomName)) {
+      return new NextResponse('Unauthorized: only hosts can start recording', { status: 401 });
     }
 
     const {

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { validateRoomName } from '@/lib/validation';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
 const API_SECRET = process.env.LIVEKIT_API_SECRET!;
@@ -11,10 +14,20 @@ function getHttpUrl(wsUrl: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify the request comes from an authenticated user
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     const { roomName, identity, raised } = await request.json();
 
     if (!roomName || !identity) {
       return new NextResponse('Missing roomName or identity', { status: 400 });
+    }
+
+    if (!validateRoomName(roomName)) {
+      return new NextResponse('Invalid roomName', { status: 400 });
     }
 
     const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY, API_SECRET);
