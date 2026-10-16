@@ -984,12 +984,12 @@ h2 a {
   border-radius: 0.25rem;
 }
 
-/* Floating "You" thumbnail */
+/* Floating "You" thumbnail - mobile only (desktop uses lk-self-view) */
 .you-thumbnail {
   position: fixed;
   bottom: calc(var(--lk-control-bar-height, 69px) + 1rem);
   left: 1rem;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem;
@@ -1210,6 +1210,7 @@ h2 a {
   }
 
   .you-thumbnail {
+    display: flex;
     bottom: calc(var(--lk-control-bar-height, 56px) + 0.5rem);
     left: 0.5rem;
   }
