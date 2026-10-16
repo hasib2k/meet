@@ -1069,7 +1069,7 @@ footer a:hover {
     background: #1e1e32;
     border: none;
     border-radius: 20px;
-    color: #ff8a8a;
+    color: #e6e9f5;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -1085,12 +1085,16 @@ footer a:hover {
   .mobile-profile-menu-item svg {
     width: 18px;
     height: 18px;
-    color: #ff8a8a;
     flex-shrink: 0;
     padding: 10px;
     border-radius: 12px;
     box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
     box-sizing: content-box;
+  }
+
+  /* Sign out button red */
+  .mobile-profile-menu-item[data-danger] {
+    color: #ff8a8a;
   }
 
   .mobile-profile-footer {
@@ -1099,6 +1103,77 @@ footer a:hover {
     padding: 24px 16px;
     font-size: 12px;
     color: #6b7194;
+  }
+
+  /* Profile name edit (guest mode) */
+  .profile-name-edit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    max-width: 260px;
+    margin-top: 8px;
+  }
+  .profile-name-input {
+    width: 100%;
+    height: 48px;
+    border-radius: 16px;
+    background: #1e2238;
+    box-shadow: inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48;
+    border: none;
+    outline: none;
+    color: #e6e9f5;
+    font-family: inherit;
+    font-size: 16px;
+    text-align: center;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+  .profile-name-input::placeholder {
+    color: #6b7194;
+  }
+  .profile-save-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+    box-shadow: 4px 4px 10px #13162a, -4px -4px 10px #2a2f4c;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    min-width: 80px;
+  }
+  .profile-save-btn:active {
+    box-shadow: inset 4px 4px 8px #4a6fd6, inset -4px -4px 8px #8aaeff;
+  }
+  .profile-cancel-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: 14px;
+    background: #1e2238;
+    box-shadow: 4px 4px 10px #14172a, -4px -4px 10px #282d48;
+    color: #7c83a8;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    min-width: 80px;
+  }
+  .profile-cancel-btn:active {
+    box-shadow: inset 4px 4px 8px #14172a, inset -4px -4px 8px #282d48;
+  }
+
+  /* Profile menu divider */
+  .profile-menu-divider {
+    height: 1px;
+    margin: 4px 16px;
+    background: #282d48;
+    box-shadow: 0 1px 0 #14172a;
   }
 }
 

@@ -43,7 +43,7 @@ function formatTime(ts: number): string {
   return `${h}:${m}`;
 }
 
-export function CustomChat() {
+export function CustomChat({ style }: { style?: React.CSSProperties }) {
   const room = useRoomContext();
   const layoutContext = useMaybeLayoutContext();
   const { send, chatMessages, isSending } = useChat();
@@ -84,7 +84,7 @@ export function CustomChat() {
   };
 
   return (
-    <div className="neo-chat">
+    <div className="neo-chat" style={style}>
       {/* Header */}
       <div className="neo-chat-header">
         <div className="neo-chat-header-left">

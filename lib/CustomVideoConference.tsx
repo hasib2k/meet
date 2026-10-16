@@ -119,7 +119,7 @@ export function CustomVideoConference({
           )}
           <ControlBar variation="minimal" controls={{ chat: true, settings: false, camera: false, screenShare: false, leave: false }} />
         </div>
-        {widgetState.showChat && <CustomChat />}
+        <CustomChat style={{ display: widgetState.showChat ? 'flex' : 'none' }} />
         {SettingsComponent && (
           <div
             className="lk-settings-menu-modal"
