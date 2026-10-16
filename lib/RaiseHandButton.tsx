@@ -71,7 +71,7 @@ export function RaiseHandButton() {
       title={isRaised ? 'Lower hand' : 'Raise hand'}
       aria-pressed={isRaised}
     >
-      <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>&#9995;</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isRaised ? '#fff' : '#a9b0d0'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
       {raisedCount > 0 && !isRaised && (
         <span className="lk-raise-hand-badge">{raisedCount}</span>
       )}

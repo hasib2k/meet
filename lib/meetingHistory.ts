@@ -34,6 +34,12 @@ export function removeMeeting(roomName: string) {
   } catch {}
 }
 
+export function clearAllMeetings() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
+
 export function formatTimeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const mins = Math.floor(diff / 60000);

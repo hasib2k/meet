@@ -3,96 +3,14 @@
 import React, { useState, useCallback } from 'react';
 import { LocalUserChoices } from '@livekit/components-react';
 import { useSession, signIn } from 'next-auth/react';
-
-const containerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '1.5rem',
-  padding: '2.5rem',
-  background: '#1e1e32',
-  border: 'none',
-  borderRadius: '1.5rem',
-  width: '100%',
-  maxWidth: '400px',
-  boxShadow: '8px 8px 20px #151528, -8px -8px 20px #27273c',
-};
-
-const iconStyle: React.CSSProperties = {
-  width: '64px',
-  height: '64px',
-  borderRadius: '50%',
-  background: 'linear-gradient(135deg, #5b8dee, #4a7dd4)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  overflow: 'hidden',
-  boxShadow: '4px 4px 10px #151528, -4px -4px 10px #27273c',
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.875rem',
-  background: 'linear-gradient(145deg, #6394f5, #5280d6)',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '2rem',
-  fontSize: '1rem',
-  fontWeight: 500,
-  cursor: 'pointer',
-  boxShadow: '4px 4px 12px #151528, -2px -2px 8px #27273c',
-};
-
-const googleBtnStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '0.75rem',
-  width: '100%',
-  padding: '0.875rem 1.5rem',
-  background: 'linear-gradient(145deg, #222238, #1b1b2e)',
-  color: '#e8eaed',
-  border: 'none',
-  borderRadius: '2rem',
-  fontSize: '0.95rem',
-  fontWeight: 500,
-  cursor: 'pointer',
-  boxShadow: '4px 4px 12px #151528, -4px -4px 12px #27273c',
-  transition: 'all 0.2s',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.875rem 1rem',
-  background: '#1e1e32',
-  border: 'none',
-  borderRadius: '2rem',
-  color: '#e8eaed',
-  fontSize: '0.95rem',
-  outline: 'none',
-  boxShadow: 'inset 3px 3px 6px #151528, inset -3px -3px 6px #27273c',
-  textAlign: 'center',
-};
-
-const dividerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.75rem',
-  width: '100%',
-  color: 'rgba(255,255,255,0.3)',
-  fontSize: '0.8rem',
-};
-
-const dividerLineStyle: React.CSSProperties = {
-  flex: 1,
-  height: '1px',
-  background: 'rgba(255,255,255,0.1)',
-};
+import { useRouter } from 'next/navigation';
 
 export function AudioOnlyPreJoin(props: {
   onSubmit: (choices: LocalUserChoices & { imageUrl?: string }) => void;
   role?: string;
+  roomName?: string;
 }) {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [guestName, setGuestName] = useState('');
   const [bio, setBio] = useState('');
@@ -101,8 +19,10 @@ export function AudioOnlyPreJoin(props: {
   const isLoggedIn = status === 'authenticated' && session?.user;
   const userName = session?.user?.name || '';
   const userImage = session?.user?.image || '';
+  const userInitials = userName
+    ? userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
 
-  // If already logged in with Google, go directly to Google mode
   React.useEffect(() => {
     if (isLoggedIn && mode === 'choose') {
       setMode('google');
@@ -136,177 +56,255 @@ export function AudioOnlyPreJoin(props: {
   }, [guestName, bio, props.onSubmit]);
 
   const roleLabel = props.role === 'host' ? 'Host' : props.role === 'moderator' ? 'Moderator' : 'Listener';
-  const roleColor = props.role === 'host' ? '#5b8dee' : props.role === 'moderator' ? '#e8a85d' : 'rgba(255,255,255,0.4)';
 
-  // === Google mode: user is logged in, show join button ===
+  // === Google mode (logged in) - New neomorphic lobby design ===
   if (mode === 'google' && isLoggedIn) {
     return (
-      <div style={containerStyle}>
-        <div style={iconStyle}>
-          {userImage ? (
-            <img src={userImage} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <MicIcon />
+      <div className="prejoin-lobby">
+        {/* Top bar: back + room code */}
+        <div className="prejoin-topbar">
+          <button className="prejoin-back-btn" onClick={() => router.push('/')} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div className="prejoin-room-badge">
+            <div className="prejoin-room-dot" />
+            {props.roomName || 'Meeting'}
+          </div>
+          <div style={{ width: 44 }} />
+        </div>
+
+        {/* Center content */}
+        <div className="prejoin-center">
+          {/* Avatar */}
+          <div className="prejoin-avatar-ring">
+            {userImage ? (
+              <img src={userImage} alt="" referrerPolicy="no-referrer" className="prejoin-avatar-img" />
+            ) : (
+              <div className="prejoin-avatar-placeholder">{userInitials}</div>
+            )}
+          </div>
+
+          {/* Greeting */}
+          <div className="prejoin-greeting">
+            <div className="prejoin-greeting-text">Hi, {userName.split(' ')[0]}!</div>
+            <div className="prejoin-badges">
+              <div className="prejoin-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+                Audio-only
+              </div>
+              <div className="prejoin-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
+                Joining as {roleLabel}
+              </div>
+            </div>
+          </div>
+
+          {/* Bio input */}
+          <div className="prejoin-bio-section">
+            <div className="prejoin-bio-label">
+              Short bio <span>(optional)</span>
+            </div>
+            <div className="prejoin-bio-field">
+              <input
+                type="text"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                maxLength={60}
+                placeholder="e.g. Product designer at Parallax"
+                className="prejoin-bio-input"
+              />
+              <span className="prejoin-bio-count">{bio.length}/60</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom: Join button + disclaimer */}
+        <div className="prejoin-bottom">
+          <button className="prejoin-join-btn" onClick={handleGoogleJoin}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Join Meeting
+          </button>
+          {props.role !== 'host' && (
+            <div className="prejoin-disclaimer">
+              You will join as a listener. The host can grant you speaking permission.
+            </div>
           )}
         </div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#fff', margin: 0, textAlign: 'center' }}>
-          Hi, {userName}!
-        </h2>
-        <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
-          Audio-only meeting &middot; Joining as{' '}
-          <span style={{ color: roleColor, fontWeight: 600 }}>{roleLabel}</span>
-        </p>
-        <input
-          type="text"
-          placeholder="Add a short bio (optional)"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          style={{ ...inputStyle, fontSize: '0.85rem' }}
-          maxLength={80}
-        />
-        <button style={buttonStyle} onClick={handleGoogleJoin}>
-          Join Meeting
+      </div>
+    );
+  }
+
+  // === Guest mode ===
+  if (mode === 'guest') {
+    const guestInitials = guestName.trim()
+      ? guestName.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+      : '?';
+
+    return (
+      <div className="prejoin-lobby">
+        <div className="prejoin-topbar">
+          <button className="prejoin-back-btn" onClick={() => setMode('choose')} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div className="prejoin-room-badge">
+            <div className="prejoin-room-dot" />
+            {props.roomName || 'Meeting'}
+          </div>
+          <div style={{ width: 44 }} />
+        </div>
+
+        <div className="prejoin-center">
+          <div className="prejoin-avatar-ring">
+            <div className="prejoin-avatar-placeholder">{guestInitials}</div>
+          </div>
+
+          <div className="prejoin-greeting">
+            <div className="prejoin-greeting-text">Join as Guest</div>
+            <div className="prejoin-badges">
+              <div className="prejoin-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+                Audio-only
+              </div>
+              <div className="prejoin-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
+                Joining as {roleLabel}
+              </div>
+            </div>
+          </div>
+
+          {/* Name input */}
+          <div className="prejoin-bio-section">
+            <div className="prejoin-bio-label">Your name</div>
+            <div className="prejoin-bio-field">
+              <input
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleGuestJoin()}
+                maxLength={50}
+                placeholder="Enter your name"
+                className="prejoin-bio-input"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {/* Bio input */}
+          <div className="prejoin-bio-section">
+            <div className="prejoin-bio-label">
+              Short bio <span>(optional)</span>
+            </div>
+            <div className="prejoin-bio-field">
+              <input
+                type="text"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                maxLength={60}
+                placeholder="e.g. Product designer at Parallax"
+                className="prejoin-bio-input"
+              />
+              <span className="prejoin-bio-count">{bio.length}/60</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="prejoin-bottom">
+          <button
+            className="prejoin-join-btn"
+            onClick={handleGuestJoin}
+            disabled={!guestName.trim()}
+            style={{ opacity: guestName.trim() ? 1 : 0.5 }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Join Meeting
+          </button>
+          {props.role !== 'host' && (
+            <div className="prejoin-disclaimer">
+              You will join as a listener. The host can grant you speaking permission.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // === Choose mode: Google or Guest ===
+  return (
+    <div className="prejoin-lobby">
+      <div className="prejoin-topbar">
+        <button className="prejoin-back-btn" onClick={() => router.push('/')} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-        {props.role === 'listener' && (
-          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>
+        <div className="prejoin-room-badge">
+          <div className="prejoin-room-dot" />
+          {props.roomName || 'Meeting'}
+        </div>
+        <div style={{ width: 44 }} />
+      </div>
+
+      <div className="prejoin-center">
+        <div className="prejoin-avatar-ring">
+          <div className="prejoin-avatar-placeholder">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+          </div>
+        </div>
+
+        <div className="prejoin-greeting">
+          <div className="prejoin-greeting-text">Join Meeting</div>
+          <div className="prejoin-badges">
+            <div className="prejoin-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+              Audio-only
+            </div>
+            <div className="prejoin-badge">
+              Joining as {roleLabel}
+            </div>
+          </div>
+        </div>
+
+        {/* Google sign in */}
+        <button
+          className="prejoin-auth-btn"
+          onClick={() => {
+            if (isLoggedIn) {
+              setMode('google');
+            } else {
+              signIn('google', { callbackUrl: window.location.href });
+            }
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+          </svg>
+          Continue with Google
+        </button>
+
+        {/* Divider */}
+        <div className="prejoin-divider">
+          <div className="prejoin-divider-line" />
+          <span>or</span>
+          <div className="prejoin-divider-line" />
+        </div>
+
+        {/* Guest */}
+        <button className="prejoin-auth-btn guest" onClick={() => setMode('guest')}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>
+          </svg>
+          Enter your name &amp; join
+        </button>
+      </div>
+
+      <div className="prejoin-bottom">
+        {props.role !== 'host' && (
+          <div className="prejoin-disclaimer">
             You will join as a listener. The host can grant you speaking permission.
-          </p>
+          </div>
         )}
       </div>
-    );
-  }
-
-  // === Guest mode: enter name and join ===
-  if (mode === 'guest') {
-    return (
-      <div style={containerStyle}>
-        <div style={iconStyle}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
-        </div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#fff', margin: 0, textAlign: 'center' }}>
-          Join as Guest
-        </h2>
-        <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
-          Joining as{' '}
-          <span style={{ color: roleColor, fontWeight: 600 }}>{roleLabel}</span>
-        </p>
-        <input
-          type="text"
-          placeholder="Enter your name"
-          value={guestName}
-          onChange={(e) => setGuestName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleGuestJoin()}
-          style={inputStyle}
-          maxLength={50}
-          autoFocus
-        />
-        <input
-          type="text"
-          placeholder="Add a short bio (optional)"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          style={{ ...inputStyle, fontSize: '0.85rem' }}
-          maxLength={80}
-        />
-        <button
-          style={{
-            ...buttonStyle,
-            opacity: guestName.trim() ? 1 : 0.5,
-            cursor: guestName.trim() ? 'pointer' : 'not-allowed',
-          }}
-          onClick={handleGuestJoin}
-          disabled={!guestName.trim()}
-        >
-          Join Meeting
-        </button>
-        <button
-          onClick={() => setMode('choose')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'rgba(255,255,255,0.4)',
-            fontSize: '0.8rem',
-            cursor: 'pointer',
-            padding: 0,
-          }}
-        >
-          ← Back
-        </button>
-      </div>
-    );
-  }
-
-  // === Choose mode: show both options ===
-  return (
-    <div style={containerStyle}>
-      <div style={iconStyle}>
-        <MicIcon />
-      </div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#fff', margin: 0, textAlign: 'center' }}>
-        Join Meeting
-      </h2>
-      <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
-        Audio-only meeting &middot; Joining as{' '}
-        <span style={{ color: roleColor, fontWeight: 600 }}>{roleLabel}</span>
-      </p>
-
-      {/* Option 1: Continue with Google */}
-      <button
-        style={googleBtnStyle}
-        onClick={() => {
-          if (isLoggedIn) {
-            setMode('google');
-          } else {
-            signIn('google', { callbackUrl: window.location.href });
-          }
-        }}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-        </svg>
-        <span>Continue with Google</span>
-      </button>
-
-      {/* Divider */}
-      <div style={dividerStyle}>
-        <div style={dividerLineStyle} />
-        <span>or</span>
-        <div style={dividerLineStyle} />
-      </div>
-
-      {/* Option 2: Guest */}
-      <button
-        style={{
-          ...googleBtnStyle,
-          background: 'linear-gradient(145deg, #1e1e32, #1a1a2e)',
-        }}
-        onClick={() => setMode('guest')}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-        </svg>
-        <span>Enter your name &amp; join</span>
-      </button>
-
-      {props.role === 'listener' && (
-        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>
-          You will join as a listener. The host can grant you speaking permission.
-        </p>
-      )}
     </div>
-  );
-}
-
-function MicIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-    </svg>
   );
 }

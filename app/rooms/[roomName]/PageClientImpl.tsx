@@ -9,7 +9,6 @@ import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { ConnectionDetails } from '@/lib/types';
 import {
-  formatChatMessageLinks,
   LocalUserChoices,
   RoomContext,
   useParticipants,
@@ -53,6 +52,12 @@ export function PageClientImpl(props: {
     undefined,
   );
   const [roomExpired, setRoomExpired] = React.useState(false);
+  // Track if we're attempting auto-rejoin to avoid flashing the pre-join page
+  const [isAutoRejoining, setIsAutoRejoining] = React.useState(() => {
+    try {
+      return !!sessionStorage.getItem(`rejoin_${props.roomName}`);
+    } catch { return false; }
+  });
 
   React.useEffect(() => {
     if (props.serverUrl) {
@@ -62,6 +67,14 @@ export function PageClientImpl(props: {
 
   const handlePreJoinSubmit = React.useCallback(async (values: LocalUserChoices & { imageUrl?: string }) => {
     setPreJoinChoices(values);
+    // Save choices so we can auto-rejoin on reload
+    try {
+      sessionStorage.setItem(`rejoin_${props.roomName}`, JSON.stringify({
+        username: values.username,
+        imageUrl: values.imageUrl,
+        bio: (values as any).bio,
+      }));
+    } catch {}
     const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
     url.searchParams.append('roomName', props.roomName);
     url.searchParams.append('participantName', values.username);
@@ -79,6 +92,7 @@ export function PageClientImpl(props: {
     const connectionDetailsData = await connectionDetailsResp.json();
     if (connectionDetailsData.error === 'room_ended') {
       setRoomExpired(true);
+      sessionStorage.removeItem(`rejoin_${props.roomName}`);
       return;
     }
     if (connectionDetailsData.adminToken) {
@@ -87,6 +101,32 @@ export function PageClientImpl(props: {
     setConnectionDetails(connectionDetailsData);
     saveMeeting(props.roomName, props.role);
   }, [props.roomName, props.region, props.role]);
+
+  // Auto-rejoin on page reload if user was previously in this room
+  const autoRejoinAttempted = React.useRef(false);
+  React.useEffect(() => {
+    if (autoRejoinAttempted.current || preJoinChoices) return;
+    autoRejoinAttempted.current = true;
+    try {
+      const saved = sessionStorage.getItem(`rejoin_${props.roomName}`);
+      if (saved) {
+        const data = JSON.parse(saved);
+        handlePreJoinSubmit({
+          username: data.username,
+          videoEnabled: false,
+          audioEnabled: true,
+          videoDeviceId: '',
+          audioDeviceId: '',
+          imageUrl: data.imageUrl,
+          bio: data.bio,
+        } as any).catch(() => setIsAutoRejoining(false));
+      } else {
+        setIsAutoRejoining(false);
+      }
+    } catch {
+      setIsAutoRejoining(false);
+    }
+  }, [props.roomName, preJoinChoices, handlePreJoinSubmit]);
 
   if (roomExpired) {
     return (
@@ -144,12 +184,61 @@ export function PageClientImpl(props: {
   return (
     <main data-lk-theme="default" style={{ height: '100%' }}>
       {connectionDetails === undefined || preJoinChoices === undefined ? (
-        <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
-          <AudioOnlyPreJoin
-            onSubmit={handlePreJoinSubmit}
-            role={props.role}
-          />
+        isAutoRejoining ? (
+          /* Show a minimal loading screen while auto-reconnecting (prevents pre-join flash) */
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#1e2238' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: 48, height: 48, border: '3px solid #282d48', borderTopColor: '#6f97ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <div style={{ color: '#7c83a8', fontSize: 14 }}>Reconnecting...</div>
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#1e2238' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: '100px' }}>
+            <AudioOnlyPreJoin
+              onSubmit={handlePreJoinSubmit}
+              role={props.role}
+              roomName={props.roomName}
+            />
+          </div>
+          {/* Mobile Bottom Navigation */}
+          <div className="mobile-nav-wrap prejoin-nav-wrap">
+            <nav className="mobile-bottom-nav">
+              <div className="bottom-nav-item active">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                </svg>
+                <span>Meet</span>
+              </div>
+              <div className="bottom-nav-item">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                </svg>
+                <span>Calls</span>
+              </div>
+              <div className="bottom-nav-item">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                </svg>
+                <span>Groups</span>
+              </div>
+              <div className="bottom-nav-item">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+                <span>Chat</span>
+              </div>
+              <div className="bottom-nav-item">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                <span>Profile</span>
+              </div>
+            </nav>
+          </div>
         </div>
+        )
       ) : (
         <AudioConferenceComponent
           connectionDetails={connectionDetails}
@@ -257,7 +346,18 @@ function AudioConferenceComponent(props: {
   }, [e2eeSetupComplete, room, props.connectionDetails, props.userChoices, props.role]);
 
   const router = useRouter();
-  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
+  const handleOnLeave = React.useCallback(() => {
+    // Clear auto-rejoin data so user doesn't auto-join after leaving
+    const roomName = props.connectionDetails.serverUrl ? '' : '';
+    try {
+      // Clear all rejoin keys for this session
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key?.startsWith('rejoin_')) sessionStorage.removeItem(key);
+      }
+    } catch {}
+    router.push('/');
+  }, [router]);
   const handleError = React.useCallback((error: Error) => {
     console.error(error);
     alert(`Error: ${error.message}`);
@@ -273,7 +373,6 @@ function AudioConferenceComponent(props: {
         <PinnedProvider>
           <KeyboardShortcuts />
           <CustomVideoConference
-            chatMessageFormatter={formatChatMessageLinks}
             SettingsComponent={SettingsMenu}
           />
           <RaiseHandButton />
@@ -438,17 +537,10 @@ function ParticipantProfileImages() {
 
   React.useEffect(() => {
     const injectAndReorder = () => {
-      // 0. Hide local participant tile (shown as floating "You" thumbnail instead)
+      // 0. Collect all tiles, ensure all visible
       const allTiles = document.querySelectorAll('.lk-participant-tile');
-      const hasOthers = participants.length > 1;
       allTiles.forEach((tile) => {
-        const nameEl = tile.querySelector('.lk-participant-name');
-        const name = nameEl?.textContent?.trim() || '';
-        if (hasOthers && name === localName) {
-          (tile as HTMLElement).style.display = 'none';
-        } else {
-          (tile as HTMLElement).style.display = '';
-        }
+        (tile as HTMLElement).style.display = '';
       });
 
       // 1. Inject profile images
@@ -469,8 +561,9 @@ function ParticipantProfileImages() {
         img.alt = '';
         img.className = 'profile-img-overlay';
         img.referrerPolicy = 'no-referrer';
-        img.style.cssText = 'width:200px;height:200px;object-fit:cover;border-radius:50%;';
-        el.style.cssText = 'display:flex;align-items:center;justify-content:center;';
+        // Don't override placeholder styles - CSS handles positioning
+        // Just insert the 56px image directly (placeholder acts as the 72px ring)
+        img.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:50%;box-shadow:3px 3px 7px #13162a;';
         el.appendChild(img);
       });
 
@@ -483,7 +576,7 @@ function ParticipantProfileImages() {
           if (!existing) {
             const span = document.createElement('span');
             span.className = 'hand-raised-indicator';
-            span.textContent = '\u270B';
+            span.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e2238" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>';
             (tile as HTMLElement).style.position = 'relative';
             tile.appendChild(span);
           }
@@ -516,18 +609,46 @@ function ParticipantProfileImages() {
         }
       });
 
-      // 4. Inject 3-dot buttons on tiles (host only, not on own tile)
+      // 4. Rename local user tile to "You" (after all lookups by original name are done)
+      allTiles.forEach((tile) => {
+        const nameEl = tile.querySelector('.lk-participant-name');
+        const name = nameEl?.textContent?.trim() || '';
+        if (name === localName && nameEl) {
+          nameEl.textContent = 'You';
+        }
+      });
+
+      // 4b. Marquee scroll for overflowing name / bio text
+      allTiles.forEach((tile) => {
+        const els = tile.querySelectorAll('.lk-participant-name, .tile-bio-text');
+        els.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          // Skip if already has marquee
+          if (htmlEl.querySelector('.marquee-scroll')) return;
+          // Check if text overflows its container
+          if (htmlEl.scrollWidth > htmlEl.clientWidth + 2) {
+            const text = htmlEl.textContent || '';
+            htmlEl.textContent = '';
+            const span = document.createElement('span');
+            span.className = 'marquee-scroll';
+            span.textContent = text + '\u00A0\u00A0\u00A0\u2022\u00A0\u00A0\u00A0' + text + '\u00A0\u00A0\u00A0\u2022\u00A0\u00A0\u00A0';
+            htmlEl.appendChild(span);
+          }
+        });
+      });
+
+      // 5. Inject 3-dot buttons on tiles (host only, not on own tile)
       if (isHost) {
         allTiles.forEach((tile) => {
           const nameEl = tile.querySelector('.lk-participant-name');
           const name = nameEl?.textContent?.trim() || '';
-          if (name === localName) return;
+          if (name === 'You') return;
 
           let dotBtn = tile.querySelector('.tile-three-dot-btn') as HTMLButtonElement;
           if (!dotBtn) {
             dotBtn = document.createElement('button');
             dotBtn.className = 'tile-three-dot-btn';
-            dotBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+            dotBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#a9b0d0"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
             (tile as HTMLElement).style.position = 'relative';
             tile.appendChild(dotBtn);
           }
@@ -552,9 +673,7 @@ function ParticipantProfileImages() {
     return () => clearInterval(interval);
   }, [imageMap, handRaisedMap, bioMap, localName, participants.length, isHost]);
 
-  // Floating "You" thumbnail
-  const localImageUrl = imageMap.get(localName);
-  const hasOthers = participants.length > 1;
+  // (You thumbnail removed — local user shown in main grid as "You")
 
   // Find the participant info for the open tile menu
   const menuParticipant = React.useMemo(() => {
@@ -569,25 +688,6 @@ function ParticipantProfileImages() {
 
   return (
     <>
-      {/* Floating "You" thumbnail */}
-      {hasOthers && (
-        <div className="you-thumbnail">
-          {localImageUrl ? (
-            <img
-              src={localImageUrl}
-              alt=""
-              referrerPolicy="no-referrer"
-              className="you-thumbnail-img"
-            />
-          ) : (
-            <div className="you-thumbnail-placeholder">
-              {localName.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <span className="you-thumbnail-label">You</span>
-        </div>
-      )}
-
       {/* Tile 3-dot dropdown menu (portal) */}
       {tileMenuId && menuParticipant && createPortal(
         <div
