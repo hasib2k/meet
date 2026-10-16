@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
 import { validateRoomName } from '@/lib/validation';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
@@ -14,12 +12,6 @@ function getHttpUrl(wsUrl: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify the request comes from an authenticated user
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
     const { roomName, identity, raised } = await request.json();
 
     if (!roomName || !identity) {
