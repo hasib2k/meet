@@ -305,6 +305,18 @@ export default function AdminPage() {
                           Mute
                         </button>
                       )}
+                      {p.role !== 'host' && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Make ${p.name || p.identity} a host?`)) {
+                              doAction('make_host', room.name, p.identity);
+                            }
+                          }}
+                          style={{ ...pageStyles.btnTiny, background: '#3b5998' }}
+                        >
+                          Make Host
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           if (confirm(`Remove ${p.name || p.identity}?`)) {
