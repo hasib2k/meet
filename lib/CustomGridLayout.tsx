@@ -4,7 +4,6 @@ import * as React from 'react';
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-react';
 import {
   useGridLayout,
-  usePagination,
   useSwipe,
   TrackLoop,
 } from '@livekit/components-react';
@@ -35,10 +34,12 @@ export interface CustomGridLayoutProps extends React.HTMLAttributes<HTMLDivEleme
 /**
  * Drop-in replacement for LiveKit's GridLayout that uses custom grid layout
  * thresholds to show more tiles on mobile screens.
+ * Uses manual pagination to preserve pinned-first sort order.
  */
 export function CustomGridLayout({ tracks, children, ...props }: CustomGridLayoutProps) {
   const gridEl = React.createRef<HTMLDivElement>();
   const { pinnedIds } = usePinned();
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   // Build keys that change when speaking/pin state changes, so sort re-runs
   const speakingKey = tracks
@@ -63,33 +64,52 @@ export function CustomGridLayout({ tracks, children, ...props }: CustomGridLayou
   const { layout } = useGridLayout(gridEl, sortedTracks.length, {
     gridLayouts: CUSTOM_GRID_LAYOUTS,
   });
-  const pagination = usePagination(layout.maxTiles, sortedTracks);
+
+  // Manual pagination that preserves sort order
+  const maxTiles = layout.maxTiles;
+  const totalPageCount = Math.max(1, Math.ceil(sortedTracks.length / maxTiles));
+
+  // Clamp current page when tracks change
+  React.useEffect(() => {
+    setCurrentPage((prev) => Math.min(prev, totalPageCount));
+  }, [totalPageCount]);
+
+  const startIdx = (currentPage - 1) * maxTiles;
+  const pageTracks = sortedTracks.slice(startIdx, startIdx + maxTiles);
+
+  const nextPage = React.useCallback(() => {
+    setCurrentPage((prev) => (prev < totalPageCount ? prev + 1 : 1));
+  }, [totalPageCount]);
+
+  const prevPage = React.useCallback(() => {
+    setCurrentPage((prev) => (prev > 1 ? prev - 1 : totalPageCount));
+  }, [totalPageCount]);
 
   useSwipe(gridEl, {
-    onLeftSwipe: pagination.nextPage,
-    onRightSwipe: pagination.prevPage,
+    onLeftSwipe: nextPage,
+    onRightSwipe: prevPage,
   });
 
   return (
     <div
       ref={gridEl}
-      data-lk-pagination={pagination.totalPageCount > 1}
+      data-lk-pagination={totalPageCount > 1}
       {...props}
       className={`lk-grid-layout ${props.className || ''}`}
     >
-      <TrackLoop tracks={pagination.tracks}>{children}</TrackLoop>
-      {tracks.length > layout.maxTiles && (
+      <TrackLoop tracks={pageTracks}>{children}</TrackLoop>
+      {totalPageCount > 1 && (
         <>
           <PaginationIndicator
-            totalPageCount={pagination.totalPageCount}
-            currentPage={pagination.currentPage}
+            totalPageCount={totalPageCount}
+            currentPage={currentPage}
           />
           <PaginationControl
             pagesContainer={gridEl}
-            totalPageCount={pagination.totalPageCount}
-            currentPage={pagination.currentPage}
-            nextPage={pagination.nextPage}
-            prevPage={pagination.prevPage}
+            totalPageCount={totalPageCount}
+            currentPage={currentPage}
+            nextPage={nextPage}
+            prevPage={prevPage}
           />
         </>
       )}
