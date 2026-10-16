@@ -274,6 +274,7 @@ function AudioConferenceComponent(props: {
           />
           <RaiseHandButton />
           <HostLeaveButton />
+          <AdminTokenWatcher />
           <ParticipantsSidebar />
           <ParticipantProfileImages />
           <DebugMode />
@@ -282,6 +283,43 @@ function AudioConferenceComponent(props: {
       </RoomContext.Provider>
     </div>
   );
+}
+
+/** Watches for host promotion and fetches adminToken automatically */
+function AdminTokenWatcher() {
+  const room = React.useContext(RoomContext);
+
+  React.useEffect(() => {
+    if (!room) return;
+
+    const checkHostPromotion = () => {
+      try {
+        const meta = JSON.parse(room.localParticipant.metadata || '{}');
+        if (meta.role === 'host' && !sessionStorage.getItem('adminToken')) {
+          // Promoted to host but no adminToken — fetch one
+          fetch(`/api/admin-token?roomName=${encodeURIComponent(room.name)}&identity=${encodeURIComponent(room.localParticipant.identity)}`)
+            .then((res) => res.ok ? res.json() : null)
+            .then((data) => {
+              if (data?.adminToken) {
+                sessionStorage.setItem('adminToken', data.adminToken);
+              }
+            })
+            .catch(() => {});
+        }
+      } catch {}
+    };
+
+    // Check on metadata change
+    room.localParticipant.on('participantMetadataChanged', checkHostPromotion);
+    // Also check immediately (in case already promoted)
+    checkHostPromotion();
+
+    return () => {
+      room.localParticipant.off('participantMetadataChanged', checkHostPromotion);
+    };
+  }, [room]);
+
+  return null;
 }
 
 /** Replaces default placeholder avatars with Google profile images */

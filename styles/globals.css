@@ -635,6 +635,19 @@ h2 a {
   .lk-participants-panel {
     width: 100%;
   }
+
+  .lk-participant-row {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.5rem;
+  }
+
+  .participant-name {
+    max-width: 15ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 /* ===== Neomorphism Style for Meeting Room ===== */

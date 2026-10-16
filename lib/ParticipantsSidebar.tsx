@@ -234,7 +234,7 @@ export function ParticipantsSidebar() {
             <div className="lk-participant-row">
               <Avatar imageUrl={localImageUrl} name={room.localParticipant.name || room.localParticipant.identity} isSpeaking={room.localParticipant.isSpeaking} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="participant-name" style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {room.localParticipant.name || room.localParticipant.identity}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: getRoleColor(localRole), marginTop: '0.125rem' }}>
@@ -249,7 +249,7 @@ export function ParticipantsSidebar() {
                 <Avatar imageUrl={p.imageUrl} name={p.name} isSpeaking={p.isSpeaking} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    {p.name}
+                    <span className="participant-name">{p.name}</span>
                     {p.isHandRaised && (
                       <span style={{ fontSize: '0.85rem', flexShrink: 0 }} title="Hand raised">&#9995;</span>
                     )}
