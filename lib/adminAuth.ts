@@ -9,7 +9,7 @@
 import crypto from 'crypto';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'admin123';
-const TOKEN_EXPIRY_SECONDS = 300; // 5 minutes
+const TOKEN_EXPIRY_SECONDS = 86400; // 24 hours (matches session maxAge)
 
 export function generateAdminToken(roomName: string): string {
   const timestamp = Math.floor(Date.now() / 1000);

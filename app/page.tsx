@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import React, { Suspense, useState, useEffect } from 'react';
-import { generateRoomId } from '@/lib/client-utils';
 import { useSession, signOut } from 'next-auth/react';
 import { getMeetingHistory, saveMeeting, removeMeeting, formatTimeAgo, type MeetingRecord } from '@/lib/meetingHistory';
 
@@ -19,19 +18,13 @@ function HomeContent() {
   const handleJoinMeeting = () => {
     if (roomCode.trim()) {
       saveMeeting(roomCode.trim(), 'listener');
-      router.push(`/rooms/${roomCode.trim()}`);
+      router.push(`/rooms/${roomCode.trim()}?role=listener`);
     }
-  };
-
-  const handleNewMeeting = () => {
-    const roomId = generateRoomId();
-    saveMeeting(roomId, 'host');
-    router.push(`/rooms/${roomId}?role=host`);
   };
 
   const handleRejoin = (roomName: string, role: string) => {
     saveMeeting(roomName, role);
-    router.push(`/rooms/${roomName}${role === 'host' ? '?role=host' : ''}`);
+    router.push(`/rooms/${roomName}`);
   };
 
   const handleRemove = (roomName: string) => {
@@ -111,13 +104,6 @@ function HomeContent() {
               Built for large meetings with up to 2,500 participants.
             </p>
             <div className="home-actions">
-              <button className="btn-primary" onClick={handleNewMeeting}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-                </svg>
-                New Meeting
-              </button>
-              <span className="divider-text">or</span>
               <div className="join-input-group">
                 <input
                   type="text"

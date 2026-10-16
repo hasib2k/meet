@@ -10,6 +10,7 @@ import {
   validateImageUrl,
   validateMetadataSize,
 } from '@/lib/validation';
+import { isRoomEnded } from '@/lib/endedRooms';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -52,6 +53,14 @@ export async function GET(request: NextRequest) {
     }
     if (!validateMetadataSize(metadata)) {
       return new NextResponse('Metadata too large: max 4096 bytes', { status: 400 });
+    }
+
+    // Check if room has been ended
+    if (isRoomEnded(roomName!)) {
+      return NextResponse.json(
+        { error: 'room_ended', message: 'This meeting has expired. Please contact the admin for a new meeting room.' },
+        { status: 410 },
+      );
     }
 
     const livekitServerUrl = region ? getLiveKitURL(LIVEKIT_URL, region) : LIVEKIT_URL;

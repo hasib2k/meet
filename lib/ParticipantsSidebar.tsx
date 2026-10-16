@@ -12,6 +12,7 @@ export function ParticipantsSidebar() {
   const [actionMsg, setActionMsg] = useState('');
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { pinnedIds, togglePin, isPinned } = usePinned();
 
   // Current user role
@@ -46,8 +47,15 @@ export function ParticipantsSidebar() {
       };
     });
 
+  // Filter by search query
+  const filteredParticipants = searchQuery.trim()
+    ? otherParticipants.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : otherParticipants;
+
   // Sort: hand raised first, then pinned, then speaking, then rest
-  const sortedParticipants = [...otherParticipants].sort((a, b) => {
+  const sortedParticipants = [...filteredParticipants].sort((a, b) => {
     if (a.isHandRaised !== b.isHandRaised) return a.isHandRaised ? -1 : 1;
     if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
     if (a.isSpeaking !== b.isSpeaking) return a.isSpeaking ? -1 : 1;
@@ -156,6 +164,27 @@ export function ParticipantsSidebar() {
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
             </button>
+          </div>
+
+          {/* Search bar */}
+          <div style={{ padding: '0.5rem 0.75rem' }}>
+            <input
+              type="text"
+              placeholder="Search participants..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem',
+                background: '#1e1e32',
+                border: 'none',
+                borderRadius: '1.5rem',
+                color: '#e8eaed',
+                fontSize: '0.8rem',
+                outline: 'none',
+                boxShadow: 'inset 2px 2px 5px #151528, inset -2px -2px 5px #27273c',
+              }}
+            />
           </div>
 
           <div className="lk-participants-list">
@@ -288,6 +317,16 @@ export function ParticipantsSidebar() {
                           style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#e8a85d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
                         >
                           Mute
+                        </button>
+                      )}
+                      {p.role !== 'host' && (
+                        <button
+                          className="lk-button"
+                          onClick={() => { if (confirm(`Make ${p.name} a Host?`)) doAction('make_host', p.identity); }}
+                          disabled={loadingAction === p.identity}
+                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#5b8dee', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
+                        >
+                          Make Host
                         </button>
                       )}
                       <button

@@ -51,6 +51,7 @@ export function PageClientImpl(props: {
   const [connectionDetails, setConnectionDetails] = React.useState<ConnectionDetails | undefined>(
     undefined,
   );
+  const [roomExpired, setRoomExpired] = React.useState(false);
 
   React.useEffect(() => {
     if (props.serverUrl) {
@@ -72,12 +73,69 @@ export function PageClientImpl(props: {
     }
     const connectionDetailsResp = await fetch(url.toString());
     const connectionDetailsData = await connectionDetailsResp.json();
+    if (connectionDetailsData.error === 'room_ended') {
+      setRoomExpired(true);
+      return;
+    }
     if (connectionDetailsData.adminToken) {
       sessionStorage.setItem('adminToken', connectionDetailsData.adminToken);
     }
     setConnectionDetails(connectionDetailsData);
     saveMeeting(props.roomName, props.role);
   }, [props.roomName, props.region, props.role]);
+
+  if (roomExpired) {
+    return (
+      <main data-lk-theme="default" style={{ height: '100%' }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          gap: '1.25rem',
+          padding: '2rem',
+          textAlign: 'center',
+        }}>
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: 'rgba(255,100,100,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#ff6b6b">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+            </svg>
+          </div>
+          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 500, margin: 0 }}>
+            Meeting Expired
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', margin: 0, maxWidth: 400 }}>
+            This meeting has ended and is no longer available. Please contact the admin for a new meeting room.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            style={{
+              marginTop: '0.5rem',
+              padding: '0.75rem 2rem',
+              background: 'linear-gradient(135deg, #5b8dee 0%, #4a7dd4 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '2rem',
+              fontSize: '0.95rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Go to Home
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main data-lk-theme="default" style={{ height: '100%' }}>

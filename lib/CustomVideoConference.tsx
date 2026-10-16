@@ -23,6 +23,7 @@ import {
   usePinnedTracks,
   useTracks,
   isTrackReference,
+  useRoomContext,
 } from '@livekit/components-react';
 import type { MessageFormatter, TrackReferenceOrPlaceholder } from '@livekit/components-react';
 import { CustomGridLayout } from './CustomGridLayout';
@@ -99,6 +100,7 @@ export function CustomVideoConference({
         value={layoutContext}
         onWidgetChange={widgetUpdate}
       >
+        <MeetingTitleBar />
         <div className="lk-video-conference-inner">
           {!focusTrack ? (
             <div className="lk-grid-layout-wrapper">
@@ -133,6 +135,36 @@ export function CustomVideoConference({
       </LayoutContextProvider>
       <RoomAudioRenderer />
       <ConnectionStateToast />
+    </div>
+  );
+}
+
+/** Displays the meeting title from room metadata */
+function MeetingTitleBar() {
+  const room = useRoomContext();
+  const [title, setTitle] = React.useState('');
+
+  React.useEffect(() => {
+    const parseTitle = () => {
+      try {
+        const meta = JSON.parse(room.metadata || '{}');
+        setTitle(meta.title || '');
+      } catch {
+        setTitle('');
+      }
+    };
+    parseTitle();
+    room.on(RoomEvent.RoomMetadataChanged, parseTitle);
+    return () => {
+      room.off(RoomEvent.RoomMetadataChanged, parseTitle);
+    };
+  }, [room]);
+
+  if (!title) return null;
+
+  return (
+    <div className="meeting-title-bar">
+      <span className="meeting-title-text">{title}</span>
     </div>
   );
 }

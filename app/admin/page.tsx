@@ -18,6 +18,7 @@ interface RoomInfo {
   sid: string;
   numParticipants: number;
   creationTime: number;
+  metadata?: string;
   participants: Participant[];
 }
 
@@ -28,6 +29,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [actionMsg, setActionMsg] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [meetingTitle, setMeetingTitle] = useState('');
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -91,18 +94,38 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, [isAuthed, fetchRooms]);
 
-  const createMeetingLink = () => {
+  const createMeetingLink = async () => {
     const roomId = generateRoomId();
     const origin = window.location.origin;
     const hostLink = `${origin}/rooms/${roomId}?role=host`;
     const listenerLink = `${origin}/rooms/${roomId}`;
+
+    // Create room with title via API
+    try {
+      await fetch('/api/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${password}`,
+        },
+        body: JSON.stringify({
+          action: 'create_room',
+          roomName: roomId,
+          meetingTitle: meetingTitle.trim(),
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to create room:', err);
+    }
+
     navigator.clipboard.writeText(listenerLink);
     setActionMsg(`Meeting created! Listener link copied. Room: ${roomId}`);
+    setShowCreateModal(false);
+    setMeetingTitle('');
     setTimeout(() => setActionMsg(''), 5000);
 
-    // Also show in a prompt for visibility
     alert(
-      `Meeting Created!\n\nRoom: ${roomId}\n\nHost link (for you):\n${hostLink}\n\nListener link (share this):\n${listenerLink}\n\nListener link copied to clipboard!`,
+      `Meeting Created!${meetingTitle.trim() ? `\n\nTitle: ${meetingTitle.trim()}` : ''}\n\nRoom: ${roomId}\n\nHost link (for you):\n${hostLink}\n\nListener link (share this):\n${listenerLink}\n\nListener link copied to clipboard!`,
     );
   };
 
@@ -156,7 +179,7 @@ export default function AdminPage() {
           {actionMsg && (
             <span style={pageStyles.actionMsg}>{actionMsg}</span>
           )}
-          <button onClick={createMeetingLink} style={pageStyles.btnPrimary}>
+          <button onClick={() => setShowCreateModal(true)} style={pageStyles.btnPrimary}>
             + New Meeting
           </button>
           <button
@@ -190,11 +213,20 @@ export default function AdminPage() {
           </div>
         )}
 
-        {rooms.map((room) => (
+        {rooms.map((room) => {
+          let roomTitle = '';
+          try {
+            const meta = JSON.parse((room as any).metadata || '{}');
+            roomTitle = meta.title || '';
+          } catch {}
+          return (
           <div key={room.sid} style={pageStyles.roomCard}>
             <div style={pageStyles.roomHeader}>
               <div>
-                <h3 style={pageStyles.roomName}>{room.name}</h3>
+                {roomTitle && (
+                  <h3 style={{ ...pageStyles.roomName, fontSize: '1.2rem', marginBottom: '0.125rem' }}>{roomTitle}</h3>
+                )}
+                <h3 style={{ ...pageStyles.roomName, ...(roomTitle ? { fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', fontWeight: 400 } : {}) }}>{room.name}</h3>
                 <span style={pageStyles.roomMeta}>
                   {room.numParticipants} participant{room.numParticipants !== 1 ? 's' : ''} &middot;
                   Started {new Date(room.creationTime * 1000).toLocaleTimeString()}
@@ -289,8 +321,69 @@ export default function AdminPage() {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Create Meeting Modal */}
+      {showCreateModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            style={{
+              background: '#1e1e32',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              width: '100%',
+              maxWidth: '420px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 500, margin: 0 }}>
+              Create New Meeting
+            </h2>
+            <div>
+              <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', marginBottom: '0.375rem', display: 'block' }}>
+                Meeting Title (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Weekly Team Standup"
+                value={meetingTitle}
+                onChange={(e) => setMeetingTitle(e.target.value)}
+                style={pageStyles.input}
+                autoFocus
+                maxLength={100}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+              <button
+                onClick={() => { setShowCreateModal(false); setMeetingTitle(''); }}
+                style={pageStyles.btnSecondary}
+              >
+                Cancel
+              </button>
+              <button onClick={createMeetingLink} style={pageStyles.btnPrimary}>
+                Create Meeting
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

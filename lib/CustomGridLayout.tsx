@@ -40,6 +40,12 @@ export function CustomGridLayout({ tracks, children, ...props }: CustomGridLayou
   const gridEl = React.createRef<HTMLDivElement>();
   const { pinnedIds } = usePinned();
 
+  // Build keys that change when speaking/pin state changes, so sort re-runs
+  const speakingKey = tracks
+    .map((t) => `${t.participant?.identity}:${t.participant?.isSpeaking ? '1' : '0'}`)
+    .join(',');
+  const pinnedKey = Array.from(pinnedIds).sort().join(',');
+
   // Sort tracks: pinned first, then speaking, then rest
   const sortedTracks = React.useMemo(() => {
     return [...tracks].sort((a, b) => {
@@ -51,7 +57,8 @@ export function CustomGridLayout({ tracks, children, ...props }: CustomGridLayou
       const bSpeaking = b.participant?.isSpeaking ? 0 : 1;
       return aSpeaking - bSpeaking;
     });
-  }, [tracks, pinnedIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracks, pinnedKey, speakingKey]);
 
   const { layout } = useGridLayout(gridEl, sortedTracks.length, {
     gridLayouts: CUSTOM_GRID_LAYOUTS,

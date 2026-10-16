@@ -797,6 +797,30 @@ h2 a {
   background: #1e1e32 !important;
 }
 
+/* Meeting title bar */
+.meeting-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: #1e1e32;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.meeting-title-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 80%;
+}
+
 /* Video conference inner */
 .lk-video-conference-inner {
   background: #1e1e32 !important;

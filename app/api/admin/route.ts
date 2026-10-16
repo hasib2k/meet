@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { verifyAdminToken } from '@/lib/adminAuth';
 import { validateRoomName } from '@/lib/validation';
+import { markRoomEnded } from '@/lib/endedRooms';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
 const API_SECRET = process.env.LIVEKIT_API_SECRET!;
@@ -75,6 +76,7 @@ export async function GET(request: NextRequest) {
           sid: room.sid,
           numParticipants: room.numParticipants,
           creationTime: Number(room.creationTime),
+          metadata: room.metadata || '',
           participants: participants.map((p) => {
             let role = 'listener';
             try {
@@ -127,6 +129,7 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'end_room': {
+        markRoomEnded(roomName);
         await svc.deleteRoom(roomName);
         return NextResponse.json({ success: true, message: 'Room ended' });
       }
@@ -176,6 +179,27 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'Participant removed' });
       }
 
+      case 'make_host': {
+        // Grant full host permissions
+        await svc.updateParticipant(roomName, identity, undefined, {
+          canPublish: true,
+          canPublishData: true,
+          canSubscribe: true,
+        });
+        // Update metadata to host role
+        const hostList = await svc.listParticipants(roomName);
+        const hostTarget = hostList.find((p) => p.identity === identity);
+        if (hostTarget) {
+          let meta: Record<string, unknown> = {};
+          try {
+            meta = JSON.parse(hostTarget.metadata || '{}');
+          } catch {}
+          meta.role = 'host';
+          await svc.updateParticipant(roomName, identity, JSON.stringify(meta));
+        }
+        return NextResponse.json({ success: true, message: 'Host permission granted' });
+      }
+
       case 'mute_participant': {
         // Mute by revoking publish permission temporarily
         await svc.updateParticipant(roomName, identity, undefined, {
@@ -184,6 +208,16 @@ export async function POST(request: NextRequest) {
           canSubscribe: true,
         });
         return NextResponse.json({ success: true, message: 'Participant muted' });
+      }
+
+      case 'create_room': {
+        const { meetingTitle } = body;
+        const roomMetadata = JSON.stringify({ title: meetingTitle || '' });
+        await svc.createRoom({
+          name: roomName,
+          metadata: roomMetadata,
+        });
+        return NextResponse.json({ success: true, message: 'Room created', roomName });
       }
 
       default:
