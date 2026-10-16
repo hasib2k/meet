@@ -14,6 +14,7 @@ export function ParticipantsSidebar() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { pinnedIds, togglePin, isPinned } = usePinned();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Current user role
   let localRole = 'listener';
@@ -74,6 +75,7 @@ export function ParticipantsSidebar() {
 
   const doAction = async (action: string, identity: string) => {
     setLoadingAction(identity);
+    setOpenMenuId(null);
     try {
       const adminToken = sessionStorage.getItem('adminToken') || '';
       const res = await fetch('/api/admin', {
@@ -116,6 +118,14 @@ export function ParticipantsSidebar() {
     const interval = setInterval(findBar, 500);
     return () => clearInterval(interval);
   }, []);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handleClick = () => setOpenMenuId(null);
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [openMenuId]);
 
   const toggleButton = (
     <button
@@ -225,7 +235,7 @@ export function ParticipantsSidebar() {
             )}
 
             {actionMsg && (
-              <p style={{ color: '#5bc88d', fontSize: '0.85rem', margin: '0.25rem 1rem', textAlign: 'center' }}>
+              <p style={{ color: actionMsg.startsWith('Failed') ? '#ff6b6b' : '#5bc88d', fontSize: '0.85rem', margin: '0.25rem 1rem', textAlign: 'center' }}>
                 {actionMsg}
               </p>
             )}
@@ -265,87 +275,34 @@ export function ParticipantsSidebar() {
                   <div style={{ fontSize: '0.75rem', color: getRoleColor(p.role), marginTop: '0.125rem' }}>
                     {p.canPublish ? '🎙 Can speak' : '🔇 Listener'}
                     {p.role === 'moderator' && ' (Moderator)'}
+                    {p.role === 'host' && ' (Host)'}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0, alignItems: 'center' }}>
-                  {/* Lower hand button - host only */}
-                  {isHost && p.isHandRaised && (
-                    <button
-                      className="lk-button"
-                      onClick={() => lowerHand(p.identity)}
-                      title="Lower hand"
-                      style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#e8a85d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
-                    >
-                      Lower
-                    </button>
-                  )}
-                  {/* Pin button - host only */}
-                  {isHost && (
-                    <button
-                      className="lk-button"
-                      onClick={() => togglePin(p.identity)}
-                      title={p.isPinned ? 'Unpin' : 'Pin'}
-                      style={{
-                        fontSize: '0.7rem',
-                        padding: '0.2rem 0.35rem',
-                        background: '#1e1e32',
-                        color: p.isPinned ? '#5b8dee' : 'rgba(255,255,255,0.4)',
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        boxShadow: p.isPinned
-                          ? 'inset 2px 2px 4px #151528, inset -2px -2px 4px #27273c'
-                          : '2px 2px 5px #151528, -2px -2px 5px #27273c',
-                        minWidth: 'auto',
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M14 4v5c0 1.12.37 2.16 1 3H9c.65-.86 1-1.9 1-3V4h4zm3-2H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3V4h1c.55 0 1-.45 1-1s-.45-1-1-1z" />
-                      </svg>
-                    </button>
-                  )}
-                  {/* Host action buttons */}
-                  {isHost && (
-                    <>
-                      {!p.canPublish ? (
-                        <button
-                          className="lk-button"
-                          onClick={() => doAction('grant_speak', p.identity)}
-                          disabled={loadingAction === p.identity}
-                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#5bc88d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
-                        >
-                          Grant Speak
-                        </button>
-                      ) : (
-                        <button
-                          className="lk-button"
-                          onClick={() => doAction('revoke_speak', p.identity)}
-                          disabled={loadingAction === p.identity}
-                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#e8a85d', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
-                        >
-                          Mute
-                        </button>
-                      )}
-                      {p.role !== 'host' && (
-                        <button
-                          className="lk-button"
-                          onClick={() => { if (confirm(`Make ${p.name} a Host?`)) doAction('make_host', p.identity); }}
-                          disabled={loadingAction === p.identity}
-                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#5b8dee', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
-                        >
-                          Make Host
-                        </button>
-                      )}
-                      <button
-                        className="lk-button"
-                        onClick={() => { if (confirm(`Remove ${p.name}?`)) doAction('remove_participant', p.identity); }}
-                        disabled={loadingAction === p.identity}
-                        style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#1e1e32', color: '#ff6b6b', border: 'none', borderRadius: '0.5rem', boxShadow: '2px 2px 5px #151528, -2px -2px 5px #27273c' }}
-                      >
-                        Remove
-                      </button>
-                    </>
-                  )}
-                </div>
+                {/* 3-dot menu for host actions */}
+                {isHost && (
+                  <ThreeDotMenu
+                    isOpen={openMenuId === p.identity}
+                    onToggle={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === p.identity ? null : p.identity);
+                    }}
+                    participant={p}
+                    loading={loadingAction === p.identity}
+                    onPin={() => { togglePin(p.identity); setOpenMenuId(null); }}
+                    onLowerHand={() => { lowerHand(p.identity); setOpenMenuId(null); }}
+                    onAction={(action) => {
+                      if (action === 'make_host') {
+                        if (confirm(`Make ${p.name} a Host?`)) doAction(action, p.identity);
+                        else setOpenMenuId(null);
+                      } else if (action === 'remove_participant') {
+                        if (confirm(`Remove ${p.name}?`)) doAction(action, p.identity);
+                        else setOpenMenuId(null);
+                      } else {
+                        doAction(action, p.identity);
+                      }
+                    }}
+                  />
+                )}
               </div>
             ))}
 
@@ -358,6 +315,188 @@ export function ParticipantsSidebar() {
         </div>
       )}
     </>
+  );
+}
+
+/** 3-dot menu component */
+function ThreeDotMenu({
+  isOpen,
+  onToggle,
+  participant,
+  loading,
+  onPin,
+  onLowerHand,
+  onAction,
+}: {
+  isOpen: boolean;
+  onToggle: (e: React.MouseEvent) => void;
+  participant: {
+    identity: string;
+    name: string;
+    role: string;
+    canPublish: boolean;
+    isPinned: boolean;
+    isHandRaised: boolean;
+  };
+  loading: boolean;
+  onPin: () => void;
+  onLowerHand: () => void;
+  onAction: (action: string) => void;
+}) {
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }} ref={menuRef}>
+      <button
+        className="lk-button three-dot-btn"
+        onClick={onToggle}
+        disabled={loading}
+        style={{
+          padding: '0.25rem',
+          background: isOpen ? 'rgba(255,255,255,0.08)' : 'transparent',
+          border: 'none',
+          borderRadius: '50%',
+          color: 'rgba(255,255,255,0.6)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: 'auto',
+          width: '28px',
+          height: '28px',
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="2" />
+          <circle cx="12" cy="12" r="2" />
+          <circle cx="12" cy="19" r="2" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          className="three-dot-dropdown"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: '100%',
+            marginTop: '0.25rem',
+            background: '#252542',
+            borderRadius: '0.75rem',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08)',
+            zIndex: 100,
+            minWidth: '160px',
+            padding: '0.375rem 0',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Pin/Unpin */}
+          <MenuButton
+            icon={
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14 4v5c0 1.12.37 2.16 1 3H9c.65-.86 1-1.9 1-3V4h4zm3-2H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3V4h1c.55 0 1-.45 1-1s-.45-1-1-1z" />
+              </svg>
+            }
+            label={participant.isPinned ? 'Unpin' : 'Pin'}
+            color={participant.isPinned ? '#5b8dee' : 'rgba(255,255,255,0.7)'}
+            onClick={onPin}
+          />
+
+          {/* Lower Hand */}
+          {participant.isHandRaised && (
+            <MenuButton
+              icon={<span style={{ fontSize: '0.8rem' }}>✋</span>}
+              label="Lower Hand"
+              color="#e8a85d"
+              onClick={onLowerHand}
+            />
+          )}
+
+          {/* Grant Speak / Mute */}
+          {!participant.canPublish ? (
+            <MenuButton
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                </svg>
+              }
+              label="Grant Speak"
+              color="#5bc88d"
+              onClick={() => onAction('grant_speak')}
+            />
+          ) : (
+            <MenuButton
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z" />
+                </svg>
+              }
+              label="Mute"
+              color="#e8a85d"
+              onClick={() => onAction('revoke_speak')}
+            />
+          )}
+
+          {/* Make Host */}
+          {participant.role !== 'host' && (
+            <MenuButton
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                </svg>
+              }
+              label="Make Host"
+              color="#5b8dee"
+              onClick={() => onAction('make_host')}
+            />
+          )}
+
+          {/* Divider before Remove */}
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0.25rem 0' }} />
+
+          {/* Remove */}
+          <MenuButton
+            icon={
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15 3H9V1h6v2zm-1 11V8h-4v6H7l5 5 5-5h-3zm5-9h-1V3c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v2H5c-.55 0-1 .45-1 1s.45 1 1 1h14c.55 0 1-.45 1-1s-.45-1-1-1z" />
+              </svg>
+            }
+            label="Remove"
+            color="#ff6b6b"
+            onClick={() => onAction('remove_participant')}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Menu button item */
+function MenuButton({ icon, label, color, onClick }: { icon: React.ReactNode; label: string; color: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.625rem',
+        width: '100%',
+        padding: '0.5rem 0.875rem',
+        background: 'transparent',
+        border: 'none',
+        color,
+        fontSize: '0.8rem',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 
