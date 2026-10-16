@@ -69,6 +69,9 @@ export function PageClientImpl(props: {
     if (values.imageUrl) {
       url.searchParams.append('imageUrl', values.imageUrl);
     }
+    if ((values as any).bio) {
+      url.searchParams.append('bio', (values as any).bio);
+    }
     if (props.region) {
       url.searchParams.append('region', props.region);
     }
@@ -357,19 +360,21 @@ function ParticipantProfileImages() {
   try { localRole = JSON.parse(room?.localParticipant?.metadata || '{}').role || 'listener'; } catch {}
   const isHost = localRole === 'host';
 
-  // Build maps of participant name -> imageUrl and name -> handRaised
-  const { imageMap, handRaisedMap } = React.useMemo(() => {
+  // Build maps of participant name -> imageUrl, handRaised, bio
+  const { imageMap, handRaisedMap, bioMap } = React.useMemo(() => {
     const imgMap = new Map<string, string>();
     const handMap = new Map<string, boolean>();
+    const bMap = new Map<string, string>();
     participants.forEach((p) => {
       try {
         const meta = JSON.parse(p.metadata || '{}');
         const name = p.name || p.identity;
         if (meta.imageUrl) imgMap.set(name, meta.imageUrl);
         if (meta.isHandRaised) handMap.set(name, true);
+        if (meta.bio) bMap.set(name, meta.bio);
       } catch {}
     });
-    return { imageMap: imgMap, handRaisedMap: handMap };
+    return { imageMap: imgMap, handRaisedMap: handMap, bioMap: bMap };
   }, [participants]);
 
   // Build participant info map for tile menus
@@ -487,7 +492,31 @@ function ParticipantProfileImages() {
         }
       });
 
-      // 3. Inject 3-dot buttons on tiles (host only, not on own tile)
+      // 3. Inject/update bio text under participant names
+      allTiles.forEach((tile) => {
+        const nameEl = tile.querySelector('.lk-participant-name');
+        const name = nameEl?.textContent?.trim() || '';
+        const bio = bioMap.get(name);
+        const existing = tile.querySelector('.tile-bio-text') as HTMLElement;
+        if (bio) {
+          if (!existing) {
+            const bioEl = document.createElement('div');
+            bioEl.className = 'tile-bio-text';
+            bioEl.textContent = bio;
+            // Insert after the metadata bar (which contains the name)
+            const metaBar = tile.querySelector('.lk-participant-metadata');
+            if (metaBar) {
+              metaBar.appendChild(bioEl);
+            }
+          } else {
+            existing.textContent = bio;
+          }
+        } else if (existing) {
+          existing.remove();
+        }
+      });
+
+      // 4. Inject 3-dot buttons on tiles (host only, not on own tile)
       if (isHost) {
         allTiles.forEach((tile) => {
           const nameEl = tile.querySelector('.lk-participant-name');
@@ -521,7 +550,7 @@ function ParticipantProfileImages() {
     injectAndReorder();
     const interval = setInterval(injectAndReorder, 1000);
     return () => clearInterval(interval);
-  }, [imageMap, handRaisedMap, localName, participants.length, isHost]);
+  }, [imageMap, handRaisedMap, bioMap, localName, participants.length, isHost]);
 
   // Floating "You" thumbnail
   const localImageUrl = imageMap.get(localName);

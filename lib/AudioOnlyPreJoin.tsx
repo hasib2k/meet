@@ -95,6 +95,7 @@ export function AudioOnlyPreJoin(props: {
 }) {
   const { data: session, status } = useSession();
   const [guestName, setGuestName] = useState('');
+  const [bio, setBio] = useState('');
   const [mode, setMode] = useState<'choose' | 'google' | 'guest'>('choose');
 
   const isLoggedIn = status === 'authenticated' && session?.user;
@@ -117,8 +118,9 @@ export function AudioOnlyPreJoin(props: {
       videoDeviceId: '',
       audioDeviceId: '',
       imageUrl: userImage,
-    });
-  }, [userName, userImage, props.onSubmit]);
+      bio: bio.trim(),
+    } as any);
+  }, [userName, userImage, bio, props.onSubmit]);
 
   const handleGuestJoin = useCallback(() => {
     const name = guestName.trim();
@@ -129,8 +131,9 @@ export function AudioOnlyPreJoin(props: {
       audioEnabled: true,
       videoDeviceId: '',
       audioDeviceId: '',
-    });
-  }, [guestName, props.onSubmit]);
+      bio: bio.trim(),
+    } as any);
+  }, [guestName, bio, props.onSubmit]);
 
   const roleLabel = props.role === 'host' ? 'Host' : props.role === 'moderator' ? 'Moderator' : 'Listener';
   const roleColor = props.role === 'host' ? '#5b8dee' : props.role === 'moderator' ? '#e8a85d' : 'rgba(255,255,255,0.4)';
@@ -153,6 +156,14 @@ export function AudioOnlyPreJoin(props: {
           Audio-only meeting &middot; Joining as{' '}
           <span style={{ color: roleColor, fontWeight: 600 }}>{roleLabel}</span>
         </p>
+        <input
+          type="text"
+          placeholder="Add a short bio (optional)"
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          style={{ ...inputStyle, fontSize: '0.85rem' }}
+          maxLength={80}
+        />
         <button style={buttonStyle} onClick={handleGoogleJoin}>
           Join Meeting
         </button>
@@ -190,6 +201,14 @@ export function AudioOnlyPreJoin(props: {
           style={inputStyle}
           maxLength={50}
           autoFocus
+        />
+        <input
+          type="text"
+          placeholder="Add a short bio (optional)"
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          style={{ ...inputStyle, fontSize: '0.85rem' }}
+          maxLength={80}
         />
         <button
           style={{

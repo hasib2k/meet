@@ -30,17 +30,20 @@ export function ParticipantsSidebar() {
       let role = 'listener';
       let imageUrl = '';
       let isHandRaised = false;
+      let bio = '';
       try {
         const meta = JSON.parse(p.metadata || '{}');
         role = meta.role || 'listener';
         imageUrl = meta.imageUrl || '';
         isHandRaised = !!meta.isHandRaised;
+        bio = meta.bio || '';
       } catch {}
       return {
         identity: p.identity,
         name: p.name || p.identity,
         role,
         imageUrl,
+        bio,
         canPublish: p.permissions?.canPublish ?? false,
         isSpeaking: p.isSpeaking,
         isPinned: isPinned(p.identity),
@@ -100,11 +103,13 @@ export function ParticipantsSidebar() {
     }
   };
 
-  // Get local user image
+  // Get local user image and bio
   let localImageUrl = '';
+  let localBio = '';
   try {
     const meta = JSON.parse(room.localParticipant.metadata || '{}');
     localImageUrl = meta.imageUrl || '';
+    localBio = meta.bio || '';
   } catch {}
 
   // Find the control bar to portal the button into it
@@ -296,6 +301,11 @@ export function ParticipantsSidebar() {
                 <div style={{ fontSize: '0.75rem', color: getRoleColor(localRole), marginTop: '0.125rem' }}>
                   {localRole === 'host' ? 'Host' : localRole === 'moderator' ? 'Moderator' : 'Listener'} (You)
                 </div>
+                {localBio && (
+                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {localBio}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -323,6 +333,11 @@ export function ParticipantsSidebar() {
                     {p.role === 'moderator' && ' (Moderator)'}
                     {p.role === 'host' && ' (Host)'}
                   </div>
+                  {p.bio && (
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.bio}
+                    </div>
+                  )}
                 </div>
                 {/* 3-dot menu for host actions */}
                 {isHost && (

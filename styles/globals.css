@@ -1509,6 +1509,24 @@ body.is-host .lk-control-bar .lk-disconnect-button:not(.lk-host-leave-btn) {
   75% { transform: rotate(15deg); }
 }
 
+/* ===== Bio text on tiles ===== */
+.tile-bio-text {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.2;
+  margin-top: 0.125rem;
+}
+
+@media (max-width: 600px) {
+  .tile-bio-text {
+    font-size: 0.6rem;
+  }
+}
+
 /* ===== Tile 3-dot menu ===== */
 
 /* 3-dot button on participant tiles */
