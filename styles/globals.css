@@ -1202,13 +1202,88 @@ h2 a {
   text-decoration: none;
 }
 
-/* Force 4x2 grid on desktop (8 participants per page) */
+/* ===== Desktop Meeting Room Redesign ===== */
 @media (min-width: 960px) {
+  /* Grid: auto-fill columns to fit more tiles (up to 7 per row) */
   .lk-grid-layout {
-    --lk-grid-participants-per-page: 8;
-    grid-template-columns: repeat(4, 1fr) !important;
-    grid-template-rows: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: 190px !important;
+    gap: 18px !important;
+    padding: 14px !important;
   }
+
+  /* Title bar */
+  .meeting-title-bar {
+    padding: 18px 30px 10px;
+  }
+  .meeting-title-text {
+    font-size: 22px;
+  }
+  .meeting-title-meta {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  /* Copy link button visible on desktop */
+  .meeting-copy-link-btn {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 14px;
+    background: #1e2238;
+    border: none;
+    color: #6f97ff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 4px 4px 8px #14172a, -4px -4px 8px #282d48;
+    transition: box-shadow 0.15s, color 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .meeting-copy-link-btn:hover {
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+  }
+  .meeting-copy-link-btn:active {
+    box-shadow: inset 3px 3px 6px #14172a, inset -3px -3px 6px #282d48;
+  }
+  .meeting-copy-link-btn span {
+    display: inline;
+  }
+
+  /* Video conference inner */
+  .lk-video-conference-inner {
+    padding: 10px 24px 0 !important;
+  }
+
+  /* Tile: swap mic to top-left, three-dot to top-right */
+  .lk-participant-tile .lk-track-muted-indicator-microphone {
+    right: unset !important;
+    left: 12px !important;
+    top: 12px !important;
+  }
+  .mic-unmuted-indicator {
+    right: unset !important;
+    left: 12px !important;
+    top: 12px !important;
+  }
+  .tile-three-dot-btn {
+    left: unset !important;
+    right: 10px !important;
+    top: 10px !important;
+  }
+  .lk-participant-tile .hand-raised-indicator {
+    left: 44px !important;
+  }
+
+}
+
+/* Text labels hidden on mobile */
+.lk-btn-label {
+  display: none;
 }
 
 /* Hide Camera and Share Screen buttons in control bar only */
@@ -1630,7 +1705,7 @@ h2 a {
 
 /* Speaking border glow */
 .lk-participant-tile[data-lk-speaking="true"] {
-  box-shadow: 6px 6px 12px #14172a, -6px -6px 12px #282d48, 0 0 0 2px #6f97ff !important;
+  box-shadow: 6px 6px 12px #14172a, -6px -6px 12px #282d48, 0 0 0 2px #4ade80 !important;
 }
 
 /* Placeholder: break out of absolute fill → 72px avatar ring */
@@ -1741,6 +1816,22 @@ h2 a {
 .lk-participant-tile .lk-track-muted-indicator-microphone svg {
   width: 14px !important;
   height: 14px !important;
+}
+
+/* Unmuted mic indicator (injected via JS) */
+.mic-unmuted-indicator {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  box-shadow: inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #1e2238 !important;
+  z-index: 5;
 }
 
 /* Name styling — marquee wrapper */
@@ -1968,6 +2059,18 @@ h2 a {
   box-shadow: inset 4px 4px 8px #14172a, inset -4px -4px 8px #282d48;
 }
 
+.meeting-title-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Copy link button - hidden on mobile, shown on desktop */
+.meeting-copy-link-btn {
+  display: none;
+}
+
 /* Ensure video conference is flex column so title bar stays on top */
 .lk-video-conference {
   display: flex !important;
@@ -2092,6 +2195,14 @@ h2 a {
   font-size: 11px;
   font-weight: 700;
   color: #fff;
+  box-shadow: 2px 2px 5px #13162a;
+}
+img.neo-chat-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
   box-shadow: 2px 2px 5px #13162a;
 }
 
@@ -2242,7 +2353,8 @@ h2 a {
 @media (max-width: 959px) and (min-width: 601px) {
   .lk-grid-layout {
     grid-template-columns: repeat(3, 1fr) !important;
-    grid-template-rows: repeat(3, 1fr) !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: 168px !important;
     padding: 10px !important;
     gap: 16px !important;
   }
@@ -2885,6 +2997,25 @@ body.is-host .lk-control-bar .lk-disconnect-button:not(.lk-host-leave-btn) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* Chat unread message badge */
+.lk-chat-unread-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ea4335;
+  color: #fff;
+  font-size: 0.6rem !important;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 /* Hand raised indicator on participant tile */
 .lk-participant-tile .hand-raised-indicator {
   position: absolute;
@@ -3293,17 +3424,1516 @@ body.is-host .lk-control-bar .lk-disconnect-button:not(.lk-host-leave-btn) {
   background: #282d48;
 }
 
-/* Desktop: contain the lobby in a centered card */
-@media (min-width: 769px) {
-  .prejoin-lobby {
-    min-height: auto;
-    max-height: 90vh;
-    border-radius: 36px;
-    box-shadow: 14px 14px 30px #13162a, -14px -14px 30px #2a2f4c;
-    padding: 44px 40px;
+/* =====================================================
+   DESKTOP MEETING ROOM — CONTROL BAR OVERRIDES
+   (must come AFTER all base & mobile control-bar rules)
+   ===================================================== */
+@media (min-width: 960px) {
+  /* Control bar: centered pill with gaps */
+  .lk-control-bar {
+    margin: 0 auto 24px !important;
+    padding: 8px 14px !important;
+    gap: 10px !important;
+    border-radius: 28px !important;
+    justify-content: center !important;
+    max-width: fit-content !important;
+    flex-wrap: nowrap !important;
   }
 
-  .prejoin-greeting-text {
-    font-size: 30px;
+  /* All buttons become pills with text */
+  .lk-control-bar .lk-button,
+  .lk-control-bar .lk-chat-toggle,
+  .lk-control-bar .lk-participants-toggle {
+    border-radius: 18px !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding: 0 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
+    color: #a9b0d0 !important;
+  }
+  .lk-control-bar .lk-button svg,
+  .lk-control-bar .lk-chat-toggle svg,
+  .lk-control-bar .lk-participants-toggle svg {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Mic muted state */
+  .lk-control-bar .lk-button[data-lk-source="microphone"][data-lk-enabled="false"] {
+    border-radius: 18px !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    padding: 0 20px !important;
+    height: 46px !important;
+    background: linear-gradient(145deg, #f06a6a, #d94848) !important;
+    color: #fff !important;
+  }
+  .lk-control-bar .lk-button[data-lk-source="microphone"][data-lk-enabled="false"]::after {
+    color: #fff;
+  }
+
+  /* Disconnect / Leave button */
+  .lk-control-bar .lk-disconnect-button {
+    border-radius: 22px !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding: 0 24px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    gap: 8px !important;
+    background: linear-gradient(145deg, #f06a6a, #d94848) !important;
+    color: #fff !important;
+  }
+
+  /* Host leave button */
+  .lk-control-bar .lk-host-leave-btn {
+    border-radius: 22px !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding: 0 24px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    gap: 8px !important;
+    background: linear-gradient(145deg, #f06a6a, #d94848) !important;
+    color: #fff !important;
+  }
+  .lk-control-bar .lk-host-leave-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Raise hand toggle */
+  .lk-control-bar .lk-raise-hand-toggle {
+    border-radius: 18px !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding: 0 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    gap: 8px !important;
+  }
+  .lk-control-bar .lk-raise-hand-toggle.hand-raised {
+    background: linear-gradient(145deg, #f5b04a, #e09838) !important;
+    color: #fff !important;
+  }
+
+  /* Participant count badge inline on desktop */
+  .lk-control-bar .lk-participants-toggle .lk-participant-count {
+    position: static !important;
+    min-width: auto !important;
+    height: auto !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+  }
+
+  /* Raise hand badge inline on desktop */
+  .lk-control-bar .lk-raise-hand-badge {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    font-size: 13px !important;
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+  }
+
+  /* Text labels for portal-injected buttons */
+  .lk-btn-label {
+    display: inline !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+  }
+
+  /* CSS-injected text labels for LiveKit built-in buttons */
+  .lk-control-bar .lk-button[data-lk-source="microphone"][data-lk-enabled="true"]::after {
+    content: "Mute";
+    font-size: 13px !important;
+    font-weight: 600;
+  }
+  .lk-control-bar .lk-button[data-lk-source="microphone"][data-lk-enabled="false"]::after {
+    content: "Unmute";
+    font-size: 13px !important;
+    font-weight: 600;
+  }
+  .lk-control-bar .lk-chat-toggle::after {
+    content: "Chat";
+    font-size: 13px !important;
+    font-weight: 600;
+  }
+  .lk-control-bar .lk-participants-toggle::after {
+    content: "Participants";
+    font-size: 13px !important;
+    font-weight: 600;
+  }
+
+  /* Button group wrapper reset */
+  .lk-control-bar .lk-button-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .lk-control-bar .lk-button-group .lk-button-group-menu {
+    display: none !important;
+  }
+
+  /* Button ordering on desktop: Mic → Raise hand → Leave → Chat → Participants */
+  .lk-control-bar .lk-button-group:has([data-lk-source="microphone"]) { order: 1 !important; }
+  .lk-control-bar .lk-raise-hand-toggle { order: 2 !important; }
+  .lk-control-bar .lk-disconnect-button { order: 3 !important; }
+  .lk-control-bar > div:has(.lk-host-leave-btn) { order: 3 !important; }
+  .lk-control-bar .lk-chat-toggle { order: 4 !important; }
+  .lk-control-bar .lk-participants-toggle { order: 5 !important; }
+}
+
+/* =====================================================
+   DESKTOP HOME LAYOUT  (min-width: 769px)
+   ===================================================== */
+
+/* Hide desktop layout on mobile, hide mobile layout on desktop */
+.dk-layout { display: none; }
+.mb-layout { display: flex; flex-direction: column; height: 100%; width: 100%; }
+
+@media (min-width: 769px) {
+  .dk-layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); width: 100%; height: 100%; overflow: hidden; }
+  .mb-layout { display: none !important; }
+
+  /* Also hide old topbar / footer / bottom-nav that might leak through */
+  .topbar, footer, .mobile-nav-wrap, .mobile-bottom-nav { display: none !important; }
+
+  /* ---------- Sidebar ---------- */
+  .dk-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28px 18px 22px;
+    box-sizing: border-box;
+    background: #1e2238;
+    box-shadow: 4px 0 14px #13162a;
+    z-index: 10;
+  }
+
+  .dk-sidebar-top {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* Logo */
+  .dk-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 4px;
+  }
+  .dk-logo-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    background: #1e2238;
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dk-logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e6e9f5;
+    letter-spacing: -0.01em;
+  }
+  .dk-logo-text span {
+    color: #6f97ff;
+  }
+
+  /* Nav buttons */
+  .dk-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dk-nav-btn {
+    height: 52px;
+    border-radius: 16px;
+    border: none;
+    background: #1e2238;
+    color: #7c83a8;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+  }
+  .dk-nav-btn:hover {
+    color: #a9b0d0;
+    box-shadow: 5px 5px 11px #14172a, -5px -5px 11px #282d48;
+  }
+  .dk-nav-btn.active {
+    color: #6f97ff;
+    box-shadow: inset 4px 4px 8px #14172a, inset -4px -4px 8px #282d48;
+  }
+  .dk-nav-btn svg {
+    flex-shrink: 0;
+  }
+
+  /* Sidebar footer */
+  .dk-sidebar-footer {
+    font-size: 11px;
+    color: #6b7194;
+    line-height: 1.6;
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  /* ---------- Main area ---------- */
+  .dk-main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: #1e2238;
+  }
+
+  /* Header */
+  .dk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 36px;
+    flex-shrink: 0;
+  }
+  .dk-header-greeting {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e6e9f5;
+    letter-spacing: -0.01em;
+  }
+  .dk-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dk-profile-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 46px;
+    padding: 0 18px 0 6px;
+    border-radius: 23px;
+    border: none;
+    background: #1e2238;
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+    color: #e6e9f5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .dk-profile-pill:hover {
+    box-shadow: 5px 5px 11px #14172a, -5px -5px 11px #282d48;
+  }
+  .dk-pill-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 2px 2px 5px #13162a;
+  }
+  .dk-pill-initial {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .dk-signout-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: #1e2238;
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+    color: #ff8a8a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .dk-signout-btn:hover {
+    box-shadow: 5px 5px 11px #14172a, -5px -5px 11px #282d48;
+  }
+  .dk-signout-btn:active {
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+  }
+
+  /* Content area */
+  .dk-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 36px 36px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(111,151,255,0.15) transparent;
+  }
+  .dk-content::-webkit-scrollbar { width: 6px; }
+  .dk-content::-webkit-scrollbar-thumb { background: rgba(111,151,255,0.15); border-radius: 3px; }
+
+  /* ---------- Meet Tab ---------- */
+  .dk-meet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 48px;
+    align-items: start;
+  }
+  .dk-meet-left {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .dk-hero-title {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #e6e9f5;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .dk-hero-title span {
+    color: #6f97ff;
+  }
+  .dk-hero-sub {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #9aa1c2;
+    margin: 0;
+    max-width: 460px;
+  }
+
+  /* New Meeting button */
+  .dk-new-meeting-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 58px;
+    padding: 0 32px;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+    box-shadow: 6px 6px 14px #13162a, -6px -6px 14px #2a2f4c;
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-start;
+  }
+  .dk-new-meeting-btn:hover {
+    background: linear-gradient(145deg, #8aadff, #6f97ff);
+    box-shadow: 7px 7px 16px #13162a, -7px -7px 16px #2a2f4c;
+    transform: translateY(-1px);
+  }
+  .dk-new-meeting-btn:active {
+    transform: translateY(0);
+    box-shadow: inset 4px 4px 10px #4a6fd6, inset -4px -4px 10px #8aaeff;
+  }
+
+  /* Join field */
+  .dk-join-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 58px;
+    border-radius: 20px;
+    box-shadow: inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48;
+    padding: 0 8px 0 20px;
+    background: #1e2238;
+    max-width: 460px;
+  }
+  .dk-join-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e6e9f5;
+    font-family: inherit;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+  }
+  .dk-join-input::placeholder {
+    color: #6b7194;
+  }
+  .dk-join-go {
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 14px;
+    border: none;
+    background: #1e2238;
+    box-shadow: 3px 3px 7px #14172a, -3px -3px 7px #282d48;
+    color: #6f97ff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .dk-join-go:hover {
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+  }
+  .dk-join-go:active {
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+  }
+  .dk-join-go:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* History */
+  .dk-history {
+    margin-top: 8px;
+  }
+  .dk-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .dk-history-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7c83a8;
+  }
+  .dk-history-clear {
+    background: none;
+    border: none;
+    color: #6f97ff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+  }
+  .dk-history-clear:hover {
+    text-decoration: underline;
+  }
+  .dk-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .dk-history-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 20px;
+    background: #1e2238;
+    box-shadow: 5px 5px 12px #14172a, -5px -5px 12px #282d48;
+    transition: box-shadow 0.15s;
+  }
+  .dk-history-item:hover {
+    box-shadow: 6px 6px 14px #14172a, -6px -6px 14px #282d48;
+  }
+  .dk-history-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #1e2238;
+  }
+  .dk-history-info {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .dk-history-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e6e9f5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dk-history-meta {
+    font-size: 12px;
+    color: #7c83a8;
+  }
+  .dk-history-rejoin {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: none;
+    background: #1e2238;
+    box-shadow: 3px 3px 7px #14172a, -3px -3px 7px #282d48;
+    color: #6f97ff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: box-shadow 0.15s;
+  }
+  .dk-history-rejoin:hover {
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+  }
+  .dk-history-rejoin:active {
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+  }
+  .dk-history-remove {
+    background: none;
+    border: none;
+    color: #6b7194;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .dk-history-remove:hover {
+    color: #e6e9f5;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* Illustration card (Meet tab right) */
+  .dk-meet-right {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 16px;
+  }
+  .dk-illustration-card {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1;
+    border-radius: 36px;
+    background: #1e2238;
+    box-shadow: 10px 10px 24px #13162a, -10px -10px 24px #2a2f4c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 32px;
+  }
+  .dk-illustration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 76%;
+  }
+  .dk-illust-tile {
+    aspect-ratio: 1;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 4px 4px 10px #14172a, -4px -4px 10px #282d48;
+  }
+  .dk-illust-tile svg {
+    width: 38%;
+    height: 38%;
+    opacity: 0.9;
+  }
+  .dk-illust-tile.blue   { background: linear-gradient(135deg, #5b8dee, #4a7dd4); }
+  .dk-illust-tile.pink   { background: linear-gradient(135deg, #e85d75, #d44a63); }
+  .dk-illust-tile.green  { background: linear-gradient(135deg, #5bc88d, #4aad79); }
+  .dk-illust-tile.orange { background: linear-gradient(135deg, #f0a732, #d9922a); }
+  .dk-illustration-text {
+    text-align: center;
+    color: #7c83a8;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  /* ---------- Empty tab (Calls / Groups / Chat) ---------- */
+  .dk-empty-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 24px;
+    gap: 24px;
+  }
+  .dk-empty-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #e6e9f5;
+    margin: 0;
+    align-self: flex-start;
+  }
+  .dk-empty-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 50px;
+    padding: 0 24px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+    box-shadow: 5px 5px 12px #13162a, -5px -5px 12px #2a2f4c;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dk-empty-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 6px 6px 14px #13162a, -6px -6px 14px #2a2f4c;
+  }
+  .dk-empty-action-btn:active {
+    transform: translateY(0);
+    box-shadow: inset 4px 4px 8px #4a6fd6, inset -4px -4px 8px #8aaeff;
+  }
+  .dk-empty-action-btn.green {
+    background: linear-gradient(145deg, #5bc88d, #4aad79);
+  }
+  .dk-empty-action-btn.green:active {
+    box-shadow: inset 4px 4px 8px #3d8f65, inset -4px -4px 8px #72dea0;
+  }
+  .dk-empty-action-btn.orange {
+    background: linear-gradient(145deg, #f0a732, #d9922a);
+  }
+  .dk-empty-action-btn.orange:active {
+    box-shadow: inset 4px 4px 8px #b87920, inset -4px -4px 8px #ffc044;
+  }
+  .dk-empty-circle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: #1e2238;
+    box-shadow: inset 8px 8px 18px #14172a, inset -8px -8px 18px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .dk-empty-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e6e9f5;
+  }
+  .dk-empty-sub {
+    font-size: 14px;
+    color: #9aa1c2;
+    max-width: 280px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* ---------- Profile Tab ---------- */
+  .dk-profile-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding-top: 8px;
+  }
+  .dk-profile-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #e6e9f5;
+    margin: 0;
+  }
+  .dk-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 32px;
+    border-radius: 28px;
+    background: #1e2238;
+    box-shadow: 8px 8px 20px #14172a, -8px -8px 20px #282d48;
+    max-width: 560px;
+  }
+  .dk-profile-avatar-ring {
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    background: #1e2238;
+    box-shadow: 8px 8px 18px #13162a, -8px -8px 18px #2a2f4c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dk-profile-avatar-img {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: inset 3px 3px 8px rgba(74,111,214,0.3), inset -3px -3px 8px rgba(138,174,255,0.15);
+  }
+  .dk-profile-avatar-placeholder {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+    box-shadow: inset 3px 3px 8px #4a6fd6, inset -3px -3px 8px #8aaeff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .dk-profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .dk-profile-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #e6e9f5;
+  }
+  .dk-profile-email {
+    font-size: 14px;
+    color: #9aa1c2;
+  }
+  .dk-profile-signout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 14px;
+    border: none;
+    background: #1e2238;
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+    color: #ff8a8a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+    align-self: flex-start;
+  }
+  .dk-profile-signout:hover {
+    box-shadow: 5px 5px 11px #14172a, -5px -5px 11px #282d48;
+  }
+  .dk-profile-signout:active {
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+  }
+  .dk-profile-google {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 14px;
+    border: none;
+    background: #1e2238;
+    box-shadow: 4px 4px 9px #14172a, -4px -4px 9px #282d48;
+    color: #e6e9f5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+    align-self: flex-start;
+  }
+  .dk-profile-google:hover {
+    box-shadow: 5px 5px 11px #14172a, -5px -5px 11px #282d48;
+  }
+  .dk-profile-google:active {
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+  }
+}
+/* End desktop home layout */
+
+/* Mobile/Desktop visibility helpers for pre-join */
+.prejoin-dk-only { display: none !important; }
+.prejoin-mb-only { display: flex; }
+.prejoin-dk-header { display: none; }
+.prejoin-dk-body { display: none; }
+.prejoin-mb-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 100px;
+}
+
+/* Desktop pre-join layout */
+@media (min-width: 769px) {
+  .prejoin-dk-only { display: flex !important; }
+  .prejoin-mb-only { display: none !important; }
+  .prejoin-mb-body { display: none !important; }
+
+  /* Header */
+  .prejoin-dk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    background: #1e2238;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .prejoin-dk-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .prejoin-dk-back {
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1e2238;
+    box-shadow: 4px 4px 8px #14172a, -4px -4px 8px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 0.15s;
+  }
+  .prejoin-dk-back:hover {
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+  }
+  .prejoin-dk-back:active {
+    box-shadow: inset 3px 3px 6px #14172a, inset -3px -3px 6px #282d48;
+  }
+  .prejoin-dk-logo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .prejoin-dk-logo-my { color: #e6e9f5; }
+  .prejoin-dk-logo-talk { color: #6f97ff; }
+  .prejoin-dk-room-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 12px;
+    box-shadow: inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a9b0d0;
+    letter-spacing: 0.04em;
+  }
+  .prejoin-dk-room-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+  }
+
+  /* Two-column body */
+  .prejoin-dk-body {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    padding: 40px 60px;
+  }
+
+  /* Left info panel */
+  .prejoin-dk-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 440px;
+    flex: 1;
+  }
+  .prejoin-dk-live {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #4ade80;
+  }
+  .prejoin-dk-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74,222,128,0.5);
+    animation: livePulse 2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .prejoin-dk-title {
+    font-size: 40px;
+    font-weight: 800;
+    color: #e6e9f5;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .prejoin-dk-host {
+    font-size: 15px;
+    color: #7c83a8;
+    font-weight: 400;
+  }
+  .prejoin-dk-host strong {
+    color: #a9b0d0;
+    font-weight: 600;
+  }
+
+  /* Participants box */
+  .prejoin-dk-participants-box {
+    border-radius: 16px;
+    box-shadow: inset 4px 4px 10px #14172a, inset -4px -4px 10px #282d48;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .prejoin-dk-participants-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #7c83a8;
+  }
+  .prejoin-dk-avatars-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .prejoin-dk-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    border: 2.5px solid #1e2238;
+    margin-left: -8px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .prejoin-dk-avatar:first-child {
+    margin-left: 0;
+  }
+  .prejoin-dk-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .prejoin-dk-avatar-more {
+    background: #2a2f4c !important;
+    font-size: 12px;
+    color: #a9b0d0;
+  }
+  .prejoin-dk-people-text {
+    margin-left: 14px;
+    font-size: 13px;
+    color: #7c83a8;
+    white-space: nowrap;
+  }
+
+  /* Badges row */
+  .prejoin-dk-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .prejoin-dk-badge {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 12px;
+    box-shadow: 4px 4px 8px #14172a, -4px -4px 8px #282d48;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9aa1c2;
+  }
+
+  /* Right card */
+  .prejoin-dk-right {
+    width: 320px;
+    flex-shrink: 0;
+  }
+  .prejoin-dk-right .prejoin-lobby {
+    min-height: auto;
+    max-width: 100%;
+    border-radius: 20px;
+    box-shadow: 10px 10px 24px #13162a, -10px -10px 24px #2a2f4c;
+    padding: 28px 24px 24px;
+  }
+  .prejoin-dk-right .prejoin-center {
+    gap: 18px;
+  }
+
+  /* Desktop greeting row (avatar + text horizontal) */
+  .prejoin-dk-greeting-row {
+    display: flex !important;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+  }
+  .prejoin-dk-mini-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .prejoin-dk-mini-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .prejoin-dk-hi {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e6e9f5;
+    letter-spacing: -0.01em;
+  }
+  .prejoin-dk-ready {
+    font-size: 13px;
+    color: #7c83a8;
+    margin-top: 2px;
+  }
+
+  /* Bio hint */
+  .prejoin-bio-hint {
+    font-size: 12px;
+    color: #6b7194;
+    margin-top: -2px;
+    padding-left: 4px;
+  }
+
+  /* Compact adjustments for the card */
+  .prejoin-dk-right .prejoin-bio-field {
+    height: 46px;
+    border-radius: 13px;
+    padding: 0 14px;
+  }
+  .prejoin-dk-right .prejoin-bio-input {
+    font-size: 14px;
+  }
+  .prejoin-dk-right .prejoin-join-btn {
+    height: 48px;
+    border-radius: 14px;
+    font-size: 15px;
+  }
+  .prejoin-dk-right .prejoin-bottom {
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .prejoin-dk-right .prejoin-disclaimer {
+    font-size: 11px;
+  }
+  .prejoin-dk-right .prejoin-bio-section {
+    gap: 8px;
+  }
+}
+
+/* Desktop side panel hidden on mobile */
+.desktop-side-panel {
+  display: none !important;
+}
+
+/* =====================================================================
+   DESKTOP UNIFIED SIDE PANEL  (min-width: 960px)
+   Mobile panels (.participants-panel-neo and .neo-chat) are UNCHANGED
+   — only hidden on desktop.
+   ===================================================================== */
+@media (min-width: 960px) {
+  /* Make the video conference container relative so the absolute panel
+     is positioned inside it */
+  .lk-video-conference {
+    position: relative !important;
+  }
+
+  /* Hide the individual mobile panels on desktop */
+  .participants-panel-neo {
+    display: none !important;
+  }
+  .neo-chat {
+    display: none !important;
+  }
+
+  /* ---- Desktop side panel shell ---- */
+  .desktop-side-panel {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 90px;
+    right: 32px;
+    bottom: 12px;
+    width: 380px;
+    max-width: calc(100% - 64px);
+    border-radius: 30px;
+    background: #1e2238;
+    box-shadow:
+      -16px 0 40px rgba(10, 12, 24, 0.55),
+      8px 8px 18px #13162a,
+      -8px -8px 18px #2a2f4c;
+    padding: 18px;
+    box-sizing: border-box;
+    gap: 16px;
+    z-index: 8;
+    color: #e6e9f5;
+    font-family: 'Plus Jakarta Sans', 'Google Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+    min-height: 0;
+  }
+
+  /* ---- Header row: tab bar + close button inline ---- */
+  .dsp-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* ---- Tab bar ---- */
+  .dsp-tab-bar {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 16px;
+    box-shadow: inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48;
+    padding: 5px;
+    gap: 6px;
+  }
+  .dsp-tab {
+    height: 40px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    background: #1e2238;
+    box-shadow: none;
+    color: #7c83a8;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .dsp-tab-active {
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+    color: #6f97ff;
+  }
+
+  /* ---- Close button (inline, not absolute) ---- */
+  .dsp-close {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    background: #1e2238;
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dsp-close:active {
+    box-shadow: inset 4px 4px 8px #14172a, inset -4px -4px 8px #282d48;
+  }
+
+  /* ---- Content area ---- */
+  .dsp-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* =============== CHAT TAB =============== */
+  .dsp-chat-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 10px;
+  }
+  /* Hide the chat header inside desktop panel (tab bar already identifies it) */
+  .dsp-chat-inner .neo-chat-header {
+    display: none;
+  }
+  /* Messages area — inset shadow container like reference */
+  .dsp-chat-inner .neo-chat-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border-radius: 22px;
+    box-shadow: inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  /* Chat input row */
+  .dsp-chat-inner .neo-chat-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .dsp-chat-inner .neo-chat-input-wrap {
+    flex: 1;
+    height: 52px;
+    border-radius: 17px;
+    box-shadow: inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+  }
+  .dsp-chat-inner .neo-chat-send {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 17px;
+    background: #1e2238;
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+  }
+
+  /* =============== PARTICIPANTS TAB =============== */
+  .dsp-participants-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 16px;
+    overflow: hidden;
+  }
+
+  /* Hide the header (Participants title + count + close) — tab bar already handles this */
+  .dsp-participants-inner .pp-header {
+    display: none !important;
+  }
+
+  /* Hide "Copy Meeting Link" button — already in title bar */
+  .dsp-participants-inner .pp-action-full {
+    display: none !important;
+  }
+
+  /* Hide "IN THIS MEETING" section label */
+  .dsp-participants-inner .pp-section-label {
+    display: none !important;
+  }
+
+  /* Search bar inside desktop panel */
+  .dsp-participants-inner .pp-search {
+    height: 50px;
+    border-radius: 17px;
+    box-shadow: inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+
+  /* Unmute/Mute buttons — 2-column grid (no Copy Meeting Link) */
+  .dsp-participants-inner .pp-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .dsp-participants-inner .pp-action-btn {
+    height: 46px;
+    border-radius: 15px;
+    background: #1e2238;
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .dsp-participants-inner .pp-action-btn:active {
+    box-shadow: inset 4px 4px 8px #14172a, inset -4px -4px 8px #282d48;
+  }
+
+  /* Participant list — scrollable, with bottom padding */
+  .dsp-participants-inner .pp-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: -8px;
+    padding: 8px 8px 140px;
+    max-height: none;
+  }
+  .dsp-participants-inner .pp-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  .dsp-participants-inner .pp-list::-webkit-scrollbar-thumb {
+    background: rgba(111, 151, 255, 0.2);
+    border-radius: 2px;
+  }
+
+  /* Participant card inside desktop panel */
+  .dsp-participants-inner .pp-participant-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 18px;
+    background: #1e2238;
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+  }
+
+  /* Avatar inside desktop panel */
+  .dsp-participants-inner .pp-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    box-shadow: 3px 3px 7px #13162a;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* Mic badge inside desktop panel */
+  .dsp-participants-inner .pp-mic-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1e2238;
+    box-shadow: 2px 2px 5px #13162a;
+  }
+
+  /* Name */
+  .dsp-participants-inner .pp-name {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* Role badge inside desktop panel */
+  .dsp-participants-inner .pp-role-badge {
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 7px;
+    box-shadow: inset 2px 2px 4px #14172a, inset -2px -2px 4px #282d48;
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* 3-dot menu button */
+  .dsp-participants-inner .pp-menu-btn {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: #1e2238;
+    box-shadow: 5px 5px 10px #14172a, -5px -5px 10px #282d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Dropdown menu */
+  .dsp-participants-inner .pp-dropdown {
+    position: absolute;
+    top: calc(100% - 4px);
+    right: 8px;
+    width: 190px;
+    z-index: 6;
+    padding: 8px;
+    border-radius: 18px;
+    background: #22263f;
+    box-shadow: 10px 10px 24px #10121f, -4px -4px 12px #2a2f4c;
+  }
+  .dsp-participants-inner .pp-dropdown-item {
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .dsp-participants-inner .pp-dropdown-item:hover {
+    box-shadow: inset 3px 3px 6px #181b2f, inset -3px -3px 6px #2c3150;
   }
 }

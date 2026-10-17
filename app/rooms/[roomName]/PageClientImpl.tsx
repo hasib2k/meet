@@ -195,7 +195,34 @@ export function PageClientImpl(props: {
           </div>
         ) : (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#1e2238' }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: '100px' }}>
+          {/* Desktop header for pre-join page */}
+          <div className="prejoin-dk-header">
+            <div className="prejoin-dk-header-left">
+              <button className="prejoin-dk-back" onClick={() => window.location.href = '/'} aria-label="Back to home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div className="prejoin-dk-logo">
+                <span className="prejoin-dk-logo-my">My</span><span className="prejoin-dk-logo-talk">Talk</span>
+              </div>
+            </div>
+            <div className="prejoin-dk-room-pill">
+              <div className="prejoin-dk-room-dot" />
+              {props.roomName}
+            </div>
+          </div>
+          {/* Desktop two-column layout */}
+          <div className="prejoin-dk-body">
+            <RoomInfoPanel roomName={props.roomName} role={props.role} />
+            <div className="prejoin-dk-right">
+              <AudioOnlyPreJoin
+                onSubmit={handlePreJoinSubmit}
+                role={props.role}
+                roomName={props.roomName}
+              />
+            </div>
+          </div>
+          {/* Mobile single-column layout */}
+          <div className="prejoin-mb-body">
             <AudioOnlyPreJoin
               onSubmit={handlePreJoinSubmit}
               role={props.role}
@@ -585,6 +612,23 @@ function ParticipantProfileImages() {
         }
       });
 
+      // 2b. Inject unmuted mic indicator on tiles (for desktop view)
+      allTiles.forEach((tile) => {
+        const isMuted = tile.querySelector('.lk-track-muted-indicator-microphone');
+        const existing = tile.querySelector('.mic-unmuted-indicator');
+        if (!isMuted) {
+          // Participant is unmuted — show blue mic icon
+          if (!existing) {
+            const indicator = document.createElement('div');
+            indicator.className = 'mic-unmuted-indicator';
+            indicator.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" stroke-width="2.4" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/></svg>';
+            (tile as HTMLElement).appendChild(indicator);
+          }
+        } else if (existing) {
+          existing.remove();
+        }
+      });
+
       // 3. Inject/update bio text under participant names
       allTiles.forEach((tile) => {
         const nameEl = tile.querySelector('.lk-participant-name');
@@ -814,4 +858,111 @@ function KeepAlive() {
 interface WakeLockSentinel {
   release: () => Promise<void>;
   addEventListener: (type: string, listener: () => void) => void;
+}
+
+/** Color palette for participant avatars in the pre-join info panel */
+const AVATAR_COLORS = [
+  '#e67e22', '#2ecc71', '#e74c3c', '#9b59b6', '#1abc9c',
+  '#3498db', '#f39c12', '#e91e63', '#00bcd4', '#8bc34a',
+];
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function getInitials(name: string): string {
+  return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+interface RoomInfo {
+  exists: boolean;
+  ended?: boolean;
+  title?: string;
+  hostName?: string;
+  participantCount?: number;
+  participants?: { name: string; identity: string; role: string; imageUrl: string; bio: string }[];
+}
+
+/** Desktop-only left panel showing meeting info, participants, badges */
+function RoomInfoPanel({ roomName, role }: { roomName: string; role: string }) {
+  const [info, setInfo] = React.useState<RoomInfo | null>(null);
+
+  React.useEffect(() => {
+    fetch(`/api/room-info?roomName=${encodeURIComponent(roomName)}`)
+      .then(r => r.json())
+      .then(setInfo)
+      .catch(() => {});
+
+    // Refresh every 5s to see new participants
+    const iv = setInterval(() => {
+      fetch(`/api/room-info?roomName=${encodeURIComponent(roomName)}`)
+        .then(r => r.json())
+        .then(setInfo)
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [roomName]);
+
+  const title = info?.title || 'Meeting';
+  const hostName = info?.hostName || '';
+  const participants = info?.participants || [];
+  const count = info?.participantCount || 0;
+  const roleLabel = role === 'host' ? 'Host' : role === 'moderator' ? 'Moderator' : 'Listener';
+  const showMax = 5;
+
+  return (
+    <div className="prejoin-dk-left">
+      <div className="prejoin-dk-live">
+        <div className="prejoin-dk-live-dot" />
+        LIVE NOW
+      </div>
+      <h1 className="prejoin-dk-title">{title}</h1>
+      {hostName && (
+        <div className="prejoin-dk-host">
+          Hosted by <strong>{hostName}</strong>
+        </div>
+      )}
+
+      {count > 0 && (
+        <div className="prejoin-dk-participants-box">
+          <div className="prejoin-dk-participants-label">ALREADY IN THE MEETING</div>
+          <div className="prejoin-dk-avatars-row">
+            {participants.slice(0, showMax).map((p, i) => (
+              <div
+                key={p.identity}
+                className="prejoin-dk-avatar"
+                style={{ background: AVATAR_COLORS[hashStr(p.identity) % AVATAR_COLORS.length], zIndex: showMax - i }}
+                title={p.name}
+              >
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt="" referrerPolicy="no-referrer" />
+                ) : (
+                  getInitials(p.name)
+                )}
+              </div>
+            ))}
+            {count > showMax && (
+              <div className="prejoin-dk-avatar prejoin-dk-avatar-more" style={{ zIndex: 0 }}>
+                +{count - showMax}
+              </div>
+            )}
+            <span className="prejoin-dk-people-text">{count} {count === 1 ? 'person is' : 'people are'} here</span>
+          </div>
+        </div>
+      )}
+
+      <div className="prejoin-dk-badges">
+        <div className="prejoin-dk-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+          Audio-only
+        </div>
+        <div className="prejoin-dk-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
+          Joining as {roleLabel}
+        </div>
+      </div>
+    </div>
+  );
 }

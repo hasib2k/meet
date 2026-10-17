@@ -5,6 +5,7 @@ import {
   useChat,
   useRoomContext,
   useMaybeLayoutContext,
+  useParticipants,
 } from '@livekit/components-react';
 
 /** Color palette for avatar backgrounds */
@@ -43,13 +44,27 @@ function formatTime(ts: number): string {
   return `${h}:${m}`;
 }
 
-export function CustomChat({ style }: { style?: React.CSSProperties }) {
+/** Inner chat content — usable standalone or embedded in a desktop panel. */
+export function ChatPanelContent({ onClose }: { onClose?: () => void }) {
   const room = useRoomContext();
   const layoutContext = useMaybeLayoutContext();
   const { send, chatMessages, isSending } = useChat();
+  const participants = useParticipants();
   const [draft, setDraft] = React.useState('');
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const localIdentity = room.localParticipant.identity;
+
+  // Build a map of participant identity → imageUrl from metadata
+  const participantImages = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    participants.forEach((p) => {
+      try {
+        const meta = JSON.parse(p.metadata || '{}');
+        if (meta.imageUrl) map[p.identity] = meta.imageUrl;
+      } catch {}
+    });
+    return map;
+  }, [participants]);
 
   // Derive room title for subtitle
   const [roomTitle, setRoomTitle] = React.useState('');
@@ -79,12 +94,12 @@ export function CustomChat({ style }: { style?: React.CSSProperties }) {
     }
   };
 
-  const closeChat = () => {
+  const handleClose = onClose ?? (() => {
     layoutContext?.widget.dispatch?.({ msg: 'toggle_chat' });
-  };
+  });
 
   return (
-    <div className="neo-chat" style={style}>
+    <>
       {/* Header */}
       <div className="neo-chat-header">
         <div className="neo-chat-header-left">
@@ -93,7 +108,7 @@ export function CustomChat({ style }: { style?: React.CSSProperties }) {
             {roomTitle || room.name} · Everyone in the meeting
           </div>
         </div>
-        <button className="neo-chat-close" onClick={closeChat} aria-label="Close">
+        <button className="neo-chat-close" onClick={handleClose} aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.4" strokeLinecap="round">
             <path d="M6 6l12 12M18 6 6 18" />
           </svg>
@@ -108,20 +123,27 @@ export function CustomChat({ style }: { style?: React.CSSProperties }) {
           const initials = getInitials(name);
           const colorIdx = hashString(msg.from?.identity || '') % AVATAR_COLORS.length;
           const bg = AVATAR_COLORS[colorIdx];
+          const imageUrl = participantImages[msg.from?.identity || ''];
+
+          const avatar = imageUrl ? (
+            <img
+              src={imageUrl}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="neo-chat-avatar neo-chat-avatar-img"
+            />
+          ) : (
+            <div className="neo-chat-avatar" style={{ background: bg }}>
+              {initials}
+            </div>
+          );
 
           return (
             <div
               key={msg.id ?? i}
               className={`neo-chat-entry ${isLocal ? 'neo-chat-local' : 'neo-chat-remote'}`}
             >
-              {!isLocal && (
-                <div
-                  className="neo-chat-avatar"
-                  style={{ background: bg }}
-                >
-                  {initials}
-                </div>
-              )}
+              {!isLocal && avatar}
               <div className="neo-chat-bubble-wrap">
                 <div className="neo-chat-meta">
                   {name} · {formatTime(msg.timestamp)}
@@ -130,14 +152,7 @@ export function CustomChat({ style }: { style?: React.CSSProperties }) {
                   {msg.message}
                 </div>
               </div>
-              {isLocal && (
-                <div
-                  className="neo-chat-avatar"
-                  style={{ background: bg }}
-                >
-                  {initials}
-                </div>
-              )}
+              {isLocal && avatar}
             </div>
           );
         })}
@@ -167,6 +182,14 @@ export function CustomChat({ style }: { style?: React.CSSProperties }) {
           </svg>
         </button>
       </div>
+    </>
+  );
+}
+
+export function CustomChat({ style }: { style?: React.CSSProperties }) {
+  return (
+    <div className="neo-chat" style={style}>
+      <ChatPanelContent />
     </div>
   );
 }

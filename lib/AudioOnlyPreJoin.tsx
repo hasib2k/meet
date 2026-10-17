@@ -61,8 +61,8 @@ export function AudioOnlyPreJoin(props: {
   if (mode === 'google' && isLoggedIn) {
     return (
       <div className="prejoin-lobby">
-        {/* Top bar: back + room code */}
-        <div className="prejoin-topbar">
+        {/* Mobile: Top bar (hidden on desktop) */}
+        <div className="prejoin-topbar prejoin-mb-only">
           <button className="prejoin-back-btn" onClick={() => router.push('/')} aria-label="Back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
@@ -75,8 +75,8 @@ export function AudioOnlyPreJoin(props: {
 
         {/* Center content */}
         <div className="prejoin-center">
-          {/* Avatar */}
-          <div className="prejoin-avatar-ring">
+          {/* Mobile: big avatar (hidden on desktop) */}
+          <div className="prejoin-avatar-ring prejoin-mb-only">
             {userImage ? (
               <img src={userImage} alt="" referrerPolicy="no-referrer" className="prejoin-avatar-img" />
             ) : (
@@ -84,8 +84,8 @@ export function AudioOnlyPreJoin(props: {
             )}
           </div>
 
-          {/* Greeting */}
-          <div className="prejoin-greeting">
+          {/* Mobile: centered greeting + badges (hidden on desktop) */}
+          <div className="prejoin-greeting prejoin-mb-only">
             <div className="prejoin-greeting-text">Hi, {userName.split(' ')[0]}!</div>
             <div className="prejoin-badges">
               <div className="prejoin-badge">
@@ -96,6 +96,21 @@ export function AudioOnlyPreJoin(props: {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
                 Joining as {roleLabel}
               </div>
+            </div>
+          </div>
+
+          {/* Desktop: horizontal avatar + greeting row */}
+          <div className="prejoin-dk-greeting-row prejoin-dk-only">
+            <div className="prejoin-dk-mini-avatar">
+              {userImage ? (
+                <img src={userImage} alt="" referrerPolicy="no-referrer" />
+              ) : (
+                <span>{userInitials}</span>
+              )}
+            </div>
+            <div>
+              <div className="prejoin-dk-hi">Hi, {userName.split(' ')[0]}!</div>
+              <div className="prejoin-dk-ready">Ready to join?</div>
             </div>
           </div>
 
@@ -110,11 +125,12 @@ export function AudioOnlyPreJoin(props: {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 maxLength={60}
-                placeholder="e.g. Product designer at Parallax"
+                placeholder="e.g. President"
                 className="prejoin-bio-input"
               />
               <span className="prejoin-bio-count">{bio.length}/60</span>
             </div>
+            <div className="prejoin-bio-hint prejoin-dk-only">Shown under your name in the meeting</div>
           </div>
         </div>
 
