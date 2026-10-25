@@ -88,15 +88,21 @@ export async function GET(request: NextRequest) {
           metadata: room.metadata || '',
           participants: participants.map((p) => {
             let role = 'listener';
+            let bio = '';
+            let imageUrl = '';
             try {
               const meta = JSON.parse(p.metadata || '{}');
               role = meta.role || 'listener';
+              bio = meta.bio || '';
+              imageUrl = meta.imageUrl || '';
             } catch {}
             return {
               identity: p.identity,
               name: p.name,
               sid: p.sid,
               role,
+              bio,
+              imageUrl,
               isSpeaking: (p as any).isSpeaking ?? false,
               joinedAt: Number(p.joinedAt),
               canPublish: p.permission?.canPublish ?? false,

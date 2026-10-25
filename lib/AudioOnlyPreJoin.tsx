@@ -14,6 +14,14 @@ export function AudioOnlyPreJoin(props: {
   const { data: session, status } = useSession();
   const [guestName, setGuestName] = useState('');
   const [bio, setBio] = useState('');
+
+  // Pre-fill bio from the saved profile bio (editable per meeting)
+  React.useEffect(() => {
+    try {
+      const savedBio = localStorage.getItem('mytalk_profile_bio');
+      if (savedBio) setBio(savedBio);
+    } catch {}
+  }, []);
   const [mode, setMode] = useState<'choose' | 'google' | 'guest'>('choose');
 
   const isLoggedIn = status === 'authenticated' && session?.user;

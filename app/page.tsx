@@ -19,10 +19,36 @@ function HomeContent() {
   const [roomCode, setRoomCode] = useState('');
   const [history, setHistory] = useState<MeetingRecord[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>('meet');
+  const [profileBio, setProfileBio] = useState('');
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioInput, setBioInput] = useState('');
 
   useEffect(() => {
     setHistory(getMeetingHistory());
+    try {
+      setProfileBio(localStorage.getItem('mytalk_profile_bio') || '');
+    } catch {}
   }, []);
+
+  const persistBio = (text: string) => {
+    const trimmed = text.trim();
+    setProfileBio(trimmed);
+    try {
+      localStorage.setItem('mytalk_profile_bio', trimmed);
+    } catch {}
+  };
+
+  const saveBio = () => {
+    persistBio(bioInput);
+    setEditingBio(false);
+  };
+
+  // Profile stats derived from local meeting history
+  const totalMeetings = history.length;
+  const hostedCount = history.filter((m) => m.role === 'host').length;
+  const joinedCount = totalMeetings - hostedCount;
+  const lastActive = history.length ? history[0].timestamp : null;
+  const recentMeetings = history.slice(0, 4);
 
   const handleNewMeeting = () => {
     const code = generateRoomCode();
@@ -283,8 +309,46 @@ function HomeContent() {
                     )}
                   </div>
                   <div className="dk-profile-info">
-                    <div className="dk-profile-name">{session?.user?.name || 'Guest'}</div>
+                    <div className="dk-profile-name-row">
+                      <span className="dk-profile-name">{session?.user?.name || 'Guest'}</span>
+                      <span className="dk-profile-badge">{session?.user ? 'Google' : 'Guest'}</span>
+                    </div>
                     <div className="dk-profile-email">{session?.user?.email || 'No account'}</div>
+
+                    {/* Bio */}
+                    {!editingBio ? (
+                      <div className="dk-profile-bio-row">
+                        <span className={`dk-profile-bio ${!profileBio ? 'empty' : ''}`}>
+                          {profileBio || 'Add a short bio about yourself'}
+                        </span>
+                        <button
+                          className="dk-profile-bio-edit"
+                          onClick={() => { setBioInput(profileBio); setEditingBio(true); }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                          </svg>
+                          {profileBio ? 'Edit' : 'Add'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="dk-profile-bio-editbox">
+                        <input
+                          className="dk-profile-bio-input"
+                          value={bioInput}
+                          onChange={(e) => setBioInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') saveBio(); if (e.key === 'Escape') setEditingBio(false); }}
+                          placeholder="Short bio (max 80 chars)"
+                          maxLength={80}
+                          autoFocus
+                        />
+                        <div className="dk-profile-bio-actions">
+                          <button className="dk-bio-save" onClick={saveBio}>Save</button>
+                          <button className="dk-bio-cancel" onClick={() => setEditingBio(false)}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+
                     {session?.user ? (
                       <button className="dk-profile-signout" onClick={() => signOut()}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -305,6 +369,54 @@ function HomeContent() {
                     )}
                   </div>
                 </div>
+
+                {/* Stats */}
+                <div className="dk-profile-stats">
+                  <div className="dk-stat-card">
+                    <span className="dk-stat-num">{totalMeetings}</span>
+                    <span className="dk-stat-label">Meetings</span>
+                  </div>
+                  <div className="dk-stat-card">
+                    <span className="dk-stat-num">{hostedCount}</span>
+                    <span className="dk-stat-label">Hosted</span>
+                  </div>
+                  <div className="dk-stat-card">
+                    <span className="dk-stat-num">{joinedCount}</span>
+                    <span className="dk-stat-label">Joined</span>
+                  </div>
+                </div>
+
+                {/* Account details */}
+                <div className="dk-profile-details">
+                  <div className="dk-detail-row">
+                    <span className="dk-detail-label">Account type</span>
+                    <span className="dk-detail-value">{session?.user ? 'Google account' : 'Guest'}</span>
+                  </div>
+                  <div className="dk-detail-row">
+                    <span className="dk-detail-label">Last active</span>
+                    <span className="dk-detail-value">{lastActive ? formatTimeAgo(lastActive) : '—'}</span>
+                  </div>
+                </div>
+
+                {/* Recent meetings */}
+                {recentMeetings.length > 0 && (
+                  <div className="dk-profile-recent">
+                    <div className="dk-recent-head">Recent meetings</div>
+                    {recentMeetings.map((m) => (
+                      <div className="dk-recent-item" key={m.roomName}>
+                        <div className="dk-recent-info">
+                          <span className="dk-recent-name">{m.roomName}</span>
+                          <span className="dk-recent-meta">
+                            {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
+                          </span>
+                        </div>
+                        <button className="dk-recent-rejoin" onClick={() => handleRejoin(m.roomName, m.role)}>
+                          Rejoin
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -459,7 +571,18 @@ function HomeContent() {
           {/* ===== PROFILE TAB ===== */}
           <div className={`mobile-tab-content ${activeTab !== 'profile' ? 'mobile-tab-hidden' : ''}`}>
             <div className="mobile-tab-header"><h2>Profile</h2></div>
-            <ProfileTabContent session={session} userInitial={userInitial} />
+            <ProfileTabContent
+              session={session}
+              userInitial={userInitial}
+              bio={profileBio}
+              onSaveBio={persistBio}
+              totalMeetings={totalMeetings}
+              hostedCount={hostedCount}
+              joinedCount={joinedCount}
+              lastActive={lastActive}
+              recentMeetings={recentMeetings}
+              onRejoin={handleRejoin}
+            />
           </div>
         </main>
 
@@ -508,12 +631,36 @@ function HomeContent() {
 }
 
 /** Profile tab — logged-in vs guest */
-function ProfileTabContent({ session, userInitial }: { session: any; userInitial: string }) {
+function ProfileTabContent({
+  session,
+  userInitial,
+  bio,
+  onSaveBio,
+  totalMeetings,
+  hostedCount,
+  joinedCount,
+  lastActive,
+  recentMeetings,
+  onRejoin,
+}: {
+  session: any;
+  userInitial: string;
+  bio: string;
+  onSaveBio: (text: string) => void;
+  totalMeetings: number;
+  hostedCount: number;
+  joinedCount: number;
+  lastActive: number | null;
+  recentMeetings: MeetingRecord[];
+  onRejoin: (roomName: string, role: string) => void;
+}) {
   const [guestName, setGuestName] = useState(() => {
     try { return localStorage.getItem('guestName') || ''; } catch { return ''; }
   });
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(guestName);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioInput, setBioInput] = useState(bio);
 
   const isLoggedIn = !!session?.user;
 
@@ -525,6 +672,86 @@ function ProfileTabContent({ session, userInitial }: { session: any; userInitial
     }
     setEditingName(false);
   };
+
+  const saveBio = () => {
+    onSaveBio(bioInput);
+    setEditingBio(false);
+  };
+
+  // Shared sections (stats, bio, account details, recent meetings)
+  const extras = (
+    <div className="mobile-profile-extras">
+      {/* Bio */}
+      {!editingBio ? (
+        <button className="mobile-profile-menu-item" onClick={() => { setBioInput(bio); setEditingBio(true); }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+          </svg>
+          <span className="mobile-bio-text">{bio || 'Add a short bio'}</span>
+        </button>
+      ) : (
+        <div className="mobile-bio-edit">
+          <input
+            className="profile-name-input"
+            value={bioInput}
+            onChange={(e) => setBioInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveBio(); }}
+            placeholder="Short bio (max 80 chars)"
+            maxLength={80}
+            autoFocus
+          />
+          <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+            <button className="profile-save-btn" onClick={saveBio}>Save</button>
+            <button className="profile-cancel-btn" onClick={() => setEditingBio(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="mobile-profile-stats">
+        <div className="mobile-stat-card">
+          <span className="mobile-stat-num">{totalMeetings}</span>
+          <span className="mobile-stat-label">Meetings</span>
+        </div>
+        <div className="mobile-stat-card">
+          <span className="mobile-stat-num">{hostedCount}</span>
+          <span className="mobile-stat-label">Hosted</span>
+        </div>
+        <div className="mobile-stat-card">
+          <span className="mobile-stat-num">{joinedCount}</span>
+          <span className="mobile-stat-label">Joined</span>
+        </div>
+      </div>
+
+      {/* Account details */}
+      <div className="mobile-profile-details">
+        <div className="mobile-detail-row">
+          <span className="mobile-detail-label">Account type</span>
+          <span className="mobile-detail-value">{isLoggedIn ? 'Google account' : (guestName ? 'Guest' : 'No account')}</span>
+        </div>
+        <div className="mobile-detail-row">
+          <span className="mobile-detail-label">Last active</span>
+          <span className="mobile-detail-value">{lastActive ? formatTimeAgo(lastActive) : '—'}</span>
+        </div>
+      </div>
+
+      {/* Recent meetings */}
+      {recentMeetings.length > 0 && (
+        <div className="mobile-profile-recent">
+          <div className="mobile-recent-head">Recent meetings</div>
+          {recentMeetings.map((m) => (
+            <div className="mobile-recent-item" key={m.roomName}>
+              <div className="mobile-recent-info">
+                <span className="mobile-recent-name">{m.roomName}</span>
+                <span className="mobile-recent-meta">{m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}</span>
+              </div>
+              <button className="mobile-recent-rejoin" onClick={() => onRejoin(m.roomName, m.role)}>Rejoin</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   // ===== Logged-in user =====
   if (isLoggedIn) {
@@ -541,6 +768,7 @@ function ProfileTabContent({ session, userInitial }: { session: any; userInitial
           <div className="mobile-profile-name">{session.user.name || 'User'}</div>
           <div className="mobile-profile-email">{session.user.email || ''}</div>
         </div>
+        {extras}
         <div className="mobile-profile-menu">
           <button className="mobile-profile-menu-item" data-danger="" onClick={() => signOut()}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -613,6 +841,7 @@ function ProfileTabContent({ session, userInitial }: { session: any; userInitial
         </button>
       </div>
 
+      {extras}
       <div className="mobile-profile-footer">MyTalk v1.0 &middot; Built with Next.js</div>
     </>
   );
