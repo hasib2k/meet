@@ -2450,6 +2450,27 @@ h2 a {
   box-shadow: inset 4px 4px 8px #14172a;
 }
 
+/* Pop-out (PiP) button in the title bar — mobile; sits left of the gear */
+.meeting-pip-btn {
+  border: none;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  order: -1;
+  background: #1e2238;
+  box-shadow: 5px 5px 10px #14172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a9b0d0;
+  transition: box-shadow 0.15s;
+}
+.meeting-pip-btn:active {
+  box-shadow: inset 4px 4px 8px #14172a;
+}
+
 .meeting-title-right {
   display: flex;
   align-items: center;
@@ -3134,6 +3155,7 @@ img.neo-chat-avatar-img {
   .lk-control-bar > div:has(.lk-host-leave-btn) { order: 3 !important; }
   .lk-control-bar .lk-chat-toggle { order: 4 !important; }
   .lk-control-bar .lk-participants-toggle { order: 5 !important; }
+  .lk-control-bar .lk-pip-toggle { order: 6 !important; }
 
   /* Leave button - wider red gradient pill */
   .lk-control-bar .lk-disconnect-button {
@@ -4083,6 +4105,7 @@ body.is-host .lk-control-bar .lk-disconnect-button:not(.lk-host-leave-btn) {
   .lk-control-bar > div:has(.lk-host-leave-btn) { order: 3 !important; }
   .lk-control-bar .lk-chat-toggle { order: 4 !important; }
   .lk-control-bar .lk-participants-toggle { order: 5 !important; }
+  .lk-control-bar .lk-pip-toggle { order: 6 !important; }
 }
 
 /* =====================================================
