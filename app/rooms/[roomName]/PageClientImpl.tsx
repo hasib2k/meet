@@ -573,6 +573,28 @@ function AudioConferenceComponent(props: {
     alert(`Encryption error: ${error.message}`);
   }, []);
 
+  // Back-button guard: don't leave the meeting instantly — ask first.
+  const [showLeaveConfirm, setShowLeaveConfirm] = React.useState(false);
+
+  const confirmLeave = React.useCallback(() => {
+    try { sessionStorage.removeItem('adminToken'); } catch {}
+    setShowLeaveConfirm(false);
+    room.disconnect(); // fires Disconnected → handleOnLeave clears rejoin + navigates home
+  }, [room]);
+
+  React.useEffect(() => {
+    // Push a history entry so the browser Back button fires a popstate we can
+    // intercept, instead of navigating away and dropping the call.
+    window.history.pushState(null, '', window.location.href);
+    const onPop = () => {
+      // Re-assert the entry so we stay in the meeting, then ask to leave.
+      window.history.pushState(null, '', window.location.href);
+      setShowLeaveConfirm(true);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   return (
     <div className="lk-room-container">
       <RoomContext.Provider value={room}>
@@ -594,6 +616,24 @@ function AudioConferenceComponent(props: {
         </PinnedProvider>
         </KnockProvider>
       </RoomContext.Provider>
+
+      {showLeaveConfirm && (
+        <div className="leave-confirm-overlay" onClick={() => setShowLeaveConfirm(false)}>
+          <div className="leave-confirm-card" onClick={(e) => e.stopPropagation()}>
+            <div className="leave-confirm-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+              </svg>
+            </div>
+            <div className="leave-confirm-title">Leave the meeting?</div>
+            <div className="leave-confirm-sub">You&apos;ll be disconnected. You can rejoin anytime with the same link.</div>
+            <div className="leave-confirm-actions">
+              <button className="leave-confirm-stay" onClick={() => setShowLeaveConfirm(false)}>Stay</button>
+              <button className="leave-confirm-leave" onClick={confirmLeave}>Leave</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

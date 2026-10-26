@@ -5636,6 +5636,93 @@ body.is-host .lk-control-bar .lk-disconnect-button:not(.lk-host-leave-btn) {
   }
 }
 
+/* ===== Leave-meeting confirmation (back-button guard) ===== */
+.leave-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(12, 14, 26, 0.6);
+  backdrop-filter: blur(4px);
+  animation: lcFade 0.18s ease-out;
+}
+.leave-confirm-card {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 32px 28px 26px;
+  border-radius: 26px;
+  background: #1e2238;
+  box-shadow: 12px 12px 28px #13162a;
+  color: #e6e9f5;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+  animation: lcPop 0.2s ease-out;
+}
+.leave-confirm-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #1e2238;
+  box-shadow: inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+.leave-confirm-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+.leave-confirm-sub {
+  font-size: 14px;
+  color: #9aa1c2;
+  line-height: 1.5;
+}
+.leave-confirm-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  width: 100%;
+}
+.leave-confirm-stay,
+.leave-confirm-leave {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 15px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s, filter 0.15s, box-shadow 0.15s;
+}
+.leave-confirm-stay {
+  background: #1e2238;
+  box-shadow: 5px 5px 10px #14172a;
+  color: #e6e9f5;
+}
+.leave-confirm-stay:active {
+  box-shadow: inset 4px 4px 8px #14172a;
+}
+.leave-confirm-leave {
+  background: linear-gradient(145deg, #f06a6a, #d94848);
+  box-shadow: 4px 4px 10px #13162a;
+  color: #fff;
+  font-weight: 700;
+}
+.leave-confirm-leave:hover { filter: brightness(1.06); }
+.leave-confirm-leave:active { transform: translateY(1px); }
+@keyframes lcFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lcPop { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 /* Admin panel button press feedback (neumorphic design uses inline styles) */
 .adm-btn {
   transition: box-shadow 0.15s, transform 0.05s, filter 0.15s;
