@@ -120,14 +120,20 @@ export function CustomVideoConference({
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false },
   );
 
-  const widgetUpdate = (state: WidgetState) => {
-    // On desktop, chat is handled by our own button — ignore showChat from LiveKit
-    if (typeof window !== 'undefined' && window.innerWidth >= 960) {
-      setWidgetState({ ...state, showChat: false });
-    } else {
-      setWidgetState(state);
-    }
-  };
+  const widgetUpdate = React.useCallback((state: WidgetState) => {
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 960;
+    setWidgetState((prev) => {
+      // On desktop, chat is handled by our own button — ignore showChat from LiveKit
+      const next = isDesktop ? { ...state, showChat: false } : state;
+      // Bail out if nothing actually changed, otherwise a new object reference
+      // on every call triggers an infinite re-render loop.
+      const keys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+      for (const k of keys) {
+        if ((prev as any)[k] !== (next as any)[k]) return next;
+      }
+      return prev;
+    });
+  }, []);
 
   const layoutContext = useCreateLayoutContext();
 
@@ -237,8 +243,17 @@ export function CustomVideoConference({
 
         {SettingsComponent && (
           <div
-            className="lk-settings-menu-modal"
-            style={{ display: widgetState.showSettings ? 'block' : 'none' }}
+            className={`lk-settings-menu-modal${widgetState.showSettings ? ' settings-open' : ''}`}
+            onClick={(e) => {
+              // Close when the backdrop (not the card) is clicked — desktop only.
+              if (
+                e.target === e.currentTarget &&
+                typeof window !== 'undefined' &&
+                window.innerWidth >= 960
+              ) {
+                layoutContext.widget.dispatch?.({ msg: 'toggle_settings' });
+              }
+            }}
           >
             <SettingsComponent />
           </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParticipants, useRoomContext } from '@livekit/components-react';
 import { usePinned } from './PinnedContext';
+import { useKnock } from './KnockContext';
 
 /** Shared panel body — used both by the mobile full-screen panel and the
  *  desktop unified side panel.  Pass an onClose callback to wire up the
@@ -17,6 +18,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
   const [searchQuery, setSearchQuery] = useState('');
   const { togglePin, isPinned } = usePinned();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const { requests: knockReqs, decide: decideKnock } = useKnock();
 
   let localRole = 'listener';
   let localImageUrl = '';
@@ -62,8 +64,9 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
       )
     : otherParticipants;
 
-  const sortedParticipants = [...filteredParticipants].sort((a, b) => {
-    if (a.isHandRaised !== b.isHandRaised) return a.isHandRaised ? -1 : 1;
+  // Hand-raisers get their own section at the top; the rest form the main list.
+  const handRaisers = filteredParticipants.filter((p) => p.isHandRaised);
+  const sortedParticipants = [...filteredParticipants.filter((p) => !p.isHandRaised)].sort((a, b) => {
     if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
     if (a.isSpeaking !== b.isSpeaking) return a.isSpeaking ? -1 : 1;
     return 0;
@@ -175,6 +178,76 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
         </p>
       )}
 
+      {/* Join requests (host only) */}
+      {isHost && knockReqs.length > 0 && (
+        <div className="pp-knock-section">
+          <div className="pp-knock-head">
+            <span>Join requests ({knockReqs.length})</span>
+            {knockReqs.length > 1 && (
+              <button className="pp-knock-admitall" onClick={() => decideKnock(knockReqs.map((k) => k.id), true)}>
+                Admit all
+              </button>
+            )}
+          </div>
+          {knockReqs.map((k) => (
+            <div key={k.id} className="pp-knock-card">
+              <div className="pp-knock-avatar" style={{ background: k.imageUrl ? 'transparent' : getAvatarColor(k.name || k.id) }}>
+                {k.imageUrl ? (
+                  <img src={k.imageUrl} alt="" referrerPolicy="no-referrer" className="pp-avatar-img" />
+                ) : (
+                  <span>{(k.name || '?').charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="pp-knock-info">
+                <div className="pp-knock-name">{k.name || 'Guest'}</div>
+                <div className="pp-knock-sub">Wants to join{k.role ? ` as ${k.role}` : ''}</div>
+              </div>
+              <button className="pp-knock-admit" onClick={() => decideKnock([k.id], true)}>Admit</button>
+              <button className="pp-knock-deny" onClick={() => decideKnock([k.id], false)} aria-label="Decline">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Raised hands section (prominent, at the top) */}
+      {handRaisers.length > 0 && (
+        <div className="pp-raised-section">
+          <div className="pp-raised-head">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+            Raised hands ({handRaisers.length})
+          </div>
+          {handRaisers.map((p) => (
+            <div key={p.identity} className="pp-raised-card">
+              <div className="pp-raised-avatar" style={{ background: p.imageUrl ? 'transparent' : getAvatarColor(p.name) }}>
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt="" referrerPolicy="no-referrer" className="pp-avatar-img" />
+                ) : (
+                  <span>{(p.name || '?').charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="pp-raised-info">
+                <div className="pp-raised-name">{p.name}</div>
+                <div className="pp-raised-sub" style={{ color: getRoleColor(p.role) }}>
+                  {p.canPublish ? 'Can speak' : 'Listener'}
+                </div>
+              </div>
+              {isHost ? (
+                <div className="pp-raised-actions">
+                  {!p.canPublish && (
+                    <button className="pp-raised-grant" onClick={() => doAction('grant_speak', p.identity)}>Grant speak</button>
+                  )}
+                  <button className="pp-raised-lower" onClick={() => lowerHand(p.identity)} aria-label="Lower hand">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Section label */}
       <div className="pp-section-label">In this meeting</div>
 
@@ -207,7 +280,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
 
         {/* Other participants */}
         {sortedParticipants.map((p) => (
-          <div key={p.identity} className="pp-participant-card">
+          <div key={p.identity} className={`pp-participant-card${p.isHandRaised ? ' pp-hand-up' : ''}`}>
             <div className="pp-avatar-wrap">
               <div className="pp-avatar" style={{ background: p.imageUrl ? 'transparent' : getAvatarColor(p.name) }}>
                 {p.imageUrl ? (
@@ -223,6 +296,11 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11"></path></svg>
                 )}
               </div>
+              {p.isHandRaised && (
+                <div className="pp-hand-badge" title="Raised hand">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e2238" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+                </div>
+              )}
             </div>
             <div className="pp-info">
               <div className="pp-name">
@@ -268,7 +346,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
           </div>
         ))}
 
-        {sortedParticipants.length === 0 && searchQuery && (
+        {sortedParticipants.length === 0 && handRaisers.length === 0 && searchQuery && (
           <div style={{ padding: '24px', textAlign: 'center', fontSize: '13px', color: '#7c83a8' }}>
             No participants match your search.
           </div>

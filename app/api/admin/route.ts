@@ -8,6 +8,12 @@ const API_SECRET = process.env.LIVEKIT_API_SECRET!;
 const LIVEKIT_URL = process.env.LIVEKIT_URL!;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'admin123';
 
+// Rooms are kept alive (even when empty) for a very long time so that:
+//  - a created meeting's title/privacy survives until the host opens the link
+//  - an ENDED meeting's "ended" flag persists → the link permanently shows
+//    "meeting ended" and nobody can ever rejoin.
+const ROOM_EMPTY_TTL = 60 * 60 * 24 * 365 * 10; // ~10 years (seconds)
+
 function getHttpUrl(wsUrl: string): string {
   return wsUrl.replace('wss://', 'https://').replace('ws://', 'http://');
 }
@@ -17,7 +23,7 @@ function getHttpUrl(wsUrl: string): string {
 // across multiple server instances and survives restarts.
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 30; // max requests per window
+const RATE_LIMIT_MAX = 90; // max requests per window (dashboard + in-meeting host polling)
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -65,7 +71,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY, API_SECRET);
-    const allRooms = await svc.listRooms();
+    // When a roomName is supplied (e.g. an in-meeting host polling with a
+    // room-scoped HMAC token) return only that room; the dashboard passes none.
+    const allRooms = await svc.listRooms(roomName ? [roomName] : undefined);
 
     // Filter out ended (tombstone) rooms
     const rooms = allRooms.filter((room) => {
@@ -90,11 +98,13 @@ export async function GET(request: NextRequest) {
             let role = 'listener';
             let bio = '';
             let imageUrl = '';
+            let isHandRaised = false;
             try {
               const meta = JSON.parse(p.metadata || '{}');
               role = meta.role || 'listener';
               bio = meta.bio || '';
               imageUrl = meta.imageUrl || '';
+              isHandRaised = meta.isHandRaised === true;
             } catch {}
             return {
               identity: p.identity,
@@ -103,6 +113,7 @@ export async function GET(request: NextRequest) {
               role,
               bio,
               imageUrl,
+              isHandRaised,
               isSpeaking: (p as any).isSpeaking ?? false,
               joinedAt: Number(p.joinedAt),
               canPublish: p.permission?.canPublish ?? false,
@@ -144,22 +155,42 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'end_room': {
-        // 1. Mark room as ended in metadata
+        // Preserve existing room metadata (title, visibility, hosts).
+        let existingMeta: Record<string, unknown> = {};
         try {
-          let existingMeta: Record<string, unknown> = {};
           const rooms = await svc.listRooms([roomName]);
           const target = rooms.find((r) => r.name === roomName);
           if (target?.metadata) {
             try { existingMeta = JSON.parse(target.metadata); } catch {}
           }
-          existingMeta.ended = true;
-          existingMeta.endedAt = Date.now();
-          await svc.updateRoomMetadata(roomName, JSON.stringify(existingMeta));
+        } catch {}
+
+        // 1. Mark the room ended. The room is kept alive (empty) by its long
+        //    emptyTimeout set at creation, so this flag persists and the link
+        //    permanently shows "meeting ended" — nobody can rejoin.
+        //    (Done via a simple metadata update on the existing room, which is
+        //    far more reliable than delete+recreate.)
+        try {
+          await svc.updateRoomMetadata(
+            roomName,
+            JSON.stringify({ ...existingMeta, ended: true, endedAt: Date.now(), knock: [] }),
+          );
         } catch (err) {
-          console.error('Error setting ended metadata:', err);
+          console.error('Error marking room ended:', err);
         }
 
-        // 2. Kick all participants (they get disconnected)
+        // 2. Also create/ensure an ended tombstone in case the live room gets
+        //    auto-removed — makes the ended state survive even for rooms that
+        //    were created with a short emptyTimeout.
+        try {
+          await svc.createRoom({ name: roomName, emptyTimeout: ROOM_EMPTY_TTL });
+          await svc.updateRoomMetadata(
+            roomName,
+            JSON.stringify({ ...existingMeta, ended: true, endedAt: Date.now(), knock: [] }),
+          );
+        } catch {}
+
+        // 3. Disconnect everyone currently in the room.
         try {
           const parts = await svc.listParticipants(roomName);
           await Promise.all(parts.map((p) => svc.removeParticipant(roomName, p.identity)));
@@ -177,6 +208,7 @@ export async function POST(request: NextRequest) {
           try { grantMeta = JSON.parse(participant.metadata || '{}'); } catch {}
         }
         grantMeta.role = 'moderator';
+        grantMeta.isHandRaised = false; // approving a speak request lowers the hand
         await svc.updateParticipant(roomName, identity, {
           metadata: JSON.stringify(grantMeta),
           permission: {
@@ -308,13 +340,85 @@ export async function POST(request: NextRequest) {
       }
 
       case 'create_room': {
-        const { meetingTitle } = body;
-        await svc.createRoom({ name: roomName });
+        const { meetingTitle, visibility } = body;
+        // Keep the created room alive (even before anyone joins) so its title /
+        // privacy settings survive until the host opens the link.
+        await svc.createRoom({ name: roomName, emptyTimeout: ROOM_EMPTY_TTL });
         // Set metadata separately (createRoom doesn't support metadata field)
-        if (meetingTitle) {
-          await svc.updateRoomMetadata(roomName, JSON.stringify({ title: meetingTitle }));
+        const roomMeta: Record<string, unknown> = {};
+        if (meetingTitle) roomMeta.title = meetingTitle;
+        if (visibility === 'private') roomMeta.visibility = 'private';
+        if (Object.keys(roomMeta).length > 0) {
+          await svc.updateRoomMetadata(roomName, JSON.stringify(roomMeta));
         }
         return NextResponse.json({ success: true, message: 'Room created', roomName });
+      }
+
+      case 'lower_hand': {
+        const partsLH = await svc.listParticipants(roomName);
+        const targetLH = partsLH.find((p) => p.identity === identity);
+        let lhMeta: Record<string, unknown> = {};
+        if (targetLH) { try { lhMeta = JSON.parse(targetLH.metadata || '{}'); } catch {} }
+        lhMeta.isHandRaised = false;
+        await svc.updateParticipant(roomName, identity, { metadata: JSON.stringify(lhMeta) });
+        return NextResponse.json({ success: true, message: 'Hand lowered' });
+      }
+
+      case 'set_visibility': {
+        const { visibility } = body;
+        const rooms = await svc.listRooms([roomName]);
+        const target = rooms.find((r) => r.name === roomName);
+        let meta: Record<string, unknown> = {};
+        try { meta = JSON.parse(target?.metadata || '{}'); } catch {}
+        let admitted = 0;
+        if (visibility === 'public') {
+          meta.visibility = 'public';
+          // Making public: admit everyone currently waiting to join.
+          const knock: any[] = Array.isArray(meta.knock) ? (meta.knock as any[]) : [];
+          knock.forEach((k) => {
+            if (k.status === 'pending') { k.status = 'approved'; k.decidedAt = Date.now(); admitted++; }
+          });
+          meta.knock = knock;
+        } else {
+          meta.visibility = 'private';
+        }
+        await svc.updateRoomMetadata(roomName, JSON.stringify(meta));
+        return NextResponse.json({
+          success: true,
+          message: visibility === 'public' ? `Now public${admitted ? ` · ${admitted} admitted` : ''}` : 'Now private',
+        });
+      }
+
+      case 'lock_room': {
+        const { locked } = body;
+        const rooms = await svc.listRooms([roomName]);
+        const target = rooms.find((r) => r.name === roomName);
+        let meta: Record<string, unknown> = {};
+        try { meta = JSON.parse(target?.metadata || '{}'); } catch {}
+        meta.locked = locked === true;
+        await svc.updateRoomMetadata(roomName, JSON.stringify(meta));
+        return NextResponse.json({ success: true, message: locked ? 'Meeting locked' : 'Meeting unlocked' });
+      }
+
+      case 'approve_knock':
+      case 'reject_knock': {
+        const { knockId } = body;
+        const rooms = await svc.listRooms([roomName]);
+        const target = rooms.find((r) => r.name === roomName);
+        let meta: Record<string, unknown> = {};
+        try { meta = JSON.parse(target?.metadata || '{}'); } catch {}
+        const knock: any[] = Array.isArray(meta.knock) ? (meta.knock as any[]) : [];
+        const idx = knock.findIndex((k) => k.id === knockId);
+        if (idx >= 0) {
+          knock[idx].status = action === 'approve_knock' ? 'approved' : 'rejected';
+          knock[idx].decidedAt = Date.now();
+          meta.knock = knock;
+          await svc.updateRoomMetadata(roomName, JSON.stringify(meta));
+        }
+        return NextResponse.json({
+          success: true,
+          message: action === 'approve_knock' ? 'Participant admitted' : 'Request denied',
+        });
       }
 
       default:

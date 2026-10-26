@@ -55,14 +55,18 @@ export async function GET(request: NextRequest) {
       return new NextResponse('Metadata too large: max 4096 bytes', { status: 400 });
     }
 
-    // Check room metadata: ended status + auto-host assignment
+    // Check room metadata: ended status + auto-host assignment + visibility
     let isAutoHost = false;
+    let roomVisibility = 'public';
+    let roomLocked = false;
+    let roomExists = false;
     try {
       const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY!, API_SECRET!);
       const rooms = await svc.listRooms([roomName!]);
       // Find the exact room by name (listRooms may return multiple)
       const targetRoom = rooms.find((r) => r.name === roomName);
       if (targetRoom) {
+        roomExists = true;
         try {
           const roomMeta = JSON.parse(targetRoom.metadata || '{}');
           console.log(`[connection-details] Room "${roomName}" metadata:`, roomMeta);
@@ -71,6 +75,12 @@ export async function GET(request: NextRequest) {
               { error: 'room_ended', message: 'This meeting has expired. Please contact the admin for a new meeting room.' },
               { status: 410 },
             );
+          }
+          if (roomMeta.visibility === 'private') {
+            roomVisibility = 'private';
+          }
+          if (roomMeta.locked === true) {
+            roomLocked = true;
           }
           // Check if this user was previously granted host in this room
           if (Array.isArray(roomMeta.hosts) && roomMeta.hosts.includes(participantName)) {
@@ -131,6 +141,66 @@ export async function GET(request: NextRequest) {
     if (isAutoHost && role === 'listener') {
       role = 'host';
     }
+
+    // ---- Locked room gating ----
+    // A locked room admits nobody new except hosts.
+    if (roomExists && roomLocked && role !== 'host') {
+      return NextResponse.json({ status: 'locked' });
+    }
+
+    // ---- Private room gating (knock-to-join) ----
+    // Hosts always bypass. Everyone else must be admitted by a host/admin.
+    if (roomExists && roomVisibility === 'private' && role !== 'host') {
+      const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY!, API_SECRET!);
+      const knockId = request.nextUrl.searchParams.get('knockId');
+      const rooms = await svc.listRooms([roomName!]);
+      const target = rooms.find((r) => r.name === roomName);
+      let meta: Record<string, unknown> = {};
+      try { meta = JSON.parse(target?.metadata || '{}'); } catch {}
+      let knock: any[] = Array.isArray(meta.knock) ? (meta.knock as any[]) : [];
+      // Prune stale entries (> 15 min old)
+      const now = Date.now();
+      knock = knock.filter((k) => !k.at || now - k.at < 15 * 60 * 1000);
+
+      if (knockId) {
+        const req = knock.find((k) => k.id === knockId);
+        if (!req) {
+          return NextResponse.json({ status: 'expired' });
+        }
+        if (req.status === 'rejected') {
+          return NextResponse.json({ status: 'rejected' });
+        }
+        if (req.status !== 'approved') {
+          return NextResponse.json({ status: 'pending_approval', knockId });
+        }
+        // Approved → consume the request and fall through to issue a token.
+        meta.knock = knock.filter((k) => k.id !== knockId);
+        await svc.updateRoomMetadata(roomName!, JSON.stringify(meta));
+      } else {
+        // First attempt → register a pending request, no token yet.
+        const id = randomString(10);
+        knock.push({
+          id,
+          name: participantName,
+          imageUrl: imageUrl || '',
+          bio: bio || '',
+          role,
+          status: 'pending',
+          at: now,
+        });
+        meta.knock = knock;
+        await svc.updateRoomMetadata(roomName!, JSON.stringify(meta));
+        return NextResponse.json({ status: 'pending_approval', knockId: id });
+      }
+    }
+
+    // Ensure the room exists with a very long emptyTimeout so its state
+    // (including a future "ended" flag) survives even when the room is empty.
+    // createRoom is idempotent — a no-op if the room already exists.
+    try {
+      const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY!, API_SECRET!);
+      await svc.createRoom({ name: roomName!, emptyTimeout: 60 * 60 * 24 * 365 * 10 });
+    } catch {}
 
     // Build metadata with role, image, and bio
     const participantMetadata = JSON.stringify({

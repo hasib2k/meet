@@ -31,6 +31,8 @@ import { PinnedProvider, usePinned } from '@/lib/PinnedContext';
 import { saveMeeting } from '@/lib/meetingHistory';
 import { RaiseHandButton } from '@/lib/RaiseHandButton';
 import { HostLeaveButton } from '@/lib/HostLeaveButton';
+import { KnockRequests } from '@/lib/KnockRequests';
+import { KnockProvider } from '@/lib/KnockContext';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
@@ -52,6 +54,10 @@ export function PageClientImpl(props: {
     undefined,
   );
   const [roomExpired, setRoomExpired] = React.useState(false);
+  // Knock-to-join state for private rooms
+  const [knockStatus, setKnockStatus] = React.useState<'none' | 'pending' | 'rejected' | 'expired' | 'locked'>('none');
+  const knockIdRef = React.useRef<string | null>(null);
+  const knockValuesRef = React.useRef<(LocalUserChoices & { imageUrl?: string }) | null>(null);
   // Track if we're attempting auto-rejoin to avoid flashing the pre-join page
   const [isAutoRejoining, setIsAutoRejoining] = React.useState(() => {
     try {
@@ -65,8 +71,81 @@ export function PageClientImpl(props: {
     }
   }, [props.serverUrl]);
 
+  // On load, immediately show the "Meeting Expired" screen if this meeting has
+  // been ended — so opening an ended link shows expired without needing to
+  // fill in the pre-join form first.
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/room-info?roomName=${encodeURIComponent(props.roomName)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data?.ended) {
+          setRoomExpired(true);
+          setIsAutoRejoining(false);
+          try { sessionStorage.removeItem(`rejoin_${props.roomName}`); } catch {}
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [props.roomName]);
+
+  const buildConnUrl = React.useCallback((values: LocalUserChoices & { imageUrl?: string }, knockId?: string | null) => {
+    const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
+    url.searchParams.append('roomName', props.roomName);
+    url.searchParams.append('participantName', values.username);
+    url.searchParams.append('role', props.role);
+    if (values.imageUrl) url.searchParams.append('imageUrl', values.imageUrl);
+    if ((values as any).bio) url.searchParams.append('bio', (values as any).bio);
+    if (props.region) url.searchParams.append('region', props.region);
+    if (knockId) url.searchParams.append('knockId', knockId);
+    return url.toString();
+  }, [props.roomName, props.region, props.role]);
+
+  // Interpret a connection-details response. Returns true when terminal
+  // (connected, room ended, rejected) so polling can stop.
+  const applyConnectionData = React.useCallback((data: any): boolean => {
+    if (data.error === 'room_ended') {
+      setRoomExpired(true);
+      setIsAutoRejoining(false);
+      try { sessionStorage.removeItem(`rejoin_${props.roomName}`); } catch {}
+      return true;
+    }
+    if (data.status === 'pending_approval') {
+      knockIdRef.current = data.knockId;
+      setKnockStatus('pending');
+      setIsAutoRejoining(false);
+      return false;
+    }
+    if (data.status === 'rejected') {
+      setKnockStatus('rejected');
+      setIsAutoRejoining(false);
+      try { sessionStorage.removeItem(`rejoin_${props.roomName}`); } catch {}
+      return true;
+    }
+    if (data.status === 'expired') {
+      setKnockStatus('expired');
+      setIsAutoRejoining(false);
+      return true;
+    }
+    if (data.status === 'locked') {
+      setKnockStatus('locked');
+      setIsAutoRejoining(false);
+      try { sessionStorage.removeItem(`rejoin_${props.roomName}`); } catch {}
+      return true;
+    }
+    if (data.participantToken) {
+      if (data.adminToken) sessionStorage.setItem('adminToken', data.adminToken);
+      setKnockStatus('none');
+      setConnectionDetails(data);
+      saveMeeting(props.roomName, props.role);
+      return true;
+    }
+    return false;
+  }, [props.roomName, props.role]);
+
   const handlePreJoinSubmit = React.useCallback(async (values: LocalUserChoices & { imageUrl?: string }) => {
     setPreJoinChoices(values);
+    knockValuesRef.current = values;
     // Save choices so we can auto-rejoin on reload
     try {
       sessionStorage.setItem(`rejoin_${props.roomName}`, JSON.stringify({
@@ -75,32 +154,26 @@ export function PageClientImpl(props: {
         bio: (values as any).bio,
       }));
     } catch {}
-    const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
-    url.searchParams.append('roomName', props.roomName);
-    url.searchParams.append('participantName', values.username);
-    url.searchParams.append('role', props.role);
-    if (values.imageUrl) {
-      url.searchParams.append('imageUrl', values.imageUrl);
-    }
-    if ((values as any).bio) {
-      url.searchParams.append('bio', (values as any).bio);
-    }
-    if (props.region) {
-      url.searchParams.append('region', props.region);
-    }
-    const connectionDetailsResp = await fetch(url.toString());
-    const connectionDetailsData = await connectionDetailsResp.json();
-    if (connectionDetailsData.error === 'room_ended') {
-      setRoomExpired(true);
-      sessionStorage.removeItem(`rejoin_${props.roomName}`);
-      return;
-    }
-    if (connectionDetailsData.adminToken) {
-      sessionStorage.setItem('adminToken', connectionDetailsData.adminToken);
-    }
-    setConnectionDetails(connectionDetailsData);
-    saveMeeting(props.roomName, props.role);
-  }, [props.roomName, props.region, props.role]);
+    const resp = await fetch(buildConnUrl(values));
+    const data = await resp.json();
+    applyConnectionData(data);
+  }, [props.roomName, buildConnUrl, applyConnectionData]);
+
+  // Poll for admission while waiting in a private room's lobby.
+  React.useEffect(() => {
+    if (knockStatus !== 'pending') return;
+    const interval = setInterval(async () => {
+      const values = knockValuesRef.current;
+      const knockId = knockIdRef.current;
+      if (!values || !knockId) return;
+      try {
+        const resp = await fetch(buildConnUrl(values, knockId));
+        const data = await resp.json();
+        applyConnectionData(data);
+      } catch {}
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [knockStatus, buildConnUrl, applyConnectionData]);
 
   // Auto-rejoin on page reload if user was previously in this room
   const autoRejoinAttempted = React.useRef(false);
@@ -178,6 +251,22 @@ export function PageClientImpl(props: {
           </button>
         </div>
       </main>
+    );
+  }
+
+  // Private-room lobby: waiting for admission / declined / expired
+  if (knockStatus !== 'none' && connectionDetails === undefined) {
+    return (
+      <KnockLobby
+        status={knockStatus}
+        roomName={props.roomName}
+        onRetry={() => {
+          const v = knockValuesRef.current;
+          knockIdRef.current = null;
+          setKnockStatus('none');
+          if (v) handlePreJoinSubmit(v);
+        }}
+      />
     );
   }
 
@@ -276,6 +365,96 @@ export function PageClientImpl(props: {
           role={props.role}
         />
       )}
+    </main>
+  );
+}
+
+/** Lobby shown to guests of a private room while awaiting host/admin admission. */
+function KnockLobby(props: {
+  status: 'pending' | 'rejected' | 'expired' | 'locked';
+  roomName: string;
+  onRetry: () => void;
+}) {
+  const { status, roomName } = props;
+  const pending = status === 'pending';
+  const rejected = status === 'rejected';
+  const locked = status === 'locked';
+
+  const accent = rejected ? '#ff8a8a' : pending ? '#6f97ff' : '#f5b04a';
+  const title = pending
+    ? 'Waiting to be let in'
+    : rejected
+      ? 'Request declined'
+      : locked
+        ? 'Meeting is locked'
+        : 'Request expired';
+  const subtitle = pending
+    ? 'This is a private meeting. A host or admin needs to admit you. Please keep this page open…'
+    : rejected
+      ? 'A host declined your request to join this meeting.'
+      : locked
+        ? 'The host has locked this meeting. New participants cannot join right now.'
+        : 'Your join request timed out. You can try requesting again.';
+
+  return (
+    <main data-lk-theme="default" style={{ height: '100%' }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        height: '100%', gap: 20, padding: 32, textAlign: 'center', background: '#1e2238', color: '#e6e9f5',
+        fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif",
+      }}>
+        <div style={{
+          position: 'relative', width: 96, height: 96, borderRadius: '50%', background: '#1e2238',
+          boxShadow: '10px 10px 24px #13162a', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {pending && (
+            <div style={{
+              position: 'absolute', inset: -4, borderRadius: '50%',
+              border: '3px solid rgba(111,151,255,0.25)', borderTopColor: '#6f97ff',
+              animation: 'spin 1s linear infinite',
+            }} />
+          )}
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {rejected ? (
+              <><circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" /></>
+            ) : (
+              <><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>
+            )}
+          </svg>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 420 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{title}</h2>
+          <p style={{ fontSize: 15, color: '#9aa1c2', margin: 0, lineHeight: 1.55 }}>{subtitle}</p>
+          <div style={{ fontSize: 13, color: '#6c7498', marginTop: 2 }}>Room: {roomName}</div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+          {(rejected || status === 'expired' || locked) && (
+            <button
+              onClick={props.onRetry}
+              style={{
+                height: 46, padding: '0 22px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#fff',
+                background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #13162a',
+              }}
+            >
+              Request again
+            </button>
+          )}
+          <button
+            onClick={() => (window.location.href = '/')}
+            style={{
+              height: 46, padding: '0 22px', borderRadius: 14, border: 'none', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#e6e9f5',
+              background: '#1e2238', boxShadow: '5px 5px 10px #14172a',
+            }}
+          >
+            {pending ? 'Cancel' : 'Back to home'}
+          </button>
+        </div>
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </main>
   );
 }
@@ -397,6 +576,7 @@ function AudioConferenceComponent(props: {
   return (
     <div className="lk-room-container">
       <RoomContext.Provider value={room}>
+        <KnockProvider>
         <PinnedProvider>
           <KeyboardShortcuts />
           <CustomVideoConference
@@ -404,6 +584,7 @@ function AudioConferenceComponent(props: {
           />
           <RaiseHandButton />
           <HostLeaveButton />
+          <KnockRequests />
           <AdminTokenWatcher />
           <ParticipantsSidebar />
           <ParticipantProfileImages />
@@ -411,6 +592,7 @@ function AudioConferenceComponent(props: {
           <DebugMode />
           <RecordingIndicator />
         </PinnedProvider>
+        </KnockProvider>
       </RoomContext.Provider>
     </div>
   );
