@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#dde1e9;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#7aa2ff;text-decoration:none}a:hover{color:#a3bfff}
+input::placeholder{color:#7d849f}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;box-sizing:border-box">
+<div data-screen-label="App" style="width:390px;height:844px;background:#e6e9f0;border-radius:44px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.5);color:#1f2440">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:28px 24px 8px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:14px;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#3f6fe0"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"></path></svg>
+      </div>
+      <div style="font-size:19px;font-weight:700;letter-spacing:-.01em;color:#1f2440">My<span style="color:#3f6fe0">Talk</span></div>
+    </div>
+    <button onClick="{{ goProfile }}" style="border:none;cursor:pointer;font-family:inherit;width:44px;height:44px;border-radius:50%;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#4f5675">NB</button>
+  </div>
+
+  <sc-if value="{{ isMeet }}" hint-placeholder-val="{{ true }}"><div style="flex:1;overflow-y:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:28px;line-height:1.2;font-weight:700;letter-spacing:-.02em;text-wrap:pretty">Premium audio meetings. Now free for <span style="color:#3f6fe0">everyone</span>.</div>
+      <div style="font-size:14px;line-height:1.55;color:#5a6180;text-wrap:pretty">Connect, collaborate, and communicate with crystal-clear audio. Built for large meetings with up to 2,500 participants.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <button onClick="{{ startNew }}" style="border:none;cursor:pointer;font-family:inherit;height:104px;border-radius:24px;background:linear-gradient(145deg,#7aa0ff,#5a83ee);box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;color:#fff;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:18px;text-align:left;white-space:nowrap" style-active="box-shadow:inset 4px 4px 10px #4a6fd6,inset -4px -4px 10px #8aaeff">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        <span style="font-size:15px;font-weight:600">New meeting</span>
+      </button>
+      <button onClick="{{ schedule }}" style="border:none;cursor:pointer;font-family:inherit;height:104px;border-radius:24px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;color:#1f2440;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:18px;text-align:left;white-space:nowrap" style-active="box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        <span style="font-size:15px;font-weight:600">Schedule</span>
+      </button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6a7192">Join with a code</div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="flex:1;height:56px;border-radius:18px;background:#e6e9f0;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;gap:10px;padding:0 18px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7d849f" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"></path></svg>
+          <input value="{{ code }}" onChange="{{ onCode }}" onKeyDown="{{ onKey }}" placeholder="abc-defg-hij" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1f2440;font-family:inherit;font-size:15px;letter-spacing:.04em"></input>
+        </div>
+        <button onClick="{{ join }}" disabled="{{ joinDisabled }}" style="border:none;font-family:inherit;width:56px;height:56px;border-radius:18px;background:#e6e9f0;box-shadow:{{ joinShadow }};display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{ joinColor }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6a7192">Recent meetings</div>
+        <sc-if value="{{ hasMeetings }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ clearAll }}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;color:#3f6fe0;padding:0">Clear</button>
+        </sc-if>
+      </div>
+      <sc-for list="{{ meetings }}" as="m" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:20px;background:#e6e9f0;box-shadow:6px 6px 12px #c3c8d4,-6px -6px 12px #ffffff">
+          <div style="width:44px;height:44px;flex-shrink:0;border-radius:14px;background:#e6e9f0;box-shadow:inset 3px 3px 7px #c3c8d4,inset -3px -3px 7px #ffffff;display:flex;align-items:center;justify-content:center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+            <div style="font-size:15px;font-weight:600;letter-spacing:.02em">{{ m.code }}</div>
+            <div style="font-size:12px;color:#6a7192">{{ m.meta }}</div>
+          </div>
+          <button onClick="{{ m.rejoin }}" style="border:none;cursor:pointer;font-family:inherit;height:36px;padding:0 14px;border-radius:12px;background:#e6e9f0;box-shadow:3px 3px 7px #c3c8d4,-3px -3px 7px #ffffff;color:#3f6fe0;font-size:13px;font-weight:600" style-active="box-shadow:inset 3px 3px 7px #c3c8d4,inset -3px -3px 7px #ffffff">Rejoin</button>
+          <button onClick="{{ m.remove }}" aria-label="Remove" style="border:none;cursor:pointer;background:none;width:28px;height:36px;display:flex;align-items:center;justify-content:center;padding:0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7d849f" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+          </button>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noMeetings }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 20px;border-radius:20px;box-shadow:inset 4px 4px 10px #c3c8d4,inset -4px -4px 10px #ffffff;text-align:center;font-size:13px;color:#6a7192">No recent meetings. Start one or join with a code.</div>
+      </sc-if>
+    </div>
+  </div></sc-if>
+  <sc-if value="{{ isCalls }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow-y:auto;padding:20px 24px 24px;display:flex;flex-direction:column">
+    <div style="font-size:28px;font-weight:700;letter-spacing:-.02em">Calls</div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding-bottom:40px">
+      <div style="width:120px;height:120px;border-radius:50%;background:#e6e9f0;box-shadow:10px 10px 22px #c3c8d4,-10px -10px 22px #ffffff;display:flex;align-items:center;justify-content:center">
+        <div style="width:76px;height:76px;border-radius:50%;background:#e6e9f0;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:250px">
+        <div style="font-size:18px;font-weight:700">No recent calls</div>
+        <div style="font-size:14px;line-height:1.5;color:#5a6180;text-wrap:pretty">Group and direct calls will show up here</div>
+      </div>
+      <button onClick="{{ ctaCall }}" style="border:none;cursor:pointer;font-family:inherit;height:52px;padding:0 24px;border-radius:18px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;color:#3f6fe0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px" style-active="box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Start a call
+      </button>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isGroups }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow-y:auto;padding:20px 24px 24px;display:flex;flex-direction:column">
+    <div style="font-size:28px;font-weight:700;letter-spacing:-.02em">Groups</div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding-bottom:40px">
+      <div style="width:120px;height:120px;border-radius:50%;background:#e6e9f0;box-shadow:10px 10px 22px #c3c8d4,-10px -10px 22px #ffffff;display:flex;align-items:center;justify-content:center">
+        <div style="width:76px;height:76px;border-radius:50%;background:#e6e9f0;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:250px">
+        <div style="font-size:18px;font-weight:700">No groups yet</div>
+        <div style="font-size:14px;line-height:1.5;color:#5a6180;text-wrap:pretty">Create groups and start audio calls together</div>
+      </div>
+      <button onClick="{{ ctaGroup }}" style="border:none;cursor:pointer;font-family:inherit;height:52px;padding:0 24px;border-radius:18px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;color:#16a34a;font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px" style-active="box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Create group
+      </button>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow-y:auto;padding:20px 24px 24px;display:flex;flex-direction:column">
+    <div style="font-size:28px;font-weight:700;letter-spacing:-.02em">Chats</div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding-bottom:40px">
+      <div style="width:120px;height:120px;border-radius:50%;background:#e6e9f0;box-shadow:10px 10px 22px #c3c8d4,-10px -10px 22px #ffffff;display:flex;align-items:center;justify-content:center">
+        <div style="width:76px;height:76px;border-radius:50%;background:#e6e9f0;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d98a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"></path><path d="M8 8h8M8 12h5"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:250px">
+        <div style="font-size:18px;font-weight:700">No conversations</div>
+        <div style="font-size:14px;line-height:1.5;color:#5a6180;text-wrap:pretty">Message anyone on MyTalk</div>
+      </div>
+      <button onClick="{{ ctaChat }}" style="border:none;cursor:pointer;font-family:inherit;height:52px;padding:0 24px;border-radius:18px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;color:#d98a12;font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px" style-active="box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d98a12" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>New message
+      </button>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow-y:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:32px">
+    <div style="font-size:28px;font-weight:700;letter-spacing:-.02em">Profile</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+      <div style="width:124px;height:124px;border-radius:50%;background:#e6e9f0;box-shadow:10px 10px 22px #c3c8d4,-10px -10px 22px #ffffff;display:flex;align-items:center;justify-content:center">
+        <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(145deg,#7aa0ff,#5a83ee);box-shadow:inset 3px 3px 8px #4a6fd6,inset -3px -3px 8px #8aaeff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:#fff">NB</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:22px;font-weight:700">Naava BD</div>
+        <div style="font-size:14px;color:#5a6180">naavabd@gmail.com</div>
+      </div>
+    </div>
+    <button onClick="{{ signOut }}" style="border:none;cursor:pointer;font-family:inherit;height:60px;padding:0 16px;border-radius:20px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;display:flex;align-items:center;gap:14px;color:#e04848;font-size:15px;font-weight:600" style-active="box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff">
+      <div style="width:38px;height:38px;border-radius:12px;box-shadow:inset 3px 3px 7px #c3c8d4,inset -3px -3px 7px #ffffff;display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e04848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>
+      </div>
+      Sign Out
+    </button>
+    <div style="margin-top:auto;text-align:center;font-size:12px;color:#7d849f">MyTalk v1.0 · Built with Next.js</div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ inLobby }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Lobby" style="position:absolute;inset:0;background:#e6e9f0;display:flex;flex-direction:column;padding:28px 24px 32px;box-sizing:border-box;z-index:2">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <button onClick="{{ leaveLobby }}" aria-label="Back" style="border:none;cursor:pointer;width:44px;height:44px;border-radius:50%;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <div style="height:36px;padding:0 14px;border-radius:12px;box-shadow:inset 3px 3px 7px #c3c8d4,inset -3px -3px 7px #ffffff;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.04em;color:#4f5675;white-space:nowrap;flex-shrink:0">
+          <div style="width:7px;height:7px;border-radius:50%;background:#16a34a"></div>{{ lobbyCode }}
+        </div>
+        <div style="width:44px"></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;text-align:center">
+        <div style="width:136px;height:136px;border-radius:50%;background:#e6e9f0;box-shadow:10px 10px 22px #c3c8d4,-10px -10px 22px #ffffff;display:flex;align-items:center;justify-content:center">
+          <div style="width:108px;height:108px;border-radius:50%;background:linear-gradient(145deg,#7aa0ff,#5a83ee);box-shadow:inset 3px 3px 8px #4a6fd6,inset -3px -3px 8px #8aaeff;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff">NB</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="font-size:26px;font-weight:700;letter-spacing:-.02em">Hi, Naava BD!</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+            <div style="height:32px;padding:0 12px;border-radius:10px;box-shadow:3px 3px 7px #c3c8d4,-3px -3px 7px #ffffff;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5a6180">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2.2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"></path><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"></path></svg>Audio-only
+            </div>
+            <div style="height:32px;padding:0 12px;border-radius:10px;box-shadow:3px 3px 7px #c3c8d4,-3px -3px 7px #ffffff;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5a6180">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d98a12" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"></path></svg>Joining as Listener
+            </div>
+          </div>
+        </div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:10px;text-align:left">
+          <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6a7192;padding-left:4px">Short bio <span style="text-transform:none;letter-spacing:0;font-weight:500;color:#7d849f">(optional)</span></div>
+          <div style="height:56px;border-radius:18px;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;padding:0 18px">
+            <input value="{{ bio }}" onChange="{{ onBio }}" maxLength="60" placeholder="e.g. Product designer at Parallax" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1f2440;font-family:inherit;font-size:15px"></input>
+            <span style="font-size:12px;color:#7d849f">{{ bioCount }}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <button onClick="{{ confirmJoin }}" style="border:none;cursor:pointer;font-family:inherit;height:60px;border-radius:20px;background:linear-gradient(145deg,#7aa0ff,#5a83ee);box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff;color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px" style-active="box-shadow:inset 4px 4px 10px #4a6fd6,inset -4px -4px 10px #8aaeff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Join Meeting
+        </button>
+        <div style="font-size:13px;line-height:1.5;color:#6a7192;text-align:center;text-wrap:pretty">You will join as a listener. The host can grant you speaking permission.</div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ inRoom }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Room" style="position:absolute;inset:0;background:#e6e9f0;display:flex;flex-direction:column;padding:28px 20px 28px;box-sizing:border-box;z-index:3;gap:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+          <div style="font-size:20px;font-weight:700;letter-spacing:-.01em">Joy Bangla</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#6a7192;white-space:nowrap">
+            <div style="width:7px;height:7px;border-radius:50%;background:#16a34a"></div>Live · {{ roomCode }}
+          </div>
+        </div>
+        <button onClick="{{ openSettings }}" aria-label="Settings" style="border:none;cursor:pointer;width:44px;height:44px;border-radius:50%;flex-shrink:0;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"></path></svg>
+        </button>
+      </div>
+
+      <div style="flex:1;min-height:0;overflow-y:auto;margin:-10px;padding:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="8">
+            <div style="position:relative;z-index:{{ t.z }};height:168px;border-radius:24px;background:#e6e9f0;box-shadow:6px 6px 12px #c3c8d4,-6px -6px 12px #ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px;box-sizing:border-box;text-align:center">
+              <div style="position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;box-shadow:inset 2px 2px 5px #c3c8d4,inset -2px -2px 5px #ffffff;display:flex;align-items:center;justify-content:center" dangerouslySetInnerHTML="{{ t.micIcon }}"></div>
+              <button onClick="{{ t.toggleMenu }}" aria-label="More options" style="position:absolute;top:8px;left:8px;border:none;cursor:pointer;width:30px;height:30px;border-radius:10px;background:#e6e9f0;box-shadow:{{ t.menuShadow }};display:flex;align-items:center;justify-content:center;padding:0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#4f5675"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
+              </button>
+              <sc-if value="{{ t.menuOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:44px;left:8px;right:8px;min-width:0;padding:8px;border-radius:18px;background:#eef0f5;box-shadow:10px 10px 24px #b4bac8,-4px -4px 12px #ffffff;display:flex;flex-direction:column;gap:4px;text-align:left">
+                  <button onClick="{{ t.pin }}" style="border:none;cursor:pointer;font-family:inherit;height:40px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#1f2440;font-size:14px;font-weight:500" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3Z"></path></svg>{{ t.pinLabel }}
+                  </button>
+                  <sc-if value="{{ t.hostActions }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ t.grant }}" style="border:none;cursor:pointer;font-family:inherit;height:40px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#16a34a;font-size:14px;font-weight:500;width:100%;text-align:left;white-space:nowrap" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>{{ t.grantLabel }}
+                  </button>
+                  <button onClick="{{ t.makeHost }}" style="border:none;cursor:pointer;font-family:inherit;height:40px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#3f6fe0;font-size:14px;font-weight:500;width:100%;text-align:left;white-space:nowrap" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M6.2 18.6a7 7 0 0 1 11.6 0"></path></svg>Make Host
+                  </button>
+                </sc-if>
+                  <sc-if value="{{ t.canRemove }}" hint-placeholder-val="{{ true }}">
+                    <div style="height:1px;margin:4px 8px;background:#c3c8d4;box-shadow:0 1px 0 #ffffff"></div>
+                    <button onClick="{{ t.remove }}" style="border:none;cursor:pointer;font-family:inherit;height:40px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#e04848;font-size:14px;font-weight:600;width:100%" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e04848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11h6"></path></svg>Remove
+                    </button>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{ t.handUp }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:10px;left:44px;width:26px;height:26px;border-radius:50%;background:#d98a12;display:flex;align-items:center;justify-content:center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+                </div>
+              </sc-if>
+              <div style="width:72px;height:72px;border-radius:50%;box-shadow:{{ t.ring }};display:flex;align-items:center;justify-content:center">
+                <div style="width:56px;height:56px;border-radius:50%;background:{{ t.bg }};box-shadow:3px 3px 7px #c3c8d4;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff">{{ t.initials }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px;min-width:0;width:100%">
+                <div style="font-size:14px;font-weight:700;color:{{ t.nameColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.label }}</div>
+                <div style="font-size:11px;font-style:italic;color:#6a7192;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.sub }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:30px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff">
+        <button onClick="{{ toggleMic }}" aria-label="Microphone" style="border:none;cursor:pointer;width:54px;height:54px;border-radius:50%;background:#e6e9f0;box-shadow:{{ micShadow }};display:flex;align-items:center;justify-content:center">
+          <span style="display:flex" dangerouslySetInnerHTML="{{ micBtnIcon }}"></span>
+        </button>
+        <button onClick="{{ toggleHand }}" aria-label="Raise hand" style="border:none;cursor:pointer;width:54px;height:54px;border-radius:50%;background:#e6e9f0;box-shadow:{{ handShadow }};display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ handColor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+        </button>
+        <button onClick="{{ leaveRoom }}" aria-label="Leave" style="border:none;cursor:pointer;width:72px;height:54px;border-radius:27px;background:linear-gradient(145deg,#f06a6a,#d94848);box-shadow:4px 4px 10px #c3c8d4,-4px -4px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #b83a3a,inset -4px -4px 8px #ff7a7a">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85a1 1 0 0 1-1.41-.01L.29 13.08a1 1 0 0 1 0-1.41C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.48a1 1 0 0 1-1.41.01c-.79-.73-1.68-1.36-2.66-1.85a1 1 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9Z"></path></svg>
+        </button>
+        <button onClick="{{ openChat }}" aria-label="Chat" style="border:none;cursor:pointer;width:54px;height:54px;border-radius:50%;background:#e6e9f0;box-shadow:4px 4px 9px #c3c8d4,-4px -4px 9px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"></path></svg>
+        </button>
+        <button onClick="{{ openPeople }}" aria-label="Participants" style="border:none;cursor:pointer;width:54px;height:54px;border-radius:50%;background:#e6e9f0;box-shadow:4px 4px 9px #c3c8d4,-4px -4px 9px #ffffff;display:flex;align-items:center;justify-content:center;position:relative" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"></path></svg>
+          <span style="position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:9px;background:#3f6fe0;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ roomCount }}</span>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ peopleOpen }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Participants" style="position:absolute;inset:0;background:#e6e9f0;display:flex;flex-direction:column;padding:28px 20px 28px;box-sizing:border-box;z-index:4;gap:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.01em">Participants</div>
+          <div style="min-width:28px;height:24px;padding:0 8px;box-sizing:border-box;border-radius:8px;box-shadow:inset 2px 2px 5px #c3c8d4,inset -2px -2px 5px #ffffff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#3f6fe0">{{ peopleCount }}</div>
+        </div>
+        <button onClick="{{ closePeople }}" aria-label="Close" style="border:none;cursor:pointer;width:44px;height:44px;border-radius:50%;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+      </div>
+
+      <div style="height:52px;border-radius:18px;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;gap:10px;padding:0 18px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7d849f" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search participants..." style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1f2440;font-family:inherit;font-size:15px"></input>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <button onClick="{{ copyLink }}" style="grid-column:1 / -1;border:none;cursor:pointer;font-family:inherit;height:50px;border-radius:16px;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center;gap:10px;color:#3f6fe0;font-size:14px;font-weight:600;white-space:nowrap" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>Copy Meeting Link
+        </button>
+        <button onClick="{{ unmuteAll }}" style="border:none;cursor:pointer;font-family:inherit;height:50px;border-radius:16px;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center;gap:8px;color:#16a34a;font-size:14px;font-weight:600;white-space:nowrap" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>Unmute All
+        </button>
+        <button onClick="{{ muteAll }}" style="border:none;cursor:pointer;font-family:inherit;height:50px;border-radius:16px;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center;gap:8px;color:#d98a12;font-size:14px;font-weight:600;white-space:nowrap" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d98a12" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"></path></svg>Mute All
+        </button>
+      </div>
+
+      <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6a7192;padding:4px 4px 0">In this meeting</div>
+      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;margin:-8px -8px 0;padding:8px 8px 120px">
+        <sc-for list="{{ people }}" as="p" hint-placeholder-count="2">
+          <div style="position:relative;z-index:{{ p.z }};display:flex;align-items:center;gap:14px;padding:14px;border-radius:20px;background:#e6e9f0;box-shadow:6px 6px 12px #c3c8d4,-6px -6px 12px #ffffff">
+            <div style="position:relative;flex-shrink:0">
+              <div style="width:50px;height:50px;border-radius:50%;background:{{ p.bg }};box-shadow:3px 3px 7px #c3c8d4;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff">{{ p.initials }}</div>
+              <div style="position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#e6e9f0;box-shadow:2px 2px 5px #c3c8d4;display:flex;align-items:center;justify-content:center" dangerouslySetInnerHTML="{{ p.micIcon }}"></div>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}<sc-if value="{{ p.pinned }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="#3f6fe0"><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4Z"></path></svg></sc-if></div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="height:22px;padding:0 8px;border-radius:7px;box-shadow:inset 2px 2px 4px #c3c8d4,inset -2px -2px 4px #ffffff;display:inline-flex;align-items:center;font-size:11px;font-weight:600;color:{{ p.roleColor }};white-space:nowrap">{{ p.role }}</span>
+                <span style="font-size:12px;color:#6a7192;white-space:nowrap">{{ p.bio }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ p.hasMenu }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ p.toggleMenu }}" aria-label="More" style="border:none;cursor:pointer;width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#e6e9f0;box-shadow:{{ p.menuShadow }};display:flex;align-items:center;justify-content:center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#4f5675"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
+              </button>
+            </sc-if>
+            <sc-if value="{{ p.menuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;right:10px;top:calc(100% - 6px);width:180px;padding:8px;border-radius:18px;background:#eef0f5;box-shadow:10px 10px 24px #b4bac8,-4px -4px 12px #ffffff;display:flex;flex-direction:column;gap:4px">
+                <button onClick="{{ p.pin }}" style="border:none;cursor:pointer;font-family:inherit;height:42px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#1f2440;font-size:14px;font-weight:500;text-align:left" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3Z"></path></svg>{{ p.pinLabel }}
+                </button>
+                <sc-if value="{{ p.hostActions }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ p.grant }}" style="border:none;cursor:pointer;font-family:inherit;height:42px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#16a34a;font-size:14px;font-weight:500;width:100%;text-align:left;white-space:nowrap" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>{{ p.grantLabel }}
+                  </button>
+                  <button onClick="{{ p.makeHost }}" style="border:none;cursor:pointer;font-family:inherit;height:42px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#3f6fe0;font-size:14px;font-weight:500;width:100%;text-align:left;white-space:nowrap" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M6.2 18.6a7 7 0 0 1 11.6 0"></path></svg>Make Host
+                  </button>
+                </sc-if>
+                <sc-if value="{{ p.hostActions }}" hint-placeholder-val="{{ false }}"><div style="height:1px;margin:4px 8px;background:#c3c8d4;box-shadow:0 1px 0 #ffffff"></div>
+                <button onClick="{{ p.remove }}" style="border:none;cursor:pointer;font-family:inherit;height:42px;padding:0 12px;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;color:#e04848;font-size:14px;font-weight:600;text-align:left" style-hover="box-shadow:inset 3px 3px 6px #c9ced9,inset -3px -3px 6px #ffffff">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e04848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11h6"></path></svg>Remove
+                </button></sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noPeople }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:24px;text-align:center;font-size:13px;color:#6a7192">No participants match your search.</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ chatOpen }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Chat" style="position:absolute;inset:0;background:#e6e9f0;z-index:4;display:flex;flex-direction:column;padding:28px 20px 24px;box-sizing:border-box;gap:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.01em">Messages</div>
+          <div style="font-size:12px;color:#6a7192;white-space:nowrap">Joy Bangla · Everyone in the meeting</div>
+        </div>
+        <button onClick="{{ closeChat }}" aria-label="Close" style="border:none;cursor:pointer;width:44px;height:44px;flex-shrink:0;border-radius:50%;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+      </div>
+      <div ref="{{ chatRef }}" style="flex:1;min-height:0;overflow-y:auto;border-radius:28px;box-shadow:inset 6px 6px 14px #c3c8d4,inset -6px -6px 14px #ffffff;padding:18px 14px;display:flex;flex-direction:column;gap:16px">
+        <sc-for list="{{ messages }}" as="c" hint-placeholder-count="3">
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-direction:{{ c.dir }}">
+            <div style="width:32px;height:32px;flex-shrink:0;border-radius:50%;background:{{ c.bg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;box-shadow:2px 2px 5px #c3c8d4">{{ c.initials }}</div>
+            <div style="max-width:72%;display:flex;flex-direction:column;gap:4px;align-items:{{ c.align }}">
+              <div style="font-size:11px;color:#6a7192;padding:0 4px;white-space:nowrap">{{ c.meta }}</div>
+              <div style="padding:10px 14px;border-radius:{{ c.radius }};background:{{ c.bubble }};box-shadow:4px 4px 9px #c3c8d4,-4px -4px 9px #ffffff;font-size:14px;line-height:1.45;color:{{ c.color }};text-wrap:pretty;word-break:break-word">{{ c.text }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="flex:1;height:54px;border-radius:18px;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;padding:0 18px">
+          <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onDraftKey }}" placeholder="Type a message..." style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1f2440;font-family:inherit;font-size:15px"></input>
+        </div>
+        <button onClick="{{ sendMsg }}" aria-label="Send" style="border:none;cursor:pointer;width:54px;height:54px;flex-shrink:0;border-radius:18px;background:{{ sendBg }};box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ sendColor }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;justify-content:flex-end">
+      <div onClick="{{ closeSettings }}" style="position:absolute;inset:0;background:rgba(40,46,70,.3)"></div>
+      <div data-screen-label="Settings" style="position:relative;background:#e6e9f0;border-radius:32px 32px 0 0;padding:14px 22px 32px;display:flex;flex-direction:column;gap:22px;box-shadow:0 -10px 30px rgba(60,66,90,.25)">
+        <div style="align-self:center;width:44px;height:5px;border-radius:3px;box-shadow:inset 2px 2px 4px #c3c8d4,inset -2px -2px 4px #ffffff"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:20px;font-weight:700">Media Devices</div>
+            <div style="font-size:13px;color:#6a7192">Choose how you listen and speak</div>
+          </div>
+          <button onClick="{{ closeSettings }}" aria-label="Close" style="border:none;cursor:pointer;width:44px;height:44px;border-radius:50%;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;display:flex;align-items:center;justify-content:center" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+          </button>
+        </div>
+        
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6a7192;padding-left:4px">Microphone</div>
+            <div style="position:relative;height:56px;border-radius:18px;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;gap:12px;padding:0 16px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>
+              <select value="{{ micDevice }}" onChange="{{ onMicDevice }}" style="flex:1;min-width:0;height:100%;appearance:none;-webkit-appearance:none;background:transparent;border:none;outline:none;color:#1f2440;font-family:inherit;font-size:15px;cursor:pointer;padding-right:24px">
+                <sc-for list="{{ micDevices }}" as="o" hint-placeholder-count="3"><option value="{{ o }}" style="background:#eef0f5;color:#1f2440">{{ o }}</option></sc-for>
+              </select>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a7192" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:16px;pointer-events:none"><path d="M6 9l6 6 6-6"></path></svg>
+            </div>
+          </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:0 4px">
+          <div style="font-size:12px;color:#6a7192;white-space:nowrap">Input level</div>
+          <div style="flex:1;display:flex;gap:4px;height:10px">
+            <sc-for list="{{ levelBars }}" as="lv" hint-placeholder-count="12"><div style="flex:1;border-radius:3px;background:{{ lv.bg }};box-shadow:inset 1px 1px 2px #c3c8d4"></div></sc-for>
+          </div>
+        </div>
+        
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6a7192;padding-left:4px">Speaker &amp; Headphones</div>
+            <div style="position:relative;height:56px;border-radius:18px;box-shadow:inset 5px 5px 10px #c3c8d4,inset -5px -5px 10px #ffffff;display:flex;align-items:center;gap:12px;padding:0 16px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M11 5 6 9H2v6h4l5 4V5Z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"></path></svg>
+              <select value="{{ spkDevice }}" onChange="{{ onSpkDevice }}" style="flex:1;min-width:0;height:100%;appearance:none;-webkit-appearance:none;background:transparent;border:none;outline:none;color:#1f2440;font-family:inherit;font-size:15px;cursor:pointer;padding-right:24px">
+                <sc-for list="{{ spkDevices }}" as="o" hint-placeholder-count="3"><option value="{{ o }}" style="background:#eef0f5;color:#1f2440">{{ o }}</option></sc-for>
+              </select>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a7192" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:16px;pointer-events:none"><path d="M6 9l6 6 6-6"></path></svg>
+            </div>
+          </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <button onClick="{{ testSpeaker }}" style="border:none;cursor:pointer;font-family:inherit;height:52px;border-radius:18px;background:#e6e9f0;box-shadow:5px 5px 10px #c3c8d4,-5px -5px 10px #ffffff;color:#3f6fe0;font-size:14px;font-weight:600;white-space:nowrap" style-active="box-shadow:inset 4px 4px 8px #c3c8d4,inset -4px -4px 8px #ffffff">Test speaker</button>
+          <button onClick="{{ closeSettings }}" style="border:none;cursor:pointer;font-family:inherit;height:52px;border-radius:18px;background:linear-gradient(145deg,#7aa0ff,#5a83ee);box-shadow:5px 5px 12px #c3c8d4,-5px -5px 12px #ffffff;color:#fff;font-size:14px;font-weight:600" style-active="box-shadow:inset 4px 4px 10px #4a6fd6,inset -4px -4px 10px #8aaeff">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:24px;right:24px;bottom:112px;padding:14px 18px;border-radius:16px;background:#ffffff;box-shadow:6px 6px 14px #b4bac8;font-size:14px;color:#1f2440;display:flex;align-items:center;gap:10px">
+      <div style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0"></div>{{ toast }}
+    </div>
+  </sc-if>
+
+  <div style="padding:14px 18px 26px;background:#e6e9f0">
+    <div style="display:flex;justify-content:space-between;padding:8px;border-radius:26px;background:#e6e9f0;box-shadow:6px 6px 14px #c3c8d4,-6px -6px 14px #ffffff">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+        <button onClick="{{ t.select }}" style="border:none;cursor:pointer;font-family:inherit;width:62px;height:56px;border-radius:18px;background:#e6e9f0;box-shadow:{{ t.shadow }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ t.color }}">
+          <span style="display:flex" dangerouslySetInnerHTML="{{ t.icon }}"></span>
+          <span style="font-size:10px;font-weight:600">{{ t.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;viewAsHost&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Meeting&quot;}}">
+class Component extends DCLogic {
+  state = { people: [
+    { id: 'nb', self: true, name: 'Naava BD', initials: 'NB', bg: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', role: 'You · Listener', roleColor: '#d98a12', bio: 'President', muted: true, pinned: false },
+    { id: 'ht', canSpeak: true, name: 'Hasib Talukder', initials: 'HT', bg: 'linear-gradient(145deg,#f0ab3f,#de7a24)', role: 'Host', roleColor: '#3f6fe0', bio: 'Vice - President', muted: false, pinned: false, speaking: true },
+    { id: 'ra', canSpeak: true, name: 'Rafiq Ahmed', initials: 'RA', bg: 'linear-gradient(145deg,#5dc995,#3f9e70)', role: 'Can speak', roleColor: '#16a34a', bio: 'Secretary', muted: false, pinned: false },
+    { id: 'si', name: 'Sadia Islam', initials: 'SI', bg: 'linear-gradient(145deg,#ec6d86,#c94660)', role: 'Listener', roleColor: '#5a6180', bio: 'Treasurer', muted: true, pinned: false },
+    { id: 'th', canSpeak: true, name: 'Tanvir Hasan', initials: 'TH', bg: 'linear-gradient(145deg,#7a5ae0,#7d62e6)', role: 'Can speak', roleColor: '#16a34a', bio: 'Member', muted: true, pinned: false },
+    { id: 'nj', name: 'Nusrat Jahan', initials: 'NJ', bg: 'linear-gradient(145deg,#4fc3e0,#2f97b8)', role: 'Listener', roleColor: '#5a6180', bio: 'Member', muted: true, pinned: false },
+    { id: 'ac', name: 'Arif Chowdhury', initials: 'AC', bg: 'linear-gradient(145deg,#f08a5d,#d0663c)', role: 'Listener', roleColor: '#5a6180', bio: 'Member', muted: true, pinned: false },
+    { id: 'ma', name: 'Mim Akter', initials: 'MA', bg: 'linear-gradient(145deg,#e07ad0,#b955a8)', role: 'Listener', roleColor: '#5a6180', bio: 'Member', muted: true, pinned: false }
+  ], lobby: null, bio: '', code: '', tab: 'Meet', toast: '', meetings: [{ code: '9ip8-3zni', meta: 'Joined · 13h ago' }, { code: 'tq4k-81mx', meta: 'Hosted · Yesterday' }] };
+  flash(msg) { this.setState({ toast: msg }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ toast: '' }), 2200); }
+  chatRef = React.createRef();
+  componentDidUpdate() { const el = this.chatRef.current; if (el && this._msgN !== (this.state.msgs || []).length) { this._msgN = (this.state.msgs || []).length; el.scrollTop = el.scrollHeight; } }
+  extraVals(s) {
+    const P = { ht: ['HT', 'linear-gradient(145deg,#f0ab3f,#de7a24)', 'Hasib Talukder'], ra: ['RA', 'linear-gradient(145deg,#5dc995,#3f9e70)', 'Rafiq Ahmed'], si: ['SI', 'linear-gradient(145deg,#ec6d86,#c94660)', 'Sadia Islam'], nb: ['NB', 'linear-gradient(145deg,#7aa0ff,#5a83ee)', 'You'] };
+    const msgs = s.msgs || [
+      { from: 'ht', text: 'Welcome everyone. We will start in two minutes.', time: '10:02' },
+      { from: 'ra', text: 'Agenda is shared in the group. Please take a look.', time: '10:03' },
+      { from: 'si', text: 'Can everyone hear the host clearly?', time: '10:04' }
+    ];
+    const me = (s.people || []).find(p => p.self);
+    const meMuted = !me || me.muted;
+    const send = () => { const t = (s.draft || '').trim(); if (!t) return; const d = new Date(); this.setState({ msgs: [...msgs, { from: 'nb', text: t, time: d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0') }], draft: '' }); };
+    const level = meMuted ? 0 : 7;
+    return {
+      chatOpen: !!s.chatOpen, chatRef: this.chatRef,
+      openChat: () => this.setState({ chatOpen: true }), closeChat: () => this.setState({ chatOpen: false }),
+      messages: msgs.map(m => { const mine = m.from === 'nb', p = P[m.from]; return { text: m.text, initials: p[0], bg: p[1], meta: p[2] + ' · ' + m.time, dir: mine ? 'row-reverse' : 'row', align: mine ? 'flex-end' : 'flex-start', bubble: mine ? 'linear-gradient(145deg,#7aa0ff,#5a83ee)' : '#e6e9f0', color: mine ? '#fff' : '#1f2440', radius: mine ? '18px 18px 6px 18px' : '18px 18px 18px 6px' }; }),
+      draft: s.draft || '', onDraft: e => this.setState({ draft: e.target.value }), onDraftKey: e => { if (e.key === 'Enter') send(); }, sendMsg: send,
+      sendBg: (s.draft || '').trim() ? 'linear-gradient(145deg,#7aa0ff,#5a83ee)' : '#e6e9f0', sendColor: (s.draft || '').trim() ? '#fff' : '#7d849f',
+      settingsOpen: !!s.settingsOpen, openSettings: () => this.setState({ settingsOpen: true }), closeSettings: () => this.setState({ settingsOpen: false }),
+      micDevices: ['Default - Built-in Microphone', 'AirPods Pro', 'USB Headset Mic'], micDevice: s.micDevice || 'Default - Built-in Microphone', onMicDevice: e => this.setState({ micDevice: e.target.value }),
+      spkDevices: ['Default - Built-in Speaker', 'AirPods Pro', 'USB Headset'], spkDevice: s.spkDevice || 'Default - Built-in Speaker', onSpkDevice: e => this.setState({ spkDevice: e.target.value }),
+      levelBars: Array.from({ length: 12 }, (_, i) => ({ bg: i < level ? (i < 5 ? '#16a34a' : i < 9 ? '#d98a12' : '#e04848') : '#d3d7e0' })),
+      testSpeaker: () => this.flash('Playing test sound…')
+    };
+  }
+  peopleVals(s) {
+    const hostId = s.hostId || ((this.props.viewAsHost ?? true) ? 'nb' : 'ht');
+    const amHost = hostId === 'nb';
+    const roleOf = p => { const r = p.id === hostId ? 'Host' : p.canSpeak ? 'Can speak' : 'Listener'; return { role: p.self ? 'You · ' + r : r, roleColor: r === 'Host' ? '#3f6fe0' : r === 'Can speak' ? '#16a34a' : '#5a6180' }; };
+    const list = (s.people || []).map(p => ({ ...p, ...roleOf(p) }));
+    const hostFns = p => ({
+      hostActions: amHost && !p.self,
+      grantLabel: p.canSpeak ? 'Revoke Speak' : 'Grant Speak',
+      grant: () => { this.setState(st => ({ people: st.people.map(x => x.id === p.id ? { ...x, canSpeak: !x.canSpeak, muted: x.canSpeak ? true : x.muted } : x), menu: null, tileMenu: null })); this.flash(p.canSpeak ? p.name + ' is now a listener' : p.name + ' can now speak'); },
+      makeHost: () => { this.setState({ hostId: p.id, menu: null, tileMenu: null }); this.flash(p.name + ' is now the host'); }
+    });
+    const q = (s.query || '').toLowerCase();
+    const mic = m => ({ __html: m ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e04848" stroke-width="2.4" stroke-linecap="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0"/></svg>' });
+    const upd = (id, f) => this.setState(st => ({ people: st.people.map(p => p.id === id ? { ...p, ...f(p) } : p), menu: null }));
+    const people = list.filter(p => p.name.toLowerCase().includes(q)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0)).map(p => ({
+      ...p,
+      ...hostFns(p),
+      name: p.self ? 'You' : p.name,
+      bio: p.self ? (s.roomBio || p.bio) : p.bio,
+      micIcon: mic(p.muted),
+      hasMenu: !p.self,
+      menuOpen: s.menu === p.id,
+      z: s.menu === p.id ? 5 : 1,
+      menuShadow: s.menu === p.id ? 'inset 3px 3px 6px #c3c8d4, inset -3px -3px 6px #ffffff' : '3px 3px 7px #c3c8d4, -3px -3px 7px #ffffff',
+      toggleMenu: () => this.setState({ menu: s.menu === p.id ? null : p.id }),
+      pinLabel: p.pinned ? 'Unpin' : 'Pin',
+      muteLabel: p.muted ? 'Unmute' : 'Mute',
+      pin: () => { upd(p.id, x => ({ pinned: !x.pinned })); this.flash(p.name + (p.pinned ? ' unpinned' : ' pinned')); },
+      mute: () => { upd(p.id, x => ({ muted: !x.muted })); this.flash(p.name + (p.muted ? ' unmuted' : ' muted')); },
+      remove: () => { this.setState(st => ({ people: st.people.filter(x => x.id !== p.id), menu: null })); this.flash(p.name + ' removed'); }
+    }));
+    const tiles = list.slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0)).map(p => ({
+      initials: p.initials, bg: p.bg, micIcon: mic(p.muted),
+      ...hostFns(p),
+      menuOpen: s.tileMenu === p.id, z: s.tileMenu === p.id ? 5 : 1, canRemove: amHost && !p.self,
+      menuShadow: s.tileMenu === p.id ? 'inset 3px 3px 6px #c3c8d4, inset -3px -3px 6px #ffffff' : '3px 3px 7px #c3c8d4, -3px -3px 7px #ffffff',
+      toggleMenu: () => this.setState({ tileMenu: s.tileMenu === p.id ? null : p.id }),
+      pinLabel: p.pinned ? 'Unpin' : 'Pin', muteLabel: p.muted ? 'Unmute' : 'Mute',
+      pin: () => { upd(p.id, x => ({ pinned: !x.pinned })); this.setState({ tileMenu: null }); this.flash((p.self ? 'You' : p.name) + (p.pinned ? ' unpinned' : ' pinned')); },
+      mute: () => { upd(p.id, x => ({ muted: !x.muted })); this.setState({ tileMenu: null }); this.flash((p.self ? 'You' : p.name) + (p.muted ? ' unmuted' : ' muted')); },
+      remove: () => { this.setState(st => ({ people: st.people.filter(x => x.id !== p.id), tileMenu: null })); this.flash(p.name + ' removed'); },
+      label: p.self ? 'You' : p.name,
+      nameColor: p.self ? '#3f6fe0' : '#1f2440',
+      sub: p.self ? (s.roomBio || p.bio) : p.bio,
+      handUp: !!(p.self && s.hand),
+      ring: p.speaking && !p.muted ? '0 0 0 3px #16a34a, inset 3px 3px 7px #c3c8d4' : 'inset 4px 4px 8px #c3c8d4, inset -4px -4px 8px #ffffff'
+    }));
+    const me = list.find(p => p.self);
+    const meMuted = !me || me.muted;
+    return {
+      tiles,
+      micBtnIcon: { __html: meMuted ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e04848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"/></svg>' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>' },
+      micShadow: meMuted ? 'inset 4px 4px 8px #c3c8d4, inset -4px -4px 8px #ffffff' : '4px 4px 9px #c3c8d4, -4px -4px 9px #ffffff',
+      toggleMic: () => { if (!me) return; upd(me.id, x => ({ muted: !x.muted })); this.flash(meMuted ? 'Microphone on' : 'Microphone off'); },
+      peopleOpen: !!s.peopleOpen, people, noPeople: people.length === 0, peopleCount: list.length, roomCount: list.length, query: s.query || '',
+      onQuery: e => this.setState({ query: e.target.value, menu: null }),
+      closePeople: () => this.setState({ peopleOpen: false, menu: null }),
+      copyLink: () => { try { navigator.clipboard.writeText('https://mytalk.app/' + s.room); } catch (e) {} this.flash('Meeting link copied'); },
+      muteAll: () => { this.setState(st => ({ people: st.people.map(p => p.self ? p : { ...p, muted: true }) })); this.flash('Everyone muted'); },
+      unmuteAll: () => { this.setState(st => ({ people: st.people.map(p => ({ ...p, muted: false })) })); this.flash('Everyone can speak'); }
+    };
+  }
+  joinCode(c) { this.setState({ code: '', lobby: c }); }
+  enter(c) {
+    this.setState(s => ({ lobby: null, bio: '', meetings: [{ code: c, meta: 'Joined · just now' }, ...s.meetings.filter(m => m.code !== c)] }));
+    this.flash('Joined ' + c);
+  }
+  renderVals() {
+    const s = this.state, ok = s.code.trim().length >= 4;
+    const ic = p => ({ __html: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>` });
+    const tabs = [
+      ['Meet', '<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/>'],
+      ['Calls', '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>'],
+      ['Groups', '<path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'],
+      ['Chat', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>'],
+      ['Profile', '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>']
+    ].map(([label, p]) => ({
+      label, icon: ic(p),
+      color: s.tab === label ? '#3f6fe0' : '#6a7192',
+      shadow: s.tab === label ? 'inset 4px 4px 8px #c3c8d4, inset -4px -4px 8px #ffffff' : 'none',
+      select: () => this.setState({ tab: label })
+    }));
+    return {
+      code: s.code,
+      onCode: e => this.setState({ code: e.target.value }),
+      onKey: e => { if (e.key === 'Enter' && ok) this.joinCode(s.code.trim()); },
+      join: () => ok && this.joinCode(s.code.trim()),
+      joinDisabled: !ok,
+      joinColor: ok ? '#3f6fe0' : '#a4aabf',
+      joinShadow: ok ? '5px 5px 10px #c3c8d4, -5px -5px 10px #ffffff' : 'inset 3px 3px 6px #c3c8d4, inset -3px -3px 6px #ffffff',
+      startNew: () => { const r = () => Math.random().toString(36).slice(2, 6); this.joinCode(r() + '-' + r()); },
+      schedule: () => this.flash('Scheduling coming soon'),
+      meetings: s.meetings.map(m => ({ ...m, rejoin: () => this.joinCode(m.code), remove: () => this.setState(st => ({ meetings: st.meetings.filter(x => x.code !== m.code) })) })),
+      hasMeetings: s.meetings.length > 0,
+      noMeetings: s.meetings.length === 0,
+      clearAll: () => this.setState({ meetings: [] }),
+      tabs, hasToast: !!s.toast, toast: s.toast,
+      inLobby: !!s.lobby, lobbyCode: s.lobby || '', bio: s.bio, bioCount: s.bio.length + '/60',
+      onBio: e => this.setState({ bio: e.target.value }), leaveLobby: () => this.setState({ lobby: null }), confirmJoin: () => this.setState({ lobby: null, room: s.lobby, roomBio: s.bio.trim() || 'President', hand: false }),
+      inRoom: !!s.room, roomCode: s.room || '', roomBio: s.roomBio || '', handUp: !!s.hand,
+      handColor: s.hand ? '#d98a12' : '#4f5675',
+      handShadow: s.hand ? 'inset 4px 4px 8px #c3c8d4, inset -4px -4px 8px #ffffff' : '4px 4px 9px #c3c8d4, -4px -4px 9px #ffffff',
+      toggleHand: () => { this.setState({ hand: !s.hand }); this.flash(s.hand ? 'Hand lowered' : 'Hand raised · host notified'); },
+      leaveRoom: () => { const c = s.room; this.setState({ room: null }); this.enter(c); this.flash('You left the meeting'); },
+      copyCode: () => { try { navigator.clipboard.writeText(s.room); } catch (e) {} this.flash('Meeting code copied'); },
+      ...this.extraVals(s), openPeople: () => this.setState({ peopleOpen: true, menu: null, query: '' }),
+      ...this.peopleVals(s), 
+      isMeet: s.tab === 'Meet', isCalls: s.tab === 'Calls', isGroups: s.tab === 'Groups', isChat: s.tab === 'Chat', isProfile: s.tab === 'Profile',
+      ctaCall: () => this.flash('Choose someone to call'), ctaGroup: () => this.flash('New group created'), ctaChat: () => this.flash('Pick a contact to message'),
+      signOut: () => this.flash('Signed out'), goProfile: () => this.setState({ tab: 'Profile' })
+    };
+  }
+}
+</script>
+</body>
+</html>

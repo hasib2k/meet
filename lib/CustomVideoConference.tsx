@@ -27,18 +27,16 @@ import {
   useMaybeLayoutContext,
   useParticipants,
   useChat,
+  useLocalParticipant,
 } from '@livekit/components-react';
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-react';
 import { CustomGridLayout } from './CustomGridLayout';
 import { CustomChat, ChatPanelContent } from './CustomChat';
 import { ParticipantsPanelContent } from './ParticipantsSidebar';
 
-export interface CustomVideoConferenceProps extends React.HTMLAttributes<HTMLDivElement> {
-  SettingsComponent?: React.ComponentType;
-}
+export interface CustomVideoConferenceProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function CustomVideoConference({
-  SettingsComponent,
   ...props
 }: CustomVideoConferenceProps) {
   const [widgetState, setWidgetState] = React.useState<WidgetState>({
@@ -196,7 +194,7 @@ export function CustomVideoConference({
               </FocusLayoutContainer>
             </div>
           )}
-          <ControlBar variation="minimal" controls={{ chat: false, settings: false, camera: false, screenShare: false, leave: false }} />
+          <ControlBar variation="minimal" controls={{ microphone: false, chat: false, settings: false, camera: false, screenShare: false, leave: false }} />
           <DesktopChatButton />
         </div>
         {/* Mobile chat panel — hidden on desktop via CSS */}
@@ -220,7 +218,7 @@ export function CustomVideoConference({
                 aria-label="Close panel"
                 onClick={closeDesktopPanel}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.4" strokeLinecap="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.4" strokeLinecap="round">
                   <path d="M6 6l12 12M18 6 6 18" />
                 </svg>
               </button>
@@ -241,23 +239,6 @@ export function CustomVideoConference({
           </div>
         )}
 
-        {SettingsComponent && (
-          <div
-            className={`lk-settings-menu-modal${widgetState.showSettings ? ' settings-open' : ''}`}
-            onClick={(e) => {
-              // Close when the backdrop (not the card) is clicked — desktop only.
-              if (
-                e.target === e.currentTarget &&
-                typeof window !== 'undefined' &&
-                window.innerWidth >= 960
-              ) {
-                layoutContext.widget.dispatch?.({ msg: 'toggle_settings' });
-              }
-            }}
-          >
-            <SettingsComponent />
-          </div>
-        )}
       </LayoutContextProvider>
       <RoomAudioRenderer />
       <ConnectionStateToast />
@@ -341,6 +322,8 @@ function MeetingTitleBar() {
   const room = useRoomContext();
   const layoutContext = useMaybeLayoutContext();
   const participants = useParticipants();
+  const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
+  const canPublish = localParticipant?.permissions?.canPublish ?? false;
   const [title, setTitle] = React.useState('');
   const [copied, setCopied] = React.useState(false);
 
@@ -423,15 +406,19 @@ function MeetingTitleBar() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.6 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.6-1.5"/></svg>
           <span>{copied ? 'Copied!' : 'Copy link'}</span>
         </button>
-        <button
-          className="meeting-settings-btn"
-          aria-label="Settings"
-          onClick={() => {
-            layoutContext?.widget.dispatch?.({ msg: 'toggle_settings' });
-          }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"></path></svg>
-        </button>
+        {canPublish && (
+          <button
+            className={`meeting-mic-btn ${isMicrophoneEnabled ? 'is-on' : 'is-off'}`}
+            aria-label={isMicrophoneEnabled ? 'Mute' : 'Unmute'}
+            onClick={() => localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled).catch(() => {})}
+          >
+            {isMicrophoneEnabled ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"/></svg>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

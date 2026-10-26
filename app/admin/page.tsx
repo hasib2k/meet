@@ -44,12 +44,12 @@ interface RoomMeta {
 
 /* ---------- helpers ---------- */
 
-const FONT = "'Plus Jakarta Sans', 'Google Sans', 'Segoe UI', Roboto, Arial, sans-serif";
+const FONT = "'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif";
 
 const AVATAR_GRADIENTS = [
   'linear-gradient(145deg,#f0ab3f,#de7a24)',
   'linear-gradient(145deg,#7aa0ff,#5a83ee)',
-  'linear-gradient(145deg,#5dc995,#3f9e70)',
+  'linear-gradient(145deg,#16a34a,#3f9e70)',
   'linear-gradient(145deg,#c77dff,#9d4edd)',
   'linear-gradient(145deg,#ec6d86,#c94660)',
   'linear-gradient(145deg,#4fc3e0,#2f97b8)',
@@ -69,9 +69,9 @@ function roleDisplay(role: string): string {
   return 'Listener';
 }
 function roleColor(role: string): string {
-  if (role === 'host') return '#6f97ff';
-  if (role === 'moderator') return '#4ade80';
-  return '#9aa1c2';
+  if (role === 'host') return '#3f6fe0';
+  if (role === 'moderator') return '#16a34a';
+  return '#6a7192';
 }
 function parseMeta(metadata?: string): RoomMeta {
   let title = '', visibility: 'public' | 'private' = 'public', locked = false, knock: Knock[] = [];
@@ -132,9 +132,9 @@ function Svg({ d, color = 'currentColor', size = 20, sw = 2 }: { d: string; colo
 }
 
 function personStatus(p: Participant): { text: string; color: string; icon: string } {
-  if (!p.canPublish) return { text: 'Listening', color: '#9aa1c2', icon: P.head };
-  if (p.isSpeaking) return { text: 'Speaking', color: '#4ade80', icon: P.mic };
-  return { text: 'Can speak', color: '#f5b04a', icon: P.mic };
+  if (!p.canPublish) return { text: 'Listening', color: '#6a7192', icon: P.head };
+  if (p.isSpeaking) return { text: 'Speaking', color: '#16a34a', icon: P.mic };
+  return { text: 'Can speak', color: '#d98a12', icon: P.mic };
 }
 
 type Tab = 'live' | 'scheduled' | 'history';
@@ -232,22 +232,34 @@ export default function AdminPage() {
 
   const createMeeting = async () => {
     const roomId = generateRoomId();
-    const listenerLink = `${window.location.origin}/rooms/${roomId}`;
+    const origin = window.location.origin;
+    const listenerLink = `${origin}/rooms/${roomId}`;
+    let hostLink = `${origin}/rooms/${roomId}?role=host`;
     try {
-      await fetch('/api/admin', {
+      const res = await fetch('/api/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${password}` },
         body: JSON.stringify({ action: 'create_room', roomName: roomId, meetingTitle: formTitle.trim(), visibility: formPrivacy }),
       });
+      const data = await res.json();
+      if (data?.hostToken) hostLink = `${origin}/rooms/${roomId}?role=host&hk=${encodeURIComponent(data.hostToken)}`;
     } catch {}
-    try { navigator.clipboard.writeText(listenerLink); } catch {}
+    try { navigator.clipboard.writeText(hostLink); } catch {}
     setModalOpen(false);
     setSelCode(roomId);
     setTab('live');
-    flash(`${formTitle.trim() || 'Meeting'} started · ${formPrivacy} · link copied`);
+    flash(`${formTitle.trim() || 'Meeting'} created · host link copied`);
     setFormTitle('');
     setFormPrivacy('public');
     fetchRooms();
+    // Show both links so the admin can share the right one with the right people.
+    setTimeout(() => {
+      window.alert(
+        `Meeting created!\n\n` +
+        `HOST link (to run the meeting — keep private):\n${hostLink}\n\n` +
+        `LISTENER link (share with attendees):\n${listenerLink}`,
+      );
+    }, 60);
   };
 
   const logout = () => {
@@ -263,20 +275,20 @@ export default function AdminPage() {
         <div style={S.glow} />
         <div style={S.loginCard}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={S.loginBrandIcon}><Svg d={P.mic} color="#6f97ff" size={24} /></div>
-            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#6f97ff' }}>Talk</span></div>
+            <div style={S.loginBrandIcon}><Svg d={P.mic} color="#3f6fe0" size={24} /></div>
+            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
             <div style={S.adminBadge}>Admin</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
             <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em' }}>Welcome back</div>
-            <div style={{ fontSize: 14, color: '#9aa1c2', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: '#6a7192', lineHeight: 1.5 }}>
               Sign in to monitor and moderate meetings in real time.
             </div>
           </div>
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: '#9aa1c2' }}>Admin password</label>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#6a7192' }}>Admin password</label>
             <div style={S.inputWrap}>
-              <Svg d={P.lock} color="#6c7498" size={18} />
+              <Svg d={P.lock} color="#7d849f" size={18} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter admin password"
@@ -286,18 +298,18 @@ export default function AdminPage() {
                 autoFocus
               />
               <button type="button" onClick={() => setShowPassword((v) => !v)} className="adm-btn" style={S.eyeBtn} aria-label="Toggle password">
-                <Svg d={showPassword ? 'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22M9.9 9.9a3 3 0 0 0 4.2 4.2' : 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'} color="#9aa1c2" size={18} />
+                <Svg d={showPassword ? 'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22M9.9 9.9a3 3 0 0 0 4.2 4.2' : 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'} color="#6a7192" size={18} />
               </button>
             </div>
             {error && (
-              <div style={S.errorBox}><Svg d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20ZM12 8v4M12 16h.01" color="#ff8a8a" size={16} />{error}</div>
+              <div style={S.errorBox}><Svg d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20ZM12 8v4M12 16h.01" color="#e04848" size={16} />{error}</div>
             )}
             <button type="submit" className="adm-btn" style={{ ...S.btnPrimary, height: 50, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <Svg d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" color="#fff" size={18} sw={2.2} />
               Sign in to console
             </button>
           </form>
-          <div style={S.loginFooter}><Svg d={P.lock} color="#6c7498" size={13} />Protected area · Authorized access only</div>
+          <div style={S.loginFooter}><Svg d={P.lock} color="#7d849f" size={13} />Protected area · Authorized access only</div>
         </div>
       </div>
     );
@@ -307,10 +319,10 @@ export default function AdminPage() {
   const allParticipants = rooms.flatMap((r) => r.participants);
   const totalWaiting = rooms.reduce((n, r) => n + parseMeta(r.metadata).knock.filter((k) => k.status === 'pending').length, 0);
   const stats: { label: string; value: number; color: string; icon: string }[] = [
-    { label: 'Live meetings', value: rooms.length, color: '#6f97ff', icon: P.live },
-    { label: 'People online', value: allParticipants.length, color: '#4ade80', icon: P.ppl },
+    { label: 'Live meetings', value: rooms.length, color: '#3f6fe0', icon: P.live },
+    { label: 'People online', value: allParticipants.length, color: '#16a34a', icon: P.ppl },
     { label: 'Speaking now', value: allParticipants.filter((p) => p.canPublish).length, color: '#a58cff', icon: P.mic },
-    { label: 'Hands raised', value: allParticipants.filter((p) => p.isHandRaised).length, color: '#f5b04a', icon: P.hand },
+    { label: 'Hands raised', value: allParticipants.filter((p) => p.isHandRaised).length, color: '#d98a12', icon: P.hand },
     { label: 'Waiting to join', value: totalWaiting, color: '#a58cff', icon: P.wait },
   ];
 
@@ -333,10 +345,10 @@ export default function AdminPage() {
       {/* Sidebar */}
       <aside style={S.sidebar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px' }}>
-          <div style={S.logoBox}><Svg d={P.mic} color="#6f97ff" size={22} /></div>
+          <div style={S.logoBox}><Svg d={P.mic} color="#3f6fe0" size={22} /></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#6f97ff' }}>Talk</span></div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#7c83a8' }}>Admin console</div>
+            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#7d849f' }}>Admin console</div>
           </div>
         </div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -349,11 +361,11 @@ export default function AdminPage() {
                 onClick={() => setTab(n.key)}
                 style={{
                   border: 'none', cursor: 'pointer', fontFamily: FONT, height: 52, padding: '0 16px', borderRadius: 16,
-                  background: '#1e2238', boxShadow: active ? 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48' : 'none',
-                  display: 'flex', alignItems: 'center', gap: 14, color: active ? '#6f97ff' : '#7c83a8', fontSize: 15, fontWeight: 600, textAlign: 'left',
+                  background: '#e6e9f0', boxShadow: active ? 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' : 'none',
+                  display: 'flex', alignItems: 'center', gap: 14, color: active ? '#3f6fe0' : '#7d849f', fontSize: 15, fontWeight: 600, textAlign: 'left',
                 }}
               >
-                <Svg d={n.icon} color={active ? '#6f97ff' : '#7c83a8'} size={20} />
+                <Svg d={n.icon} color={active ? '#3f6fe0' : '#7d849f'} size={20} />
                 <span style={{ flex: 1, whiteSpace: 'nowrap' }}>{n.label}</span>
                 <span style={S.navCount}>{n.count}</span>
               </button>
@@ -364,10 +376,10 @@ export default function AdminPage() {
           <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: '50%', background: 'linear-gradient(145deg,#f0ab3f,#de7a24)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>HA</div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Administrator</div>
-            <div style={{ fontSize: 12, color: '#7c83a8' }}>MyTalk Admin</div>
+            <div style={{ fontSize: 12, color: '#7d849f' }}>MyTalk Admin</div>
           </div>
-          <button onClick={logout} className="adm-btn" aria-label="Logout" style={{ border: 'none', cursor: 'pointer', width: 32, height: 32, flexShrink: 0, borderRadius: 12, background: '#1e2238', boxShadow: '3px 3px 7px #14172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Svg d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" color="#ff8a8a" size={16} sw={2.2} />
+          <button onClick={logout} className="adm-btn" aria-label="Logout" style={{ border: 'none', cursor: 'pointer', width: 32, height: 32, flexShrink: 0, borderRadius: 12, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Svg d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" color="#e04848" size={16} sw={2.2} />
           </button>
         </div>
       </aside>
@@ -377,7 +389,7 @@ export default function AdminPage() {
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-.02em' }}>{titles[tab][0]}</div>
-            <div style={{ fontSize: 14, color: '#9aa1c2' }}>{titles[tab][1]}</div>
+            <div style={{ fontSize: 14, color: '#6a7192' }}>{titles[tab][1]}</div>
           </div>
           <button className="adm-btn" onClick={() => { setFormTitle(''); setFormPrivacy('public'); setModalOpen(true); }} style={S.btnPrimaryHeader}>
             <Svg d="M12 5v14M5 12h14" color="#fff" size={18} sw={2.4} />New Meeting
@@ -393,7 +405,7 @@ export default function AdminPage() {
                   <div style={{ ...S.statIcon, color: st.color }}><Svg d={st.icon} color={st.color} size={22} /></div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                     <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.02em', lineHeight: 1.1 }}>{st.value}</div>
-                    <div style={{ fontSize: 13, color: '#7c83a8', whiteSpace: 'nowrap' }}>{st.label}</div>
+                    <div style={{ fontSize: 13, color: '#7d849f', whiteSpace: 'nowrap' }}>{st.label}</div>
                   </div>
                 </div>
               ))}
@@ -415,23 +427,23 @@ export default function AdminPage() {
                       onClick={() => { setSelCode(room.name); setQuery(''); setFilter('All'); }}
                       style={{
                         border: 'none', cursor: 'pointer', fontFamily: FONT, textAlign: 'left', padding: 18, borderRadius: 22,
-                        background: '#1e2238', boxShadow: active ? 'inset 5px 5px 11px #14172a, inset -5px -5px 11px #282d48' : '6px 6px 14px #13162a',
-                        display: 'flex', flexDirection: 'column', gap: 14, color: '#e6e9f5',
+                        background: '#e6e9f0', boxShadow: active ? 'inset 5px 5px 11px #c3c8d4, inset -5px -5px 11px #ffffff' : '6px 6px 14px #c3c8d4',
+                        display: 'flex', flexDirection: 'column', gap: 14, color: '#1f2440',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, width: '100%' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                           <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rm.title || room.name}</div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ fontSize: 12, color: '#7c83a8' }}>{room.name}</div>
-                            <span style={{ ...S.privBadge, color: rm.visibility === 'private' ? '#a58cff' : '#4ade80' }}>
+                            <div style={{ fontSize: 12, color: '#7d849f' }}>{room.name}</div>
+                            <span style={{ ...S.privBadge, color: rm.visibility === 'private' ? '#a58cff' : '#16a34a' }}>
                               <Svg d={rm.visibility === 'private' ? P.lock : P.globe} color="currentColor" size={11} sw={2.5} />
                               {rm.visibility === 'private' ? 'Private' : 'Public'}
                             </span>
                           </div>
                         </div>
                         <div style={S.durPill}>
-                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80' }} />
+                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
                           {now ? fmtDur(now - room.creationTime * 1000) : '—'}
                         </div>
                       </div>
@@ -444,12 +456,12 @@ export default function AdminPage() {
                               <div key={p.sid} style={{ ...S.faceAvatar, marginRight: -8, zIndex: 4 - i, background: avatarGradient(p.identity || p.name), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>{initials(p.name || p.identity)}</div>
                             )
                           ))}
-                          <div style={{ marginLeft: 16, fontSize: 12, color: '#9aa1c2', whiteSpace: 'nowrap' }}>{room.participants.length} in call</div>
+                          <div style={{ marginLeft: 16, fontSize: 12, color: '#6a7192', whiteSpace: 'nowrap' }}>{room.participants.length} in call</div>
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          {rm.locked && <div style={S.miniBadgeInset}><Svg d={P.lock} color="#f5b04a" size={13} sw={2.4} /></div>}
-                          {waiting > 0 && <div style={{ ...S.miniBadgeSolid, background: '#a58cff' }}><Svg d={P.wait} color="#1e2238" size={12} sw={2.6} />{waiting}</div>}
-                          {hands > 0 && <div style={{ ...S.miniBadgeSolid, background: '#f5b04a' }}><Svg d={P.hand} color="#1e2238" size={12} sw={2.6} />{hands}</div>}
+                          {rm.locked && <div style={S.miniBadgeInset}><Svg d={P.lock} color="#d98a12" size={13} sw={2.4} /></div>}
+                          {waiting > 0 && <div style={{ ...S.miniBadgeSolid, background: '#a58cff' }}><Svg d={P.wait} color="#e6e9f0" size={12} sw={2.6} />{waiting}</div>}
+                          {hands > 0 && <div style={{ ...S.miniBadgeSolid, background: '#d98a12' }}><Svg d={P.hand} color="#e6e9f0" size={12} sw={2.6} />{hands}</div>}
                         </div>
                       </div>
                     </button>
@@ -471,25 +483,25 @@ export default function AdminPage() {
         {/* SCHEDULED TAB */}
         {tab === 'scheduled' && (
           <div style={S.emptyBig}>
-            <Svg d={P.cal} color="#6f97ff" size={40} sw={1.6} />
+            <Svg d={P.cal} color="#3f6fe0" size={40} sw={1.6} />
             <div style={{ fontSize: 18, fontWeight: 700 }}>No scheduled meetings</div>
-            <div style={{ fontSize: 14, color: '#9aa1c2', maxWidth: 380 }}>Scheduling isn&apos;t available yet. Use New Meeting to start one instantly.</div>
+            <div style={{ fontSize: 14, color: '#6a7192', maxWidth: 380 }}>Scheduling isn&apos;t available yet. Use New Meeting to start one instantly.</div>
           </div>
         )}
 
         {/* HISTORY TAB */}
         {tab === 'history' && (
           <div style={S.emptyBig}>
-            <Svg d={P.hist} color="#6f97ff" size={40} sw={1.6} />
+            <Svg d={P.hist} color="#3f6fe0" size={40} sw={1.6} />
             <div style={{ fontSize: 18, fontWeight: 700 }}>No history yet</div>
-            <div style={{ fontSize: 14, color: '#9aa1c2', maxWidth: 380 }}>Ended meetings aren&apos;t archived on the server. Live meetings appear under the Live tab.</div>
+            <div style={{ fontSize: 14, color: '#6a7192', maxWidth: 380 }}>Ended meetings aren&apos;t archived on the server. Live meetings appear under the Live tab.</div>
           </div>
         )}
       </main>
 
       {/* Toast */}
       {toast && (
-        <div style={S.toast}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80' }} />{toast}</div>
+        <div style={S.toast}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a' }} />{toast}</div>
       )}
 
       {/* New meeting modal */}
@@ -500,10 +512,10 @@ export default function AdminPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-.01em' }}>New meeting</div>
-                <div style={{ fontSize: 14, color: '#7c83a8' }}>Choose who can get in</div>
+                <div style={{ fontSize: 14, color: '#7d849f' }}>Choose who can get in</div>
               </div>
               <button className="adm-btn" onClick={() => setModalOpen(false)} aria-label="Close" style={S.modalClose}>
-                <Svg d="M6 6l12 12M18 6 6 18" color="#a9b0d0" size={16} sw={2.4} />
+                <Svg d="M6 6l12 12M18 6 6 18" color="#4f5675" size={16} sw={2.4} />
               </button>
             </div>
 
@@ -526,27 +538,27 @@ export default function AdminPage() {
               <div style={S.formLabel}>Access</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
                 {([
-                  { key: 'public', title: 'Public', c: '#4ade80', icon: P.globe, desc: 'Anyone with the link joins instantly. No approval needed.' },
+                  { key: 'public', title: 'Public', c: '#16a34a', icon: P.globe, desc: 'Anyone with the link joins instantly. No approval needed.' },
                   { key: 'private', title: 'Private', c: '#a58cff', icon: P.lock, desc: 'Listeners and moderators request to join. The host or an admin must admit them.' },
                 ] as const).map((opt) => {
                   const active = formPrivacy === opt.key;
                   return (
                     <button key={opt.key} className="adm-btn" onClick={() => setFormPrivacy(opt.key)} style={{
-                      border: 'none', cursor: 'pointer', fontFamily: FONT, textAlign: 'left', padding: 18, borderRadius: 20, background: '#1e2238',
-                      boxShadow: active ? 'inset 5px 5px 11px #14172a, inset -5px -5px 11px #282d48' : '5px 5px 12px #14172a',
-                      display: 'flex', flexDirection: 'column', gap: 12, color: '#e6e9f5',
+                      border: 'none', cursor: 'pointer', fontFamily: FONT, textAlign: 'left', padding: 18, borderRadius: 20, background: '#e6e9f0',
+                      boxShadow: active ? 'inset 5px 5px 11px #c3c8d4, inset -5px -5px 11px #ffffff' : '5px 5px 12px #c3c8d4',
+                      display: 'flex', flexDirection: 'column', gap: 12, color: '#1f2440',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 14, boxShadow: 'inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 42, height: 42, borderRadius: 14, boxShadow: 'inset 3px 3px 7px #c3c8d4, inset -3px -3px 7px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Svg d={opt.icon} color={opt.c} size={20} />
                         </div>
-                        <div style={{ width: 22, height: 22, borderRadius: '50%', boxShadow: 'inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 22, height: 22, borderRadius: '50%', boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <div style={{ width: 10, height: 10, borderRadius: '50%', background: active ? opt.c : 'transparent' }} />
                         </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div style={{ fontSize: 16, fontWeight: 700 }}>{opt.title}</div>
-                        <div style={{ fontSize: 13, lineHeight: 1.45, color: '#9aa1c2' }}>{opt.desc}</div>
+                        <div style={{ fontSize: 13, lineHeight: 1.45, color: '#6a7192' }}>{opt.desc}</div>
                       </div>
                     </button>
                   );
@@ -609,14 +621,14 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
 
   const selActions = [
     meta.visibility === 'private'
-      ? { label: 'Make public', color: '#4ade80', icon: P.globe, onClick: () => post({ action: 'set_visibility', roomName, visibility: 'public' }) }
+      ? { label: 'Make public', color: '#16a34a', icon: P.globe, onClick: () => post({ action: 'set_visibility', roomName, visibility: 'public' }) }
       : { label: 'Make private', color: '#a58cff', icon: P.lock, onClick: () => post({ action: 'set_visibility', roomName, visibility: 'private' }) },
     meta.locked
-      ? { label: 'Unlock', color: '#f5b04a', icon: P.unlock, onClick: () => post({ action: 'lock_room', roomName, locked: false }) }
-      : { label: 'Lock', color: '#f5b04a', icon: P.lock, onClick: () => post({ action: 'lock_room', roomName, locked: true }) },
-    { label: 'Mute all', color: '#e6e9f5', icon: P.off, onClick: () => post({ action: 'mute_all', roomName }, 'Everyone muted') },
-    { label: 'Unmute all', color: '#e6e9f5', icon: P.mic, onClick: () => post({ action: 'unmute_all', roomName }, 'Speakers unmuted') },
-    { label: 'Copy link', color: '#6f97ff', icon: P.link, onClick: () => { try { navigator.clipboard.writeText(`${window.location.origin}/rooms/${roomName}`); } catch {} flash('Link copied'); } },
+      ? { label: 'Unlock', color: '#d98a12', icon: P.unlock, onClick: () => post({ action: 'lock_room', roomName, locked: false }) }
+      : { label: 'Lock', color: '#d98a12', icon: P.lock, onClick: () => post({ action: 'lock_room', roomName, locked: true }) },
+    { label: 'Mute all', color: '#1f2440', icon: P.off, onClick: () => post({ action: 'mute_all', roomName }, 'Everyone muted') },
+    { label: 'Unmute all', color: '#1f2440', icon: P.mic, onClick: () => post({ action: 'unmute_all', roomName }, 'Speakers unmuted') },
+    { label: 'Copy link', color: '#3f6fe0', icon: P.link, onClick: () => { try { navigator.clipboard.writeText(`${window.location.origin}/rooms/${roomName}`); } catch {} flash('Link copied'); } },
   ];
 
   return (
@@ -626,13 +638,13 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-.01em' }}>{meta.title || roomName}</div>
-            <span style={{ ...S.privBadge, color: meta.visibility === 'private' ? '#a58cff' : '#4ade80' }}>
+            <span style={{ ...S.privBadge, color: meta.visibility === 'private' ? '#a58cff' : '#16a34a' }}>
               <Svg d={meta.visibility === 'private' ? P.lock : P.globe} color="currentColor" size={11} sw={2.5} />
               {meta.visibility === 'private' ? 'Private' : 'Public'}
             </span>
             {meta.locked && <span style={{ ...S.lockedBadge }}>Locked</span>}
           </div>
-          <div style={{ fontSize: 13, color: '#7c83a8', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 13, color: '#7d849f', whiteSpace: 'nowrap' }}>
             {roomName} · {sel.participants.length} participants · Live {now ? fmtDur(now - sel.creationTime * 1000) : '—'}
           </div>
         </div>
@@ -657,7 +669,7 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
         <div style={{ flex: '1 1 440px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={S.searchBox}>
-              <Svg d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14ZM20 20l-3.5-3.5" color="#6b7194" size={16} sw={2.2} />
+              <Svg d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14ZM20 20l-3.5-3.5" color="#7d849f" size={16} sw={2.2} />
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search people" style={S.inputBare} />
             </div>
             <div style={S.filterBar}>
@@ -665,8 +677,8 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                 const active = filter === f;
                 return (
                   <button key={f} className="adm-btn" onClick={() => setFilter(f)} style={{
-                    border: 'none', cursor: 'pointer', fontFamily: FONT, height: 38, padding: '0 12px', borderRadius: 11, background: '#1e2238',
-                    boxShadow: active ? '3px 3px 7px #14172a' : 'none', color: active ? '#6f97ff' : '#7c83a8', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                    border: 'none', cursor: 'pointer', fontFamily: FONT, height: 38, padding: '0 12px', borderRadius: 11, background: '#e6e9f0',
+                    boxShadow: active ? '3px 3px 7px #c3c8d4' : 'none', color: active ? '#3f6fe0' : '#7d849f', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
                   }}>
                     {f === 'Hands' ? `Hands (${handRaisers.length})` : f}
                   </button>
@@ -685,12 +697,12 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <div style={{ position: 'relative', flexShrink: 0 }}>
                       {p.imageUrl ? (
-                        <img src={p.imageUrl} alt="" referrerPolicy="no-referrer" style={{ ...S.personAvatar, boxShadow: p.isSpeaking ? '0 0 0 2px #1e2238, 0 0 0 4px #4ade80' : '3px 3px 7px #13162a' }} />
+                        <img src={p.imageUrl} alt="" referrerPolicy="no-referrer" style={{ ...S.personAvatar, boxShadow: p.isSpeaking ? '0 0 0 2px #e6e9f0, 0 0 0 4px #16a34a' : '3px 3px 7px #c3c8d4' }} />
                       ) : (
-                        <div style={{ ...S.personAvatar, background: avatarGradient(p.identity || p.name), boxShadow: p.isSpeaking ? '0 0 0 2px #1e2238, 0 0 0 4px #4ade80' : '3px 3px 7px #13162a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>{initials(p.name || p.identity)}</div>
+                        <div style={{ ...S.personAvatar, background: avatarGradient(p.identity || p.name), boxShadow: p.isSpeaking ? '0 0 0 2px #e6e9f0, 0 0 0 4px #16a34a' : '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>{initials(p.name || p.identity)}</div>
                       )}
                       {p.isHandRaised && (
-                        <div style={S.handBadge}><Svg d={P.hand} color="#1e2238" size={10} sw={3} /></div>
+                        <div style={S.handBadge}><Svg d={P.hand} color="#e6e9f0" size={10} sw={3} /></div>
                       )}
                     </div>
                     <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -701,24 +713,24 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: st.color, whiteSpace: 'nowrap', minWidth: 0 }}>
                         <Svg d={st.icon} color={st.color} size={13} />
                         {st.text}
-                        {p.bio ? <span style={{ color: '#6b7194', overflow: 'hidden', textOverflow: 'ellipsis' }}>· {p.bio}</span> : null}
+                        {p.bio ? <span style={{ color: '#7d849f', overflow: 'hidden', textOverflow: 'ellipsis' }}>· {p.bio}</span> : null}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                     {!isHost && (
                       isListener ? (
-                        <button className="adm-btn" onClick={() => post({ action: 'grant_speak', roomName, identity: p.identity }, `${p.name || p.identity} can speak`)} style={{ ...S.rowBtn, color: '#4ade80' }}>Make speaker</button>
+                        <button className="adm-btn" onClick={() => post({ action: 'grant_speak', roomName, identity: p.identity }, `${p.name || p.identity} can speak`)} style={{ ...S.rowBtn, color: '#16a34a' }}>Make speaker</button>
                       ) : (
-                        <button className="adm-btn" onClick={() => post({ action: 'revoke_speak', roomName, identity: p.identity }, `${p.name || p.identity} moved to listeners`)} style={{ ...S.rowBtn, color: '#f5b04a' }}>Make listener</button>
+                        <button className="adm-btn" onClick={() => post({ action: 'revoke_speak', roomName, identity: p.identity }, `${p.name || p.identity} moved to listeners`)} style={{ ...S.rowBtn, color: '#d98a12' }}>Make listener</button>
                       )
                     )}
                     {!isHost && (
-                      <button className="adm-btn" onClick={() => { if (confirm(`Make ${p.name || p.identity} a host?`)) post({ action: 'make_host', roomName, identity: p.identity }, `${p.name || p.identity} is now host`); }} style={{ ...S.rowBtn, color: '#6f97ff' }}>Make host</button>
+                      <button className="adm-btn" onClick={() => { if (confirm(`Make ${p.name || p.identity} a host?`)) post({ action: 'make_host', roomName, identity: p.identity }, `${p.name || p.identity} is now host`); }} style={{ ...S.rowBtn, color: '#3f6fe0' }}>Make host</button>
                     )}
                     {!isHost && (
                       <button className="adm-btn" aria-label="Remove" onClick={() => { if (confirm(`Remove ${p.name || p.identity}?`)) post({ action: 'remove_participant', roomName, identity: p.identity }, `${p.name || p.identity} removed`); }} style={S.iconBtn}>
-                        <Svg d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM17 11h6" color="#ff8a8a" size={14} sw={2.4} />
+                        <Svg d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM17 11h6" color="#e04848" size={14} sw={2.4} />
                       </button>
                     )}
                   </div>
@@ -726,7 +738,7 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
               );
             })}
             {rows.length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: '#7c83a8' }}>
+              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: '#7d849f' }}>
                 {sel.participants.length ? 'No one matches this filter.' : 'No participants yet.'}
               </div>
             )}
@@ -754,11 +766,11 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                   )}
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.name || 'Guest'}</div>
-                    <div style={{ fontSize: 12, color: '#7c83a8', whiteSpace: 'nowrap' }}>Wants to join · {agoLabel(now, k.at)}</div>
+                    <div style={{ fontSize: 12, color: '#7d849f', whiteSpace: 'nowrap' }}>Wants to join · {agoLabel(now, k.at)}</div>
                   </div>
-                  <button className="adm-btn" onClick={() => post({ action: 'approve_knock', roomName, knockId: k.id }, `${k.name || 'Guest'} admitted`)} style={{ ...S.reqTextBtn, color: '#4ade80' }}>Admit</button>
+                  <button className="adm-btn" onClick={() => post({ action: 'approve_knock', roomName, knockId: k.id }, `${k.name || 'Guest'} admitted`)} style={{ ...S.reqTextBtn, color: '#16a34a' }}>Admit</button>
                   <button className="adm-btn" aria-label="Decline" onClick={() => post({ action: 'reject_knock', roomName, knockId: k.id }, `${k.name || 'Guest'} declined`)} style={S.reqIconBtn}>
-                    <Svg d="M6 6l12 12M18 6 6 18" color="#ff8a8a" size={13} sw={2.8} />
+                    <Svg d="M6 6l12 12M18 6 6 18" color="#e04848" size={13} sw={2.8} />
                   </button>
                 </div>
               ))}
@@ -769,7 +781,7 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
               <div style={S.sectionLabel}>Speak requests</div>
-              {handRaisers.length > 0 && <div style={{ fontSize: 12, fontWeight: 700, color: '#f5b04a' }}>{handRaisers.length} waiting</div>}
+              {handRaisers.length > 0 && <div style={{ fontSize: 12, fontWeight: 700, color: '#d98a12' }}>{handRaisers.length} waiting</div>}
             </div>
             {handRaisers.map((p) => (
               <div key={p.sid} style={S.reqCard}>
@@ -780,13 +792,13 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                 )}
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || p.identity}</div>
-                  <div style={{ fontSize: 12, color: '#7c83a8' }}>Wants to speak</div>
+                  <div style={{ fontSize: 12, color: '#7d849f' }}>Wants to speak</div>
                 </div>
                 <button className="adm-btn" aria-label="Approve" onClick={() => post({ action: 'grant_speak', roomName, identity: p.identity }, `${p.name || p.identity} can now speak`)} style={S.reqIconBtn}>
-                  <Svg d="M5 12l5 5L20 7" color="#4ade80" size={15} sw={2.8} />
+                  <Svg d="M5 12l5 5L20 7" color="#16a34a" size={15} sw={2.8} />
                 </button>
                 <button className="adm-btn" aria-label="Deny" onClick={() => post({ action: 'lower_hand', roomName, identity: p.identity }, `${p.name || p.identity}'s request dismissed`)} style={S.reqIconBtn}>
-                  <Svg d="M6 6l12 12M18 6 6 18" color="#ff8a8a" size={13} sw={2.8} />
+                  <Svg d="M6 6l12 12M18 6 6 18" color="#e04848" size={13} sw={2.8} />
                 </button>
               </div>
             ))}
@@ -802,65 +814,65 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
 
 const S: Record<string, any> = {
   // login
-  loginPage: { position: 'relative', minHeight: '100vh', background: 'radial-gradient(1200px 600px at 50% -10%, #242a44 0%, #1e2238 55%)', color: '#e6e9f5', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' },
+  loginPage: { position: 'relative', minHeight: '100vh', background: 'radial-gradient(1200px 600px at 50% -10%, #e6e9f0 0%, #e6e9f0 55%)', color: '#1f2440', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' },
   glow: { position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle, rgba(111,151,255,0.18), transparent 60%)', filter: 'blur(20px)', pointerEvents: 'none' },
-  loginCard: { position: 'relative', width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18, padding: 36, borderRadius: 28, background: '#1e2238', boxShadow: '12px 12px 28px #13162a', boxSizing: 'border-box' },
-  loginBrandIcon: { width: 44, height: 44, borderRadius: 14, background: '#1e2238', boxShadow: 'inset 3px 3px 7px #14172a, inset -3px -3px 7px #282d48', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  inputWrap: { display: 'flex', alignItems: 'center', gap: 10, height: 52, padding: '0 10px 0 16px', borderRadius: 14, background: '#1e2238', boxShadow: 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48' },
-  inputBare: { flex: 1, minWidth: 0, height: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#e6e9f5', fontSize: 15, fontFamily: FONT },
-  eyeBtn: { flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer', background: '#1e2238', boxShadow: '3px 3px 7px #14172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  errorBox: { display: 'flex', alignItems: 'center', gap: 8, color: '#ff8a8a', fontSize: 13, fontWeight: 600, padding: '10px 14px', borderRadius: 12, boxShadow: 'inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48' },
-  loginFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#6c7498', marginTop: 2 },
+  loginCard: { position: 'relative', width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18, padding: 36, borderRadius: 28, background: '#e6e9f0', boxShadow: '12px 12px 28px #c3c8d4', boxSizing: 'border-box' },
+  loginBrandIcon: { width: 44, height: 44, borderRadius: 14, background: '#e6e9f0', boxShadow: 'inset 3px 3px 7px #c3c8d4, inset -3px -3px 7px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  inputWrap: { display: 'flex', alignItems: 'center', gap: 10, height: 52, padding: '0 10px 0 16px', borderRadius: 14, background: '#e6e9f0', boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' },
+  inputBare: { flex: 1, minWidth: 0, height: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#1f2440', fontSize: 15, fontFamily: FONT },
+  eyeBtn: { flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer', background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  errorBox: { display: 'flex', alignItems: 'center', gap: 8, color: '#e04848', fontSize: 13, fontWeight: 600, padding: '10px 14px', borderRadius: 12, boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff' },
+  loginFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#7d849f', marginTop: 2 },
 
   // shell
-  shell: { minHeight: '100vh', background: '#1e2238', color: '#e6e9f5', fontFamily: FONT, display: 'grid', gridTemplateColumns: '240px minmax(0,1fr)' },
+  shell: { minHeight: '100vh', background: '#e6e9f0', color: '#1f2440', fontFamily: FONT, display: 'grid', gridTemplateColumns: '240px minmax(0,1fr)' },
   sidebar: { position: 'sticky', top: 0, height: '100vh', boxSizing: 'border-box', padding: '28px 20px', display: 'flex', flexDirection: 'column', gap: 36 },
-  logoBox: { width: 46, height: 46, borderRadius: 15, background: '#1e2238', boxShadow: '5px 5px 10px #14172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  navCount: { minWidth: 24, height: 22, padding: '0 7px', boxSizing: 'border-box', borderRadius: 8, boxShadow: 'inset 2px 2px 4px #14172a, inset -2px -2px 4px #282d48', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#9aa1c2' },
-  sidebarUser: { marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 18, boxShadow: 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48' },
-  adminBadge: { height: 26, padding: '0 10px', borderRadius: 8, boxShadow: 'inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48', display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#9aa1c2' },
+  logoBox: { width: 46, height: 46, borderRadius: 15, background: '#e6e9f0', boxShadow: '5px 5px 10px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  navCount: { minWidth: 24, height: 22, padding: '0 7px', boxSizing: 'border-box', borderRadius: 8, boxShadow: 'inset 2px 2px 4px #c3c8d4, inset -2px -2px 4px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#6a7192' },
+  sidebarUser: { marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 18, boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' },
+  adminBadge: { height: 26, padding: '0 10px', borderRadius: 8, boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff', display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#6a7192' },
 
   main: { minWidth: 0, padding: '28px 40px 48px 24px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 28 },
-  btnPrimaryHeader: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 50, padding: '0 22px', borderRadius: 17, background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #13162a', color: '#fff', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' },
-  btnPrimary: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 48, padding: '0 22px', borderRadius: 14, background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #13162a', color: '#fff', fontSize: 14, fontWeight: 600 },
-  btnGhost: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 48, padding: '0 24px', borderRadius: 16, background: '#1e2238', boxShadow: '5px 5px 10px #14172a', color: '#e6e9f5', fontSize: 14, fontWeight: 600 },
+  btnPrimaryHeader: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 50, padding: '0 22px', borderRadius: 17, background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #c3c8d4', color: '#fff', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' },
+  btnPrimary: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 48, padding: '0 22px', borderRadius: 14, background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #c3c8d4', color: '#fff', fontSize: 14, fontWeight: 600 },
+  btnGhost: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 48, padding: '0 24px', borderRadius: 16, background: '#e6e9f0', boxShadow: '5px 5px 10px #c3c8d4', color: '#1f2440', fontSize: 14, fontWeight: 600 },
 
-  statCard: { padding: '20px 22px', borderRadius: 24, background: '#1e2238', boxShadow: '7px 7px 16px #13162a', display: 'flex', alignItems: 'center', gap: 16 },
-  statIcon: { width: 50, height: 50, flexShrink: 0, borderRadius: 16, boxShadow: 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  statCard: { padding: '20px 22px', borderRadius: 24, background: '#e6e9f0', boxShadow: '7px 7px 16px #c3c8d4', display: 'flex', alignItems: 'center', gap: 16 },
+  statIcon: { width: 50, height: 50, flexShrink: 0, borderRadius: 16, boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
-  sectionLabel: { fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#7c83a8', paddingLeft: 4 },
-  privBadge: { height: 22, padding: '0 8px', borderRadius: 7, boxShadow: 'inset 2px 2px 4px #14172a, inset -2px -2px 4px #282d48', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 },
-  lockedBadge: { height: 24, padding: '0 9px', borderRadius: 8, boxShadow: 'inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 700, color: '#f5b04a' },
-  durPill: { display: 'flex', alignItems: 'center', gap: 6, height: 26, padding: '0 9px', borderRadius: 9, boxShadow: 'inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48', fontSize: 12, fontWeight: 700, color: '#4ade80', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' },
-  faceAvatar: { width: 30, height: 30, borderRadius: '50%', border: '2px solid #1e2238', objectFit: 'cover' },
-  miniBadgeInset: { width: 26, height: 26, borderRadius: 9, boxShadow: 'inset 2px 2px 5px #14172a, inset -2px -2px 5px #282d48', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  miniBadgeSolid: { height: 26, padding: '0 8px', borderRadius: 9, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#1e2238' },
-  emptyInset: { padding: '32px 20px', borderRadius: 22, boxShadow: 'inset 4px 4px 10px #14172a, inset -4px -4px 10px #282d48', textAlign: 'center', fontSize: 14, color: '#7c83a8' },
-  emptyInsetSm: { padding: 18, borderRadius: 18, boxShadow: 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48', textAlign: 'center', fontSize: 13, color: '#7c83a8' },
-  emptyBig: { padding: '64px 24px', borderRadius: 30, boxShadow: 'inset 6px 6px 14px #14172a, inset -6px -6px 14px #282d48', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' },
+  sectionLabel: { fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#7d849f', paddingLeft: 4 },
+  privBadge: { height: 22, padding: '0 8px', borderRadius: 7, boxShadow: 'inset 2px 2px 4px #c3c8d4, inset -2px -2px 4px #ffffff', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 },
+  lockedBadge: { height: 24, padding: '0 9px', borderRadius: 8, boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 700, color: '#d98a12' },
+  durPill: { display: 'flex', alignItems: 'center', gap: 6, height: 26, padding: '0 9px', borderRadius: 9, boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff', fontSize: 12, fontWeight: 700, color: '#16a34a', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' },
+  faceAvatar: { width: 30, height: 30, borderRadius: '50%', border: '2px solid #e6e9f0', objectFit: 'cover' },
+  miniBadgeInset: { width: 26, height: 26, borderRadius: 9, boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  miniBadgeSolid: { height: 26, padding: '0 8px', borderRadius: 9, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#e6e9f0' },
+  emptyInset: { padding: '32px 20px', borderRadius: 22, boxShadow: 'inset 4px 4px 10px #c3c8d4, inset -4px -4px 10px #ffffff', textAlign: 'center', fontSize: 14, color: '#7d849f' },
+  emptyInsetSm: { padding: 18, borderRadius: 18, boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff', textAlign: 'center', fontSize: 13, color: '#7d849f' },
+  emptyBig: { padding: '64px 24px', borderRadius: 30, boxShadow: 'inset 6px 6px 14px #c3c8d4, inset -6px -6px 14px #ffffff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' },
 
-  detailCard: { flex: '1 1 640px', minWidth: 0, borderRadius: 30, background: '#1e2238', boxShadow: '10px 10px 24px #13162a', padding: 26, display: 'flex', flexDirection: 'column', gap: 22 },
-  actionPill: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 42, padding: '0 14px', borderRadius: 14, background: '#1e2238', boxShadow: '4px 4px 9px #14172a', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' },
-  endPill: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 42, padding: '0 16px', borderRadius: 14, background: 'linear-gradient(145deg,#f06a6a,#d94848)', boxShadow: '4px 4px 10px #13162a', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' },
-  searchBox: { flex: '1 1 200px', height: 46, borderRadius: 15, boxShadow: 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48', display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px' },
-  filterBar: { display: 'flex', gap: 4, padding: 4, borderRadius: 15, boxShadow: 'inset 4px 4px 9px #14172a, inset -4px -4px 9px #282d48' },
-  peopleList: { borderRadius: 22, boxShadow: 'inset 5px 5px 12px #14172a, inset -5px -5px 12px #282d48', padding: 10, display: 'flex', flexDirection: 'column', gap: 10 },
-  personRow: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', padding: '12px 14px', borderRadius: 16, background: '#1e2238', boxShadow: '4px 4px 9px #14172a' },
+  detailCard: { flex: '1 1 640px', minWidth: 0, borderRadius: 30, background: '#e6e9f0', boxShadow: '10px 10px 24px #c3c8d4', padding: 26, display: 'flex', flexDirection: 'column', gap: 22 },
+  actionPill: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 42, padding: '0 14px', borderRadius: 14, background: '#e6e9f0', boxShadow: '4px 4px 9px #c3c8d4', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' },
+  endPill: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 42, padding: '0 16px', borderRadius: 14, background: 'linear-gradient(145deg,#f06a6a,#d94848)', boxShadow: '4px 4px 10px #c3c8d4', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' },
+  searchBox: { flex: '1 1 200px', height: 46, borderRadius: 15, boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff', display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px' },
+  filterBar: { display: 'flex', gap: 4, padding: 4, borderRadius: 15, boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' },
+  peopleList: { borderRadius: 22, boxShadow: 'inset 5px 5px 12px #c3c8d4, inset -5px -5px 12px #ffffff', padding: 10, display: 'flex', flexDirection: 'column', gap: 10 },
+  personRow: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', padding: '12px 14px', borderRadius: 16, background: '#e6e9f0', boxShadow: '4px 4px 9px #c3c8d4' },
   personAvatar: { width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' },
-  handBadge: { position: 'absolute', right: -4, top: -4, width: 20, height: 20, borderRadius: '50%', background: '#f5b04a', border: '2px solid #1e2238', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  rolePill: { height: 22, padding: '0 8px', flexShrink: 0, borderRadius: 7, boxShadow: 'inset 2px 2px 4px #14172a, inset -2px -2px 4px #282d48', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 700 },
-  rowBtn: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 34, padding: '0 12px', borderRadius: 11, background: '#1e2238', boxShadow: '3px 3px 7px #14172a', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' },
-  iconBtn: { border: 'none', cursor: 'pointer', width: 34, height: 34, borderRadius: 11, background: '#1e2238', boxShadow: '3px 3px 7px #14172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  reqCard: { padding: 14, borderRadius: 18, background: '#1e2238', boxShadow: '5px 5px 11px #14172a', display: 'flex', alignItems: 'center', gap: 12 },
+  handBadge: { position: 'absolute', right: -4, top: -4, width: 20, height: 20, borderRadius: '50%', background: '#d98a12', border: '2px solid #e6e9f0', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  rolePill: { height: 22, padding: '0 8px', flexShrink: 0, borderRadius: 7, boxShadow: 'inset 2px 2px 4px #c3c8d4, inset -2px -2px 4px #ffffff', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 700 },
+  rowBtn: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 34, padding: '0 12px', borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' },
+  iconBtn: { border: 'none', cursor: 'pointer', width: 34, height: 34, borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  reqCard: { padding: 14, borderRadius: 18, background: '#e6e9f0', boxShadow: '5px 5px 11px #c3c8d4', display: 'flex', alignItems: 'center', gap: 12 },
   reqAvatar: { width: 38, height: 38, flexShrink: 0, borderRadius: '50%', objectFit: 'cover' },
-  reqTextBtn: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 34, padding: '0 12px', borderRadius: 11, background: '#1e2238', boxShadow: '3px 3px 7px #14172a', fontSize: 12, fontWeight: 700 },
-  reqIconBtn: { border: 'none', cursor: 'pointer', width: 34, height: 34, flexShrink: 0, borderRadius: 11, background: '#1e2238', boxShadow: '3px 3px 7px #14172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  reqTextBtn: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 34, padding: '0 12px', borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', fontSize: 12, fontWeight: 700 },
+  reqIconBtn: { border: 'none', cursor: 'pointer', width: 34, height: 34, flexShrink: 0, borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
-  toast: { position: 'fixed', zIndex: 50, right: 40, bottom: 40, padding: '16px 20px', borderRadius: 16, background: '#262b46', boxShadow: '8px 8px 18px #10121f', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 },
+  toast: { position: 'fixed', zIndex: 50, right: 40, bottom: 40, padding: '16px 20px', borderRadius: 16, background: '#eef0f5', boxShadow: '8px 8px 18px #b4bac8', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 },
   modalOverlay: { position: 'fixed', inset: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
   modalBackdrop: { position: 'absolute', inset: 0, background: 'rgba(12,14,26,.6)', backdropFilter: 'blur(4px)' },
-  modalCard: { position: 'relative', width: '100%', maxWidth: 560, background: '#1e2238', borderRadius: 32, padding: 32, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 24, boxShadow: '14px 14px 30px #10121f' },
-  modalClose: { border: 'none', cursor: 'pointer', width: 44, height: 44, flexShrink: 0, borderRadius: '50%', background: '#1e2238', boxShadow: '5px 5px 10px #14172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  formLabel: { fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#7c83a8', paddingLeft: 4 },
-  formInputWrap: { height: 56, borderRadius: 18, boxShadow: 'inset 5px 5px 10px #14172a, inset -5px -5px 10px #282d48', display: 'flex', alignItems: 'center', padding: '0 18px' },
+  modalCard: { position: 'relative', width: '100%', maxWidth: 560, background: '#e6e9f0', borderRadius: 32, padding: 32, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 24, boxShadow: '14px 14px 30px #b4bac8' },
+  modalClose: { border: 'none', cursor: 'pointer', width: 44, height: 44, flexShrink: 0, borderRadius: '50%', background: '#e6e9f0', boxShadow: '5px 5px 10px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  formLabel: { fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#7d849f', paddingLeft: 4 },
+  formInputWrap: { height: 56, borderRadius: 18, boxShadow: 'inset 5px 5px 10px #c3c8d4, inset -5px -5px 10px #ffffff', display: 'flex', alignItems: 'center', padding: '0 18px' },
 };

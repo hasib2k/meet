@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       rel: 'icon',
       url: '/favicon.ico',
     },
-    apple: '/icons/icon-192.png',
+    apple: '/icons/icon-192.jpg',
   },
   appleWebApp: {
     capable: true,
@@ -29,12 +29,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1a1a2e',
+  themeColor: '#e6e9f0',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body data-lk-theme="default">
         <AuthProvider>
           <RegisterSW />

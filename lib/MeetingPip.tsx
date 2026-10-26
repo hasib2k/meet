@@ -10,7 +10,7 @@ import { RoomContext, useRoomContext, useParticipants, useLocalParticipant } fro
 const GRADS = [
   'linear-gradient(145deg,#f0ab3f,#de7a24)',
   'linear-gradient(145deg,#7aa0ff,#5a83ee)',
-  'linear-gradient(145deg,#5dc995,#3f9e70)',
+  'linear-gradient(145deg,#16a34a,#3f9e70)',
   'linear-gradient(145deg,#c77dff,#9d4edd)',
   'linear-gradient(145deg,#ec6d86,#c94660)',
   'linear-gradient(145deg,#4fc3e0,#2f97b8)',
@@ -115,7 +115,7 @@ export function MeetingPip() {
       w.document.title = 'MyTalk';
       const body = w.document.body;
       body.style.margin = '0';
-      body.style.background = '#1e2238';
+      body.style.background = '#e6e9f0';
       body.style.fontFamily = "'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif";
 
       // The PiP window is a SEPARATE document — React's event delegation lives
@@ -197,15 +197,15 @@ function PipContent({ onLeave, onReturn }: { onLeave: () => void; onReturn: () =
   };
 
   const S: Record<string, React.CSSProperties> = {
-    wrap: { display: 'flex', flexDirection: 'column', height: '100vh', boxSizing: 'border-box', padding: 14, gap: 12, color: '#e6e9f5', background: '#1e2238' },
+    wrap: { display: 'flex', flexDirection: 'column', height: '100vh', boxSizing: 'border-box', padding: 14, gap: 12, color: '#1f2440', background: '#e6e9f0' },
     head: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 },
     logo: { fontSize: 15, fontWeight: 700 },
-    dot: { width: 7, height: 7, borderRadius: '50%', background: '#4ade80' },
-    room: { fontSize: 11, color: '#7c83a8', marginLeft: 'auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+    dot: { width: 7, height: 7, borderRadius: '50%', background: '#16a34a' },
+    room: { fontSize: 11, color: '#7d849f', marginLeft: 'auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     grid: { flex: 1, minHeight: 0, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(64px,1fr))', gap: 10, alignContent: 'start' },
     person: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, minWidth: 0 },
     avatar: { width: 46, height: 46, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#fff', objectFit: 'cover', flexShrink: 0 },
-    name: { fontSize: 10, color: '#c4c9e4', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' },
+    name: { fontSize: 10, color: '#4f5675', maxWidth: 64, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' },
     controls: { display: 'flex', gap: 8, flexShrink: 0 },
     btn: { flex: 1, height: 42, border: 'none', borderRadius: 13, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   };
@@ -214,7 +214,7 @@ function PipContent({ onLeave, onReturn }: { onLeave: () => void; onReturn: () =
     <div style={S.wrap}>
       <div style={S.head}>
         <div style={S.dot} />
-        <span style={S.logo}>My<span style={{ color: '#6f97ff' }}>Talk</span></span>
+        <span style={S.logo}>My<span style={{ color: '#3f6fe0' }}>Talk</span></span>
         <span style={S.room}>{room.name} · {people.length}</span>
       </div>
 
@@ -222,9 +222,9 @@ function PipContent({ onLeave, onReturn }: { onLeave: () => void; onReturn: () =
         {people.map((p) => (
           <div key={p.id} style={S.person}>
             {p.imageUrl ? (
-              <img src={p.imageUrl} alt="" referrerPolicy="no-referrer" style={{ ...S.avatar, boxShadow: p.speaking ? '0 0 0 2px #1e2238, 0 0 0 4px #4ade80' : 'none' }} />
+              <img src={p.imageUrl} alt="" referrerPolicy="no-referrer" style={{ ...S.avatar, boxShadow: p.speaking ? '0 0 0 2px #e6e9f0, 0 0 0 4px #16a34a' : 'none' }} />
             ) : (
-              <div style={{ ...S.avatar, background: grad(p.id), boxShadow: p.speaking ? '0 0 0 2px #1e2238, 0 0 0 4px #4ade80' : 'none' }}>{initials(p.name)}</div>
+              <div style={{ ...S.avatar, background: grad(p.id), boxShadow: p.speaking ? '0 0 0 2px #e6e9f0, 0 0 0 4px #16a34a' : 'none' }}>{initials(p.name)}</div>
             )}
             <span style={S.name}>{p.name}</span>
           </div>
@@ -235,18 +235,18 @@ function PipContent({ onLeave, onReturn }: { onLeave: () => void; onReturn: () =
         {canPublish && (
           <button
             onClick={toggleMic}
-            style={{ ...S.btn, background: isMicrophoneEnabled ? '#262b46' : 'linear-gradient(145deg,#f06a6a,#d94848)', color: '#fff' }}
+            style={{ ...S.btn, background: isMicrophoneEnabled ? '#eef0f5' : 'linear-gradient(145deg,#f06a6a,#d94848)', color: '#fff' }}
           >
             {isMicrophoneEnabled ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.2" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" /><path d="M19 11a7 7 0 0 1-14 0M12 18v3" /></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" /><path d="M19 11a7 7 0 0 1-14 0M12 18v3" /></svg>
             ) : (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6" /><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3" /></svg>
             )}
             {isMicrophoneEnabled ? 'Mute' : 'Unmute'}
           </button>
         )}
-        <button onClick={onReturn} style={{ ...S.btn, background: '#262b46', color: '#e6e9f5' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 14 4 9l5-5" /><path d="M4 9h11a5 5 0 0 1 5 5v3" /></svg>
+        <button onClick={onReturn} style={{ ...S.btn, background: '#eef0f5', color: '#1f2440' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 14 4 9l5-5" /><path d="M4 9h11a5 5 0 0 1 5 5v3" /></svg>
           Return
         </button>
         <button onClick={onLeave} style={{ ...S.btn, background: 'linear-gradient(145deg,#f06a6a,#d94848)', color: '#fff', flex: '0 0 46px' }} aria-label="Leave">

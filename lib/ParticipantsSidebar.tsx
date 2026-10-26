@@ -129,14 +129,14 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
         </div>
         {onClose && (
           <button className="pp-close-btn" onClick={onClose} aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
           </button>
         )}
       </div>
 
       {/* Search */}
       <div className="pp-search">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7194" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7d849f" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
         <input
           type="text"
           placeholder="Search participants..."
@@ -158,22 +158,22 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
               });
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
             {linkCopied ? 'Link Copied!' : 'Copy Meeting Link'}
           </button>
           <button className="pp-action-btn pp-unmute" onClick={() => doAction('unmute_all', '')} disabled={loadingAction === 'unmute_all'}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.2" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>
             Unmute All
           </button>
           <button className="pp-action-btn pp-mute" onClick={() => doAction('mute_all', '')} disabled={loadingAction === 'mute_all'}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"></path></svg>
             Mute All
           </button>
         </div>
       )}
 
       {actionMsg && (
-        <p style={{ color: actionMsg.startsWith('Failed') ? '#ff8a8a' : '#4ade80', fontSize: '13px', margin: '0', textAlign: 'center' }}>
+        <p style={{ color: actionMsg.startsWith('Failed') ? '#e04848' : '#16a34a', fontSize: '13px', margin: '0', textAlign: 'center' }}>
           {actionMsg}
         </p>
       )}
@@ -204,7 +204,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
               </div>
               <button className="pp-knock-admit" onClick={() => decideKnock([k.id], true)}>Admit</button>
               <button className="pp-knock-deny" onClick={() => decideKnock([k.id], false)} aria-label="Decline">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e04848" strokeWidth="2.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
               </button>
             </div>
           ))}
@@ -215,7 +215,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
       {handRaisers.length > 0 && (
         <div className="pp-raised-section">
           <div className="pp-raised-head">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
             Raised hands ({handRaisers.length})
           </div>
           {handRaisers.map((p) => (
@@ -239,7 +239,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
                     <button className="pp-raised-grant" onClick={() => doAction('grant_speak', p.identity)}>Grant speak</button>
                   )}
                   <button className="pp-raised-lower" onClick={() => lowerHand(p.identity)} aria-label="Lower hand">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e04848" strokeWidth="2.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
                   </button>
                 </div>
               ) : null}
@@ -256,7 +256,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
         {/* Local user (You) */}
         <div className="pp-participant-card">
           <div className="pp-avatar-wrap">
-            <div className="pp-avatar" style={{ background: localImageUrl ? 'transparent' : '#6f97ff' }}>
+            <div className="pp-avatar" style={{ background: localImageUrl ? 'transparent' : '#3f6fe0' }}>
               {localImageUrl ? (
                 <img src={localImageUrl} alt="" referrerPolicy="no-referrer" className="pp-avatar-img" />
               ) : (
@@ -264,7 +264,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
               )}
             </div>
             <div className="pp-mic-badge">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0"></path></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0"></path></svg>
             </div>
           </div>
           <div className="pp-info">
@@ -291,14 +291,14 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
               </div>
               <div className="pp-mic-badge">
                 {p.canPublish ? (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0"></path></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0"></path></svg>
                 ) : (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11"></path></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e04848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11"></path></svg>
                 )}
               </div>
               {p.isHandRaised && (
                 <div className="pp-hand-badge" title="Raised hand">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e2238" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e6e9f0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
                 </div>
               )}
             </div>
@@ -306,7 +306,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
               <div className="pp-name">
                 {p.name}
                 {p.isPinned && (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#6f97ff" style={{ flexShrink: 0 }}><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4Z"></path></svg>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#3f6fe0" style={{ flexShrink: 0 }}><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4Z"></path></svg>
                 )}
               </div>
               <div className="pp-meta">
@@ -347,7 +347,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
         ))}
 
         {sortedParticipants.length === 0 && handRaisers.length === 0 && searchQuery && (
-          <div style={{ padding: '24px', textAlign: 'center', fontSize: '13px', color: '#7c83a8' }}>
+          <div style={{ padding: '24px', textAlign: 'center', fontSize: '13px', color: '#7d849f' }}>
             No participants match your search.
           </div>
         )}
@@ -423,39 +423,39 @@ function ParticipantMenu({
   return (
     <div style={{ position: 'relative', flexShrink: 0 }}>
       <button className="pp-menu-btn" onClick={onToggle} disabled={loading} aria-label="More">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#a9b0d0"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#4f5675"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
       </button>
 
       {isOpen && (
         <div className="pp-dropdown" onClick={(e) => e.stopPropagation()}>
           <button className="pp-dropdown-item" onClick={onPin}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3Z"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3Z"></path></svg>
             {participant.isPinned ? 'Unpin' : 'Pin'}
           </button>
           {participant.isHandRaised && (
-            <button className="pp-dropdown-item" style={{ color: '#f5b04a' }} onClick={onLowerHand}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
+            <button className="pp-dropdown-item" style={{ color: '#d98a12' }} onClick={onLowerHand}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>
               Lower Hand
             </button>
           )}
           {!participant.canPublish ? (
-            <button className="pp-dropdown-item" style={{ color: '#4ade80' }} onClick={() => onAction('grant_speak')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>
+            <button className="pp-dropdown-item" style={{ color: '#16a34a' }} onClick={() => onAction('grant_speak')}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path><path d="M19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>
               Grant Speak
             </button>
           ) : (
-            <button className="pp-dropdown-item" style={{ color: '#f5b04a' }} onClick={() => onAction('revoke_speak')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"></path></svg>
+            <button className="pp-dropdown-item" style={{ color: '#d98a12' }} onClick={() => onAction('revoke_speak')}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"></path><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"></path></svg>
               Mute
             </button>
           )}
-          <button className="pp-dropdown-item" style={{ color: '#6f97ff' }} onClick={() => onAction('make_host')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M6.2 18.6a7 7 0 0 1 11.6 0"></path></svg>
+          <button className="pp-dropdown-item" style={{ color: '#3f6fe0' }} onClick={() => onAction('make_host')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M6.2 18.6a7 7 0 0 1 11.6 0"></path></svg>
             Make Host
           </button>
           <div className="pp-dropdown-divider"></div>
-          <button className="pp-dropdown-item" style={{ color: '#ff8a8a', fontWeight: 600 }} onClick={() => onAction('remove_participant')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11h6"></path></svg>
+          <button className="pp-dropdown-item" style={{ color: '#e04848', fontWeight: 600 }} onClick={() => onAction('remove_participant')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e04848" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11h6"></path></svg>
             Remove
           </button>
         </div>
@@ -465,13 +465,13 @@ function ParticipantMenu({
 }
 
 function getRoleColor(role: string): string {
-  if (role === 'host') return '#6f97ff';
-  if (role === 'moderator') return '#f5b04a';
-  return '#4ade80';
+  if (role === 'host') return '#3f6fe0';
+  if (role === 'moderator') return '#d98a12';
+  return '#16a34a';
 }
 
 function getAvatarColor(name: string): string {
-  const colors = ['#6f97ff', '#f5b04a', '#4ade80', '#ff8a8a', '#a78bfa', '#f472b6', '#38bdf8', '#fb923c'];
+  const colors = ['#3f6fe0', '#d98a12', '#16a34a', '#e04848', '#a78bfa', '#f472b6', '#38bdf8', '#fb923c'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];

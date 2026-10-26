@@ -21,7 +21,7 @@ export function KnockRequests() {
   return (
     <div className="knock-host-panel">
       <div className="knock-host-head">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20ZM12 6v6l4 2" />
         </svg>
         <span style={{ flex: 1 }}>Waiting to join ({requests.length})</span>

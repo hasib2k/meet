@@ -3,7 +3,7 @@ import { getLiveKitURL } from '@/lib/getLiveKitURL';
 import { ConnectionDetails } from '@/lib/types';
 import { AccessToken, AccessTokenOptions, VideoGrant, RoomServiceClient } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateAdminToken } from '@/lib/adminAuth';
+import { generateAdminToken, verifyHostToken } from '@/lib/adminAuth';
 import {
   validateRoomName,
   validateParticipantName,
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
     const region = request.nextUrl.searchParams.get('region');
     let role = request.nextUrl.searchParams.get('role') ?? 'listener';
+    const hostKey = request.nextUrl.searchParams.get('hk') ?? '';
     const imageUrl = request.nextUrl.searchParams.get('imageUrl') ?? '';
     const bio = request.nextUrl.searchParams.get('bio') ?? '';
 
@@ -102,34 +103,13 @@ export async function GET(request: NextRequest) {
       randomParticipantPostfix = randomString(4);
     }
 
-    // Server-side role validation: prevent role hijacking
-    // If someone requests host role, check if the room already has a host
-    if (role === 'host') {
-      try {
-        const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY!, API_SECRET!);
-        const rooms = await svc.listRooms([roomName!]);
-        if (rooms.length > 0) {
-          // Room exists - check if there's already a host
-          const participants = await svc.listParticipants(roomName!);
-          const existingHost = participants.find((p) => {
-            try {
-              const meta = JSON.parse(p.metadata || '{}');
-              return meta.role === 'host';
-            } catch {
-              return false;
-            }
-          });
-          if (existingHost) {
-            // Room already has a host - downgrade to listener
-            role = 'listener';
-          }
-        }
-        // If room doesn't exist yet, allow the first host claim
-      } catch (err) {
-        // If we can't verify, err on the side of security - downgrade
-        console.error('Error checking room for host:', err);
-        role = 'listener';
-      }
+    // Server-side role validation: prevent host role-hijacking.
+    // The host role is ONLY granted with a valid signed host token (hk). A user
+    // who edits `?role=listener` to `?role=host` in the URL has no valid token,
+    // so they are downgraded to listener. The token can only be minted by the
+    // server (home "New meeting" for a fresh room, or the authenticated admin).
+    if (role === 'host' && !verifyHostToken(hostKey, roomName!)) {
+      role = 'listener';
     }
 
     // Only allow known roles

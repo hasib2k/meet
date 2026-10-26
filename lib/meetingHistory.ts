@@ -2,17 +2,18 @@ export interface MeetingRecord {
   roomName: string;
   role: string;
   timestamp: number;
+  hk?: string; // host token, so the host can rejoin as host from history
 }
 
 const STORAGE_KEY = 'mytalk_meeting_history';
 const MAX_HISTORY = 20;
 
-export function saveMeeting(roomName: string, role: string) {
+export function saveMeeting(roomName: string, role: string, hk?: string) {
   try {
     const history = getMeetingHistory();
     // Remove duplicate if exists
     const filtered = history.filter((m) => m.roomName !== roomName);
-    filtered.unshift({ roomName, role, timestamp: Date.now() });
+    filtered.unshift({ roomName, role, timestamp: Date.now(), ...(hk ? { hk } : {}) });
     // Keep only latest
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered.slice(0, MAX_HISTORY)));
   } catch {}

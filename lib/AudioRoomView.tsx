@@ -80,9 +80,9 @@ export function AudioRoomView(props: { role: string }) {
                   <div style={{
                     ...styles.avatar,
                     background: role === 'host'
-                      ? 'linear-gradient(135deg, #5b8dee, #4a7dd4)'
-                      : 'linear-gradient(135deg, #e8a85d, #d49545)',
-                    boxShadow: p.isSpeaking ? '0 0 0 3px #5bc88d' : 'none',
+                      ? 'linear-gradient(135deg, #3f6fe0, #2f5fd0)'
+                      : 'linear-gradient(135deg, #d98a12, #d49545)',
+                    boxShadow: p.isSpeaking ? '0 0 0 3px #16a34a' : 'none',
                   }}>
                     <span style={styles.avatarText}>
                       {(p.name || p.identity).charAt(0).toUpperCase()}
@@ -120,13 +120,13 @@ export function AudioRoomView(props: { role: string }) {
                   </span>
                 </div>
                 <span style={styles.participantName}>{p.name || p.identity}</span>
-                <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>
+                <span style={{ fontSize: '0.65rem', color: 'rgba(0, 0, 0, 0.3)' }}>
                   🎧 Listening
                 </span>
               </div>
             ))}
             {listeners.length === 0 && (
-              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>No listeners yet</p>
+              <p style={{ color: 'rgba(0, 0, 0, 0.3)', fontSize: '0.8rem' }}>No listeners yet</p>
             )}
           </div>
         </div>
@@ -173,10 +173,10 @@ export function AudioRoomView(props: { role: string }) {
           />
         ) : (
           <div style={styles.mutedIndicator}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,0.4)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(0, 0, 0, 0.4)">
               <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z" />
             </svg>
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>Muted</span>
+            <span style={{ color: 'rgba(0, 0, 0, 0.4)', fontSize: '0.8rem' }}>Muted</span>
           </div>
         )}
 
@@ -184,7 +184,7 @@ export function AudioRoomView(props: { role: string }) {
           onClick={() => setShowChat(!showChat)}
           style={{
             ...styles.controlBtn,
-            background: showChat ? 'rgba(91,141,238,0.2)' : 'rgba(255,255,255,0.1)',
+            background: showChat ? 'rgba(91,141,238,0.2)' : 'rgba(0, 0, 0, 0.1)',
           }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
@@ -210,9 +210,9 @@ export function AudioRoomView(props: { role: string }) {
 }
 
 function getRoleColor(role: string): string {
-  if (role === 'host') return '#5b8dee';
-  if (role === 'moderator') return '#e8a85d';
-  return 'rgba(255,255,255,0.4)';
+  if (role === 'host') return '#3f6fe0';
+  if (role === 'moderator') return '#d98a12';
+  return 'rgba(0, 0, 0, 0.4)';
 }
 
 const styles: Record<string, React.CSSProperties> = {
@@ -220,7 +220,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    background: '#1a1a2e',
+    background: '#e6e9f0',
     position: 'relative',
   },
   header: {
@@ -228,7 +228,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0.75rem 1.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
   },
   roomTitle: {
     margin: 0,
@@ -238,13 +238,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   participantCount: {
     fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(0, 0, 0, 0.4)',
   },
   headerBadge: {
     padding: '0.375rem 0.75rem',
-    background: 'rgba(255,255,255,0.05)',
+    background: 'rgba(0, 0, 0, 0.05)',
     borderRadius: '2rem',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: '1px solid rgba(0, 0, 0, 0.08)',
   },
   mainContent: {
     flex: 1,
@@ -258,7 +258,7 @@ const styles: Record<string, React.CSSProperties> = {
   sectionTitle: {
     fontSize: '0.8rem',
     fontWeight: 600,
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(0, 0, 0, 0.5)',
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     margin: '0 0 0.75rem',
@@ -274,9 +274,9 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '0.375rem',
     padding: '0.75rem',
-    background: 'rgba(255,255,255,0.03)',
+    background: 'rgba(0, 0, 0, 0.03)',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255,255,255,0.06)',
+    border: '1px solid rgba(0, 0, 0, 0.06)',
     width: '100px',
   },
   avatar: {
@@ -312,7 +312,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '3px',
     height: '8px',
     borderRadius: '1.5px',
-    background: '#5bc88d',
+    background: '#16a34a',
     animation: 'pulse 0.6s ease-in-out infinite alternate',
   },
   controlBar: {
@@ -321,8 +321,8 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     gap: '1rem',
     padding: '1rem',
-    borderTop: '1px solid rgba(255,255,255,0.08)',
-    background: '#16162a',
+    borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+    background: '#c3c8d4',
   },
   controlBtn: {
     display: 'flex',
@@ -330,7 +330,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '0.25rem',
     padding: '0.625rem 1rem',
-    background: 'rgba(255,255,255,0.1)',
+    background: 'rgba(0, 0, 0, 0.1)',
     border: 'none',
     borderRadius: '0.75rem',
     color: '#fff',
@@ -344,7 +344,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '0.25rem',
     padding: '0.625rem 1rem',
-    background: 'rgba(255,255,255,0.05)',
+    background: 'rgba(0, 0, 0, 0.05)',
     borderRadius: '0.75rem',
     minWidth: '64px',
   },
@@ -368,8 +368,8 @@ const styles: Record<string, React.CSSProperties> = {
     right: 0,
     bottom: 0,
     width: '320px',
-    background: '#1e1e2e',
-    borderLeft: '1px solid rgba(255,255,255,0.1)',
+    background: '#e6e9f0',
+    borderLeft: '1px solid rgba(0, 0, 0, 0.1)',
     display: 'flex',
     flexDirection: 'column',
     zIndex: 100,
@@ -379,12 +379,12 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0.75rem 1rem',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
   },
   chatClose: {
     background: 'none',
     border: 'none',
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(0, 0, 0, 0.5)',
     cursor: 'pointer',
     fontSize: '1rem',
   },
@@ -404,7 +404,7 @@ const styles: Record<string, React.CSSProperties> = {
   chatSender: {
     fontSize: '0.75rem',
     fontWeight: 600,
-    color: '#5b8dee',
+    color: '#3f6fe0',
   },
   chatText: {
     fontSize: '0.85rem',
@@ -414,14 +414,14 @@ const styles: Record<string, React.CSSProperties> = {
   chatInputRow: {
     display: 'flex',
     padding: '0.5rem',
-    borderTop: '1px solid rgba(255,255,255,0.08)',
+    borderTop: '1px solid rgba(0, 0, 0, 0.08)',
     gap: '0.375rem',
   },
   chatInput: {
     flex: 1,
     padding: '0.5rem 0.75rem',
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.12)',
+    background: 'rgba(0, 0, 0, 0.06)',
+    border: '1px solid rgba(0, 0, 0, 0.12)',
     borderRadius: '0.375rem',
     color: '#fff',
     fontSize: '0.85rem',
@@ -429,7 +429,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chatSendBtn: {
     padding: '0.5rem 0.75rem',
-    background: '#5b8dee',
+    background: '#3f6fe0',
     border: 'none',
     borderRadius: '0.375rem',
     color: '#fff',

@@ -72,7 +72,7 @@ export function AudioOnlyPreJoin(props: {
         {/* Mobile: Top bar (hidden on desktop) */}
         <div className="prejoin-topbar prejoin-mb-only">
           <button className="prejoin-back-btn" onClick={() => router.push('/')} aria-label="Back">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <div className="prejoin-room-badge">
             <div className="prejoin-room-dot" />
@@ -97,11 +97,11 @@ export function AudioOnlyPreJoin(props: {
             <div className="prejoin-greeting-text">Hi, {userName.split(' ')[0]}!</div>
             <div className="prejoin-badges">
               <div className="prejoin-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
                 Audio-only
               </div>
               <div className="prejoin-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
                 Joining as {roleLabel}
               </div>
             </div>
@@ -125,7 +125,7 @@ export function AudioOnlyPreJoin(props: {
           {/* Bio input */}
           <div className="prejoin-bio-section">
             <div className="prejoin-bio-label">
-              Short bio <span>(optional)</span>
+              Title <span>(optional)</span>
             </div>
             <div className="prejoin-bio-field">
               <input
@@ -168,7 +168,7 @@ export function AudioOnlyPreJoin(props: {
       <div className="prejoin-lobby">
         <div className="prejoin-topbar">
           <button className="prejoin-back-btn" onClick={() => setMode('choose')} aria-label="Back">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <div className="prejoin-room-badge">
             <div className="prejoin-room-dot" />
@@ -186,11 +186,11 @@ export function AudioOnlyPreJoin(props: {
             <div className="prejoin-greeting-text">Join as Guest</div>
             <div className="prejoin-badges">
               <div className="prejoin-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
                 Audio-only
               </div>
               <div className="prejoin-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
                 Joining as {roleLabel}
               </div>
             </div>
@@ -216,7 +216,7 @@ export function AudioOnlyPreJoin(props: {
           {/* Bio input */}
           <div className="prejoin-bio-section">
             <div className="prejoin-bio-label">
-              Short bio <span>(optional)</span>
+              Title <span>(optional)</span>
             </div>
             <div className="prejoin-bio-field">
               <input
@@ -257,7 +257,7 @@ export function AudioOnlyPreJoin(props: {
     <div className="prejoin-lobby">
       <div className="prejoin-topbar">
         <button className="prejoin-back-btn" onClick={() => router.push('/')} aria-label="Back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <div className="prejoin-room-badge">
           <div className="prejoin-room-dot" />
@@ -277,7 +277,7 @@ export function AudioOnlyPreJoin(props: {
           <div className="prejoin-greeting-text">Join Meeting</div>
           <div className="prejoin-badges">
             <div className="prejoin-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
               Audio-only
             </div>
             <div className="prejoin-badge">
@@ -315,7 +315,7 @@ export function AudioOnlyPreJoin(props: {
 
         {/* Guest */}
         <button className="prejoin-auth-btn guest" onClick={() => setMode('guest')}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>
           </svg>
           Enter your name &amp; join

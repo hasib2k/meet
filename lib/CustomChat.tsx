@@ -12,7 +12,7 @@ import {
 const AVATAR_COLORS = [
   'linear-gradient(145deg,#7aa0ff,#5a83ee)',
   'linear-gradient(145deg,#f0ab3f,#de7a24)',
-  'linear-gradient(145deg,#5dc995,#3f9e70)',
+  'linear-gradient(145deg,#16a34a,#3f9e70)',
   'linear-gradient(145deg,#ec6d86,#c94660)',
   'linear-gradient(145deg,#a58cff,#7d62e6)',
   'linear-gradient(145deg,#4fc3e0,#2f97b8)',
@@ -109,7 +109,7 @@ export function ChatPanelContent({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
         <button className="neo-chat-close" onClick={handleClose} aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.4" strokeLinecap="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.4" strokeLinecap="round">
             <path d="M6 6l12 12M18 6 6 18" />
           </svg>
         </button>
@@ -177,7 +177,7 @@ export function ChatPanelContent({ onClose }: { onClose?: () => void }) {
           disabled={isSending || !draft.trim()}
           aria-label="Send"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={draft.trim() ? '#6f97ff' : '#7c83a8'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={draft.trim() ? '#3f6fe0' : '#7d849f'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
           </svg>
         </button>

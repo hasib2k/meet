@@ -17,6 +17,8 @@ function HomeContent() {
   const router = useRouter();
   const { data: session } = useSession();
   const [roomCode, setRoomCode] = useState('');
+  const [joinError, setJoinError] = useState('');
+  const [joinChecking, setJoinChecking] = useState(false);
   const [history, setHistory] = useState<MeetingRecord[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>('meet');
   const [profileBio, setProfileBio] = useState('');
@@ -50,22 +52,53 @@ function HomeContent() {
   const lastActive = history.length ? history[0].timestamp : null;
   const recentMeetings = history.slice(0, 4);
 
-  const handleNewMeeting = () => {
+  const handleNewMeeting = async () => {
     const code = generateRoomCode();
-    saveMeeting(code, 'host');
-    router.push(`/rooms/${code}?role=host`);
+    try {
+      const res = await fetch('/api/host-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName: code }),
+      });
+      if (res.ok) {
+        const { hostToken } = await res.json();
+        saveMeeting(code, 'host', hostToken);
+        router.push(`/rooms/${code}?role=host&hk=${encodeURIComponent(hostToken)}`);
+        return;
+      }
+    } catch {}
+    // Minting failed (very rare for a fresh code) — retry once with a new code
+    alert('Could not start the meeting. Please try again.');
   };
 
-  const handleJoinMeeting = () => {
-    if (roomCode.trim()) {
-      saveMeeting(roomCode.trim(), 'listener');
-      router.push(`/rooms/${roomCode.trim()}?role=listener`);
+  const handleJoinMeeting = async () => {
+    const code = roomCode.trim();
+    if (!code || joinChecking) return;
+    setJoinError('');
+    setJoinChecking(true);
+    try {
+      const res = await fetch(`/api/room-info?roomName=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      if (data?.exists) {
+        saveMeeting(code, 'listener');
+        router.push(`/rooms/${code}?role=listener`);
+        return;
+      }
+      setJoinError(data?.ended ? 'This meeting has ended.' : 'Invalid code — no active meeting with this code.');
+    } catch {
+      setJoinError('Could not verify the code. Please try again.');
+    } finally {
+      setJoinChecking(false);
     }
   };
 
-  const handleRejoin = (roomName: string, role: string) => {
-    saveMeeting(roomName, role);
-    router.push(`/rooms/${roomName}`);
+  const handleRejoin = (roomName: string, role: string, hk?: string) => {
+    saveMeeting(roomName, role, hk);
+    if (role === 'host' && hk) {
+      router.push(`/rooms/${roomName}?role=host&hk=${encodeURIComponent(hk)}`);
+    } else {
+      router.push(`/rooms/${roomName}`);
+    }
   };
 
   const handleRemove = (roomName: string) => {
@@ -98,7 +131,7 @@ function HomeContent() {
             {/* Logo */}
             <div className="dk-logo">
               <div className="dk-logo-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#6f97ff">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#3f6fe0">
                   <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"/>
                 </svg>
               </div>
@@ -176,7 +209,7 @@ function HomeContent() {
                   </p>
 
                   <div className="dk-join-field">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7194" strokeWidth="2" strokeLinecap="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7d849f" strokeWidth="2" strokeLinecap="round">
                       <rect x="2" y="6" width="20" height="12" rx="2"/>
                       <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>
                     </svg>
@@ -184,14 +217,15 @@ function HomeContent() {
                       type="text"
                       placeholder="Enter a meeting code"
                       value={roomCode}
-                      onChange={(e) => setRoomCode(e.target.value)}
+                      onChange={(e) => { setRoomCode(e.target.value); setJoinError(""); }}
                       onKeyDown={handleKeyDown}
                       className="dk-join-input"
                     />
-                    <button className="dk-join-go" onClick={handleJoinMeeting} disabled={!roomCode.trim()}>
-                      Join
+                    <button className="dk-join-go" onClick={handleJoinMeeting} disabled={!roomCode.trim() || joinChecking}>
+                      {joinChecking ? 'Checking…' : 'Join'}
                     </button>
                   </div>
+                  {joinError && <div className="join-error">{joinError}</div>}
 
                   {/* Recent Meetings */}
                   {history.length > 0 && (
@@ -204,17 +238,17 @@ function HomeContent() {
                         {history.map((m) => (
                           <div key={m.roomName} className="dk-history-item">
                             <div className="dk-history-icon">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
                                 <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                               </svg>
                             </div>
-                            <div className="dk-history-info" onClick={() => handleRejoin(m.roomName, m.role)}>
+                            <div className="dk-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
                               <span className="dk-history-name">{m.roomName}</span>
                               <span className="dk-history-meta">
                                 {m.role === 'host' ? 'Hosted' : 'Joined'} &middot; {formatTimeAgo(m.timestamp)}
                               </span>
                             </div>
-                            <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role)}>Rejoin</button>
+                            <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
                             <button className="dk-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -251,7 +285,7 @@ function HomeContent() {
                   Start a Call
                 </button>
                 <div className="dk-empty-circle">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>
                   </svg>
                 </div>
@@ -269,7 +303,7 @@ function HomeContent() {
                   Create Group
                 </button>
                 <div className="dk-empty-circle green">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>
                   </svg>
                 </div>
@@ -287,7 +321,7 @@ function HomeContent() {
                   New Chat
                 </button>
                 <div className="dk-empty-circle orange">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><path d="M8 8h8M8 12h5"/>
                   </svg>
                 </div>
@@ -410,7 +444,7 @@ function HomeContent() {
                             {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
                           </span>
                         </div>
-                        <button className="dk-recent-rejoin" onClick={() => handleRejoin(m.roomName, m.role)}>
+                        <button className="dk-recent-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
                           Rejoin
                         </button>
                       </div>
@@ -429,11 +463,11 @@ function HomeContent() {
         <div className="topbar">
           <div className="topbar-logo">
             <div className="topbar-mic-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#6f97ff">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#3f6fe0">
                 <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"/>
               </svg>
             </div>
-            <span>My<span style={{ color: '#6f97ff' }}>Talk</span></span>
+            <span>My<span style={{ color: '#3f6fe0' }}>Talk</span></span>
           </div>
           <div className="topbar-user-mobile">
             {session?.user?.image ? (
@@ -464,7 +498,7 @@ function HomeContent() {
                 <div className="m-join-label">Join with a code</div>
                 <div className="m-join-input-row">
                   <div className="m-join-field">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7194" strokeWidth="2" strokeLinecap="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7d849f" strokeWidth="2" strokeLinecap="round">
                       <rect x="2" y="6" width="20" height="12" rx="2"/>
                       <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>
                     </svg>
@@ -472,7 +506,7 @@ function HomeContent() {
                       type="text"
                       placeholder="abc-defg-hij"
                       value={roomCode}
-                      onChange={(e) => setRoomCode(e.target.value)}
+                      onChange={(e) => { setRoomCode(e.target.value); setJoinError(""); }}
                       onKeyDown={handleKeyDown}
                       className="m-join-input"
                     />
@@ -480,13 +514,14 @@ function HomeContent() {
                   <button
                     className="m-join-btn"
                     onClick={handleJoinMeeting}
-                    disabled={!roomCode.trim()}
+                    disabled={!roomCode.trim() || joinChecking}
                   >
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M13 6l6 6-6 6"/>
                     </svg>
                   </button>
                 </div>
+                {joinError && <div className="join-error">{joinError}</div>}
               </div>
 
               {/* Meeting History */}
@@ -500,17 +535,17 @@ function HomeContent() {
                     {history.map((m) => (
                       <div key={m.roomName} className="meeting-history-item">
                         <div className="meeting-history-icon">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
                             <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                           </svg>
                         </div>
-                        <div className="meeting-history-info" onClick={() => handleRejoin(m.roomName, m.role)}>
+                        <div className="meeting-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
                           <span className="meeting-history-name">{m.roomName}</span>
                           <span className="meeting-history-meta">
                             {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
                           </span>
                         </div>
-                        <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role)}>
+                        <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
                           Rejoin
                         </button>
                         <button className="meeting-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
@@ -531,7 +566,7 @@ function HomeContent() {
             <div className="mobile-tab-header"><h2>Calls</h2></div>
             <div className="mobile-empty-state">
               <div className="mobile-empty-icon calls">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>
                 </svg>
               </div>
@@ -545,7 +580,7 @@ function HomeContent() {
             <div className="mobile-tab-header"><h2>Groups</h2></div>
             <div className="mobile-empty-state">
               <div className="mobile-empty-icon groups">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>
                 </svg>
               </div>
@@ -559,7 +594,7 @@ function HomeContent() {
             <div className="mobile-tab-header"><h2>Chats</h2></div>
             <div className="mobile-empty-state">
               <div className="mobile-empty-icon chat">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><path d="M8 8h8M8 12h5"/>
                 </svg>
               </div>
@@ -652,7 +687,7 @@ function ProfileTabContent({
   joinedCount: number;
   lastActive: number | null;
   recentMeetings: MeetingRecord[];
-  onRejoin: (roomName: string, role: string) => void;
+  onRejoin: (roomName: string, role: string, hk?: string) => void;
 }) {
   const [guestName, setGuestName] = useState(() => {
     try { return localStorage.getItem('guestName') || ''; } catch { return ''; }
@@ -684,7 +719,7 @@ function ProfileTabContent({
       {/* Bio */}
       {!editingBio ? (
         <button className="mobile-profile-menu-item" onClick={() => { setBioInput(bio); setEditingBio(true); }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
           </svg>
           <span className="mobile-bio-text">{bio || 'Add a short bio'}</span>
@@ -745,7 +780,7 @@ function ProfileTabContent({
                 <span className="mobile-recent-name">{m.roomName}</span>
                 <span className="mobile-recent-meta">{m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}</span>
               </div>
-              <button className="mobile-recent-rejoin" onClick={() => onRejoin(m.roomName, m.role)}>Rejoin</button>
+              <button className="mobile-recent-rejoin" onClick={() => onRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
             </div>
           ))}
         </div>
@@ -771,7 +806,7 @@ function ProfileTabContent({
         {extras}
         <div className="mobile-profile-menu">
           <button className="mobile-profile-menu-item" data-danger="" onClick={() => signOut()}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e04848" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
             </svg>
             Sign Out
@@ -794,7 +829,7 @@ function ProfileTabContent({
         {!editingName ? (
           <>
             <div className="mobile-profile-name">{guestName || 'Guest'}</div>
-            <div className="mobile-profile-email" style={{ color: '#7c83a8' }}>
+            <div className="mobile-profile-email" style={{ color: '#7d849f' }}>
               {guestName ? 'Guest user' : 'No account'}
             </div>
           </>
@@ -820,7 +855,7 @@ function ProfileTabContent({
       <div className="mobile-profile-menu">
         {/* Set / Edit guest name */}
         <button className="mobile-profile-menu-item" onClick={() => { setNameInput(guestName); setEditingName(true); }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/>
           </svg>
           {guestName ? 'Change Name' : 'Set Guest Name'}

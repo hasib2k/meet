@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
-import { verifyAdminToken } from '@/lib/adminAuth';
+import { verifyAdminToken, generateHostToken } from '@/lib/adminAuth';
 import { validateRoomName } from '@/lib/validation';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
@@ -351,7 +351,10 @@ export async function POST(request: NextRequest) {
         if (Object.keys(roomMeta).length > 0) {
           await svc.updateRoomMetadata(roomName, JSON.stringify(roomMeta));
         }
-        return NextResponse.json({ success: true, message: 'Room created', roomName });
+        // Signed host credential so the host link can grant host (and nobody
+        // else can promote themselves via the URL).
+        const hostToken = generateHostToken(roomName);
+        return NextResponse.json({ success: true, message: 'Room created', roomName, hostToken });
       }
 
       case 'lower_hand': {

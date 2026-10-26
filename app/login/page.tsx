@@ -14,7 +14,7 @@ function LoginContent() {
         {/* Logo */}
         <div style={styles.logoWrap}>
           <svg width="48" height="48" viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="10" fill="#5b8dee" />
+            <rect width="40" height="40" rx="10" fill="#3f6fe0" />
             <path
               d="M12 15C12 13.8954 12.8954 13 14 13H20C21.1046 13 22 13.8954 22 15V25C22 26.1046 21.1046 27 20 27H14C12.8954 27 12 26.1046 12 25V15Z"
               fill="white"
@@ -63,7 +63,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a1a2e', color: 'rgba(255,255,255,0.5)' }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e6e9f0', color: 'rgba(0, 0, 0, 0.5)' }}>Loading...</div>}>
       <LoginContent />
     </Suspense>
   );
@@ -75,7 +75,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#1e1e32',
+    background: '#e6e9f0',
   },
   card: {
     display: 'flex',
@@ -83,26 +83,26 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '1.25rem',
     padding: '3rem 2.5rem',
-    background: '#1e1e32',
+    background: '#e6e9f0',
     border: 'none',
     borderRadius: '1.5rem',
     width: '100%',
     maxWidth: '400px',
-    boxShadow: '8px 8px 20px #151528, -8px -8px 20px #27273c',
+    boxShadow: '8px 8px 20px #c3c8d4, -8px -8px 20px #ffffff',
   },
   logoWrap: {
     marginBottom: '0.5rem',
   },
   title: {
     fontSize: '1.5rem',
-    fontWeight: 500,
-    color: '#fff',
+    fontWeight: 700,
+    color: '#1f2440',
     margin: 0,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: '0.9rem',
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(0, 0, 0, 0.5)',
     margin: 0,
     textAlign: 'center',
     lineHeight: 1.5,
@@ -114,8 +114,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.75rem',
     width: '100%',
     padding: '0.875rem 1.5rem',
-    background: 'linear-gradient(145deg, #222238, #1b1b2e)',
-    color: '#e8eaed',
+    background: 'linear-gradient(145deg, #eef0f5, #e6e9f0)',
+    color: '#1f2440',
     border: 'none',
     borderRadius: '2rem',
     fontSize: '0.95rem',
@@ -123,11 +123,11 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     transition: 'all 0.2s',
     marginTop: '0.5rem',
-    boxShadow: '4px 4px 12px #151528, -4px -4px 12px #27273c',
+    boxShadow: '4px 4px 12px #c3c8d4, -4px -4px 12px #ffffff',
   },
   footer: {
     fontSize: '0.8rem',
-    color: 'rgba(255, 255, 255, 0.3)',
+    color: 'rgba(0, 0, 0, 0.3)',
     margin: 0,
     textAlign: 'center',
     marginTop: '0.5rem',

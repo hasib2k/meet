@@ -6,7 +6,6 @@ import { decodePassphrase } from '@/lib/client-utils';
 import { DebugMode } from '@/lib/Debug';
 import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
-import { SettingsMenu } from '@/lib/SettingsMenu';
 import { ConnectionDetails } from '@/lib/types';
 import {
   LocalUserChoices,
@@ -47,6 +46,7 @@ export function PageClientImpl(props: {
   codec: VideoCodec;
   singlePeerConnection: boolean;
   role: string;
+  hostKey?: string;
 }) {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
     undefined,
@@ -95,12 +95,13 @@ export function PageClientImpl(props: {
     url.searchParams.append('roomName', props.roomName);
     url.searchParams.append('participantName', values.username);
     url.searchParams.append('role', props.role);
+    if (props.hostKey) url.searchParams.append('hk', props.hostKey);
     if (values.imageUrl) url.searchParams.append('imageUrl', values.imageUrl);
     if ((values as any).bio) url.searchParams.append('bio', (values as any).bio);
     if (props.region) url.searchParams.append('region', props.region);
     if (knockId) url.searchParams.append('knockId', knockId);
     return url.toString();
-  }, [props.roomName, props.region, props.role]);
+  }, [props.roomName, props.region, props.role, props.hostKey]);
 
   // Interpret a connection-details response. Returns true when terminal
   // (connected, room ended, rejected) so polling can stop.
@@ -224,14 +225,14 @@ export function PageClientImpl(props: {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="#ff6b6b">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#e04848">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
           </div>
-          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 500, margin: 0 }}>
+          <h2 style={{ color: '#1f2440', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
             Meeting Expired
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', margin: 0, maxWidth: 400 }}>
+          <p style={{ color: 'rgba(0, 0, 0, 0.5)', fontSize: '1rem', margin: 0, maxWidth: 400 }}>
             This meeting has ended and is no longer available. Please contact the admin for a new meeting room.
           </p>
           <button
@@ -276,20 +277,20 @@ export function PageClientImpl(props: {
       {connectionDetails === undefined || preJoinChoices === undefined ? (
         isAutoRejoining ? (
           /* Show a minimal loading screen while auto-reconnecting (prevents pre-join flash) */
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#1e2238' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#e6e9f0' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: 48, height: 48, border: '3px solid #282d48', borderTopColor: '#6f97ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              <div style={{ color: '#7c83a8', fontSize: 14 }}>Reconnecting...</div>
+              <div style={{ width: 48, height: 48, border: '3px solid #ffffff', borderTopColor: '#3f6fe0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <div style={{ color: '#7d849f', fontSize: 14 }}>Reconnecting...</div>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#1e2238' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#e6e9f0' }}>
           {/* Desktop header for pre-join page */}
           <div className="prejoin-dk-header">
             <div className="prejoin-dk-header-left">
               <button className="prejoin-dk-back" onClick={() => window.location.href = '/'} aria-label="Back to home">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
               </button>
               <div className="prejoin-dk-logo">
                 <span className="prejoin-dk-logo-my">My</span><span className="prejoin-dk-logo-talk">Talk</span>
@@ -381,7 +382,7 @@ function KnockLobby(props: {
   const rejected = status === 'rejected';
   const locked = status === 'locked';
 
-  const accent = rejected ? '#ff8a8a' : pending ? '#6f97ff' : '#f5b04a';
+  const accent = rejected ? '#e04848' : pending ? '#3f6fe0' : '#d98a12';
   const title = pending
     ? 'Waiting to be let in'
     : rejected
@@ -401,17 +402,17 @@ function KnockLobby(props: {
     <main data-lk-theme="default" style={{ height: '100%' }}>
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        height: '100%', gap: 20, padding: 32, textAlign: 'center', background: '#1e2238', color: '#e6e9f5',
+        height: '100%', gap: 20, padding: 32, textAlign: 'center', background: '#e6e9f0', color: '#1f2440',
         fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif",
       }}>
         <div style={{
-          position: 'relative', width: 96, height: 96, borderRadius: '50%', background: '#1e2238',
-          boxShadow: '10px 10px 24px #13162a', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'relative', width: 96, height: 96, borderRadius: '50%', background: '#e6e9f0',
+          boxShadow: '10px 10px 24px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {pending && (
             <div style={{
               position: 'absolute', inset: -4, borderRadius: '50%',
-              border: '3px solid rgba(111,151,255,0.25)', borderTopColor: '#6f97ff',
+              border: '3px solid rgba(111,151,255,0.25)', borderTopColor: '#3f6fe0',
               animation: 'spin 1s linear infinite',
             }} />
           )}
@@ -426,8 +427,8 @@ function KnockLobby(props: {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 420 }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{title}</h2>
-          <p style={{ fontSize: 15, color: '#9aa1c2', margin: 0, lineHeight: 1.55 }}>{subtitle}</p>
-          <div style={{ fontSize: 13, color: '#6c7498', marginTop: 2 }}>Room: {roomName}</div>
+          <p style={{ fontSize: 15, color: '#6a7192', margin: 0, lineHeight: 1.55 }}>{subtitle}</p>
+          <div style={{ fontSize: 13, color: '#7d849f', marginTop: 2 }}>Room: {roomName}</div>
         </div>
 
         <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
@@ -437,7 +438,7 @@ function KnockLobby(props: {
               style={{
                 height: 46, padding: '0 22px', borderRadius: 14, border: 'none', cursor: 'pointer',
                 fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#fff',
-                background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #13162a',
+                background: 'linear-gradient(145deg,#7aa0ff,#5a83ee)', boxShadow: '5px 5px 12px #c3c8d4',
               }}
             >
               Request again
@@ -447,8 +448,8 @@ function KnockLobby(props: {
             onClick={() => (window.location.href = '/')}
             style={{
               height: 46, padding: '0 22px', borderRadius: 14, border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#e6e9f5',
-              background: '#1e2238', boxShadow: '5px 5px 10px #14172a',
+              fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#1f2440',
+              background: '#e6e9f0', boxShadow: '5px 5px 10px #c3c8d4',
             }}
           >
             {pending ? 'Cancel' : 'Back to home'}
@@ -602,9 +603,7 @@ function AudioConferenceComponent(props: {
         <KnockProvider>
         <PinnedProvider>
           <KeyboardShortcuts />
-          <CustomVideoConference
-            SettingsComponent={SettingsMenu}
-          />
+          <CustomVideoConference />
           <RaiseHandButton />
           <HostLeaveButton />
           <KnockRequests />
@@ -623,7 +622,7 @@ function AudioConferenceComponent(props: {
         <div className="leave-confirm-overlay" onClick={() => setShowLeaveConfirm(false)}>
           <div className="leave-confirm-card" onClick={(e) => e.stopPropagation()}>
             <div className="leave-confirm-icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ff8a8a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e04848" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
               </svg>
             </div>
@@ -814,7 +813,7 @@ function ParticipantProfileImages() {
         img.referrerPolicy = 'no-referrer';
         // Don't override placeholder styles - CSS handles positioning
         // Just insert the 56px image directly (placeholder acts as the 72px ring)
-        img.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:50%;box-shadow:3px 3px 7px #13162a;';
+        img.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:50%;box-shadow:3px 3px 7px #c3c8d4;';
         el.appendChild(img);
       });
 
@@ -827,7 +826,7 @@ function ParticipantProfileImages() {
           if (!existing) {
             const span = document.createElement('span');
             span.className = 'hand-raised-indicator';
-            span.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e2238" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>';
+            span.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e6e9f0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"></path></svg>';
             (tile as HTMLElement).style.position = 'relative';
             tile.appendChild(span);
           }
@@ -845,7 +844,7 @@ function ParticipantProfileImages() {
           if (!existing) {
             const indicator = document.createElement('div');
             indicator.className = 'mic-unmuted-indicator';
-            indicator.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" stroke-width="2.4" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/></svg>';
+            indicator.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" stroke-width="2.4" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/></svg>';
             (tile as HTMLElement).appendChild(indicator);
           }
         } else if (existing) {
@@ -916,7 +915,7 @@ function ParticipantProfileImages() {
           if (!dotBtn) {
             dotBtn = document.createElement('button');
             dotBtn.className = 'tile-three-dot-btn';
-            dotBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#a9b0d0"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
+            dotBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#4f5675"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
             (tile as HTMLElement).style.position = 'relative';
             tile.appendChild(dotBtn);
           }
@@ -973,7 +972,7 @@ function ParticipantProfileImages() {
 
           {/* Lower Hand */}
           {menuParticipant.isHandRaised && (
-            <button className="tile-menu-item" style={{ color: '#e8a85d' }} onClick={() => lowerHandFromTile(menuParticipant.identity)}>
+            <button className="tile-menu-item" style={{ color: '#d98a12' }} onClick={() => lowerHandFromTile(menuParticipant.identity)}>
               <span style={{ fontSize: '0.8rem' }}>✋</span>
               Lower Hand
             </button>
@@ -981,7 +980,7 @@ function ParticipantProfileImages() {
 
           {/* Grant Speak / Mute */}
           {!menuParticipant.canPublish ? (
-            <button className="tile-menu-item" style={{ color: '#5bc88d' }} onClick={() => doTileAction('grant_speak', menuParticipant.identity)}>
+            <button className="tile-menu-item" style={{ color: '#16a34a' }} onClick={() => doTileAction('grant_speak', menuParticipant.identity)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                 <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
@@ -989,7 +988,7 @@ function ParticipantProfileImages() {
               Grant Speak
             </button>
           ) : (
-            <button className="tile-menu-item" style={{ color: '#e8a85d' }} onClick={() => doTileAction('revoke_speak', menuParticipant.identity)}>
+            <button className="tile-menu-item" style={{ color: '#d98a12' }} onClick={() => doTileAction('revoke_speak', menuParticipant.identity)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z" />
               </svg>
@@ -1010,10 +1009,10 @@ function ParticipantProfileImages() {
             </button>
           )}
 
-          <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0.25rem 0' }} />
+          <div style={{ height: '1px', background: 'rgba(0, 0, 0, 0.08)', margin: '0.25rem 0' }} />
 
           {/* Remove */}
-          <button className="tile-menu-item" style={{ color: '#ff6b6b' }} onClick={() => {
+          <button className="tile-menu-item" style={{ color: '#e04848' }} onClick={() => {
             if (confirm(`Remove ${menuParticipant.name}?`)) doTileAction('remove_participant', menuParticipant.identity);
             else setTileMenuId(null);
           }}>
@@ -1179,11 +1178,11 @@ function RoomInfoPanel({ roomName, role }: { roomName: string; role: string }) {
 
       <div className="prejoin-dk-badges">
         <div className="prejoin-dk-badge">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2.2" strokeLinecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h3ZM3 15a2 2 0 0 0 2 2h1v-5H3Z"/></svg>
           Audio-only
         </div>
         <div className="prejoin-dk-badge">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5b04a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.1 1.2M12 18v3"/></svg>
           Joining as {roleLabel}
         </div>
       </div>

@@ -111,7 +111,7 @@ export function HostControls() {
 
           {/* Other participants */}
           {participantList.length === 0 && (
-            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
+            <p style={{ color: 'rgba(0, 0, 0, 0.3)', fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
               No other participants yet
             </p>
           )}
@@ -176,9 +176,9 @@ function getAdminToken(): string {
 }
 
 function getRoleColor(role: string): string {
-  if (role === 'host') return '#5b8dee';
-  if (role === 'moderator') return '#e8a85d';
-  return 'rgba(255,255,255,0.4)';
+  if (role === 'host') return '#3f6fe0';
+  if (role === 'moderator') return '#d98a12';
+  return 'rgba(0, 0, 0, 0.4)';
 }
 
 const floatingBtnStyle: React.CSSProperties = {
@@ -188,7 +188,7 @@ const floatingBtnStyle: React.CSSProperties = {
   width: '48px',
   height: '48px',
   borderRadius: '50%',
-  background: '#5b8dee',
+  background: '#3f6fe0',
   border: 'none',
   cursor: 'pointer',
   display: 'flex',
@@ -206,8 +206,8 @@ const panelStyle: React.CSSProperties = {
   right: '1.5rem',
   width: '320px',
   maxHeight: '60vh',
-  background: '#1e1e2e',
-  border: '1px solid rgba(255,255,255,0.1)',
+  background: '#e6e9f0',
+  border: '1px solid rgba(0, 0, 0, 0.1)',
   borderRadius: '0.75rem',
   overflow: 'hidden',
   display: 'flex',
@@ -221,13 +221,13 @@ const panelHeaderStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: '0.75rem 1rem',
-  borderBottom: '1px solid rgba(255,255,255,0.08)',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
 };
 
 const closeBtnStyle: React.CSSProperties = {
   background: 'none',
   border: 'none',
-  color: 'rgba(255,255,255,0.5)',
+  color: 'rgba(0, 0, 0, 0.5)',
   cursor: 'pointer',
   fontSize: '1rem',
   padding: '0.25rem',
@@ -236,23 +236,23 @@ const closeBtnStyle: React.CSSProperties = {
 const actionMsgStyle: React.CSSProperties = {
   padding: '0.5rem 1rem',
   fontSize: '0.8rem',
-  color: '#5bc88d',
+  color: '#16a34a',
   background: 'rgba(91,200,141,0.08)',
-  borderBottom: '1px solid rgba(255,255,255,0.04)',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.04)',
 };
 
 const participantRowStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   padding: '0.625rem 1rem',
-  borderBottom: '1px solid rgba(255,255,255,0.04)',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.04)',
   gap: '0.5rem',
 };
 
 const hostBadgeStyle: React.CSSProperties = {
   marginLeft: '0.5rem',
   fontSize: '0.7rem',
-  color: '#5b8dee',
+  color: '#3f6fe0',
   fontWeight: 600,
 };
 
@@ -281,5 +281,5 @@ const removeBtnStyle: React.CSSProperties = {
   borderRadius: '0.25rem',
   cursor: 'pointer',
   fontSize: '0.8rem',
-  color: '#ff6b6b',
+  color: '#e04848',
 };

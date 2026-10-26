@@ -124,7 +124,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
           <div className="settings-subtitle">Choose how you listen and speak</div>
         </div>
         <button className="settings-close-btn" onClick={closeSettings} aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9b0d0" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f5675" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
         </button>
       </div>
 
@@ -132,7 +132,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
       <div className="settings-section">
         <div className="settings-section-label">Microphone</div>
         <div className="settings-device-select">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" />
             <path d="M19 11a7 7 0 0 1-14 0M12 18v3" />
           </svg>
@@ -146,7 +146,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
               </option>
             ))}
           </select>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c83a8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="settings-chevron">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7d849f" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="settings-chevron">
             <path d="M6 9l6 6 6-6" />
           </svg>
         </div>
@@ -161,7 +161,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
               key={i}
               className="settings-level-bar-segment"
               style={{
-                background: i < activeBars ? (i < 8 ? '#4ade80' : i < 10 ? '#f5b04a' : '#ff8a8a') : '#14172a',
+                background: i < activeBars ? (i < 8 ? '#16a34a' : i < 10 ? '#d98a12' : '#e04848') : '#c3c8d4',
               }}
             />
           ))}
@@ -172,7 +172,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
       <div className="settings-section">
         <div className="settings-section-label">Speaker & Headphones</div>
         <div className="settings-device-select">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f97ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <path d="M11 5 6 9H2v6h4l5 4V5Z" />
             <path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" />
           </svg>
@@ -186,7 +186,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
               </option>
             ))}
           </select>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c83a8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="settings-chevron">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7d849f" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="settings-chevron">
             <path d="M6 9l6 6 6-6" />
           </svg>
         </div>
