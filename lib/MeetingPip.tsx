@@ -142,8 +142,13 @@ export function MeetingPip() {
     return () => { closePip(); };
   }, [closePip]);
 
-  const target = isMobile ? titleRight : controlBar;
-  if (!pipSupported || !target) return null;
+  // Document Picture-in-Picture only produces a real floating window on DESKTOP
+  // browsers. On mobile the API may exist but requestWindow can't float a window
+  // for an audio-only call, so the button would do nothing. Hide it there and
+  // rely on MediaSession: minimising the browser keeps the audio playing with an
+  // OS "ongoing call" notification.
+  if (isMobile || !pipSupported || !controlBar) return null;
+  const target = controlBar;
 
   const toggle = pipOpen ? closePip : openPip;
   const pipIcon = (
@@ -154,24 +159,14 @@ export function MeetingPip() {
   );
 
   return createPortal(
-    isMobile ? (
-      <button
-        className="meeting-pip-btn"
-        onClick={toggle}
-        aria-label={pipOpen ? 'Close pop-out' : 'Pop out meeting'}
-      >
-        {pipIcon}
-      </button>
-    ) : (
-      <button
-        className="lk-button lk-pip-toggle"
-        onClick={toggle}
-        title={pipOpen ? 'Close pop-out' : 'Pop out meeting'}
-      >
-        {pipIcon}
-        <span className="lk-btn-label">{pipOpen ? 'Close PiP' : 'Pop out'}</span>
-      </button>
-    ),
+    <button
+      className="lk-button lk-pip-toggle"
+      onClick={toggle}
+      title={pipOpen ? 'Close pop-out' : 'Pop out meeting'}
+    >
+      {pipIcon}
+      <span className="lk-btn-label">{pipOpen ? 'Close PiP' : 'Pop out'}</span>
+    </button>,
     target,
   );
 }

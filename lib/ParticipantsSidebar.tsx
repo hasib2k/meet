@@ -1,10 +1,37 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useParticipants, useRoomContext } from '@livekit/components-react';
 import { usePinned } from './PinnedContext';
 import { useKnock } from './KnockContext';
+
+/** Text that marquee-scrolls (seamless infinite loop) only when it overflows
+ *  its container — matches the tile bio/name behaviour. */
+function MarqueeText({ text, className }: { text: string; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => {
+      // Measure natural text width against the clipped container width.
+      setAnimate(el.scrollWidth > el.clientWidth + 2);
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [text]);
+
+  const SEP = '   •   ';
+  return (
+    <div ref={ref} className={className}>
+      {animate ? <span className="marquee-scroll">{text + SEP + text + SEP}</span> : text}
+    </div>
+  );
+}
 
 /** Shared panel body — used both by the mobile full-screen panel and the
  *  desktop unified side panel.  Pass an onClose callback to wire up the
@@ -273,7 +300,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
               <span className="pp-role-badge" style={{ color: getRoleColor(localRole) }}>
                 {localRole === 'host' ? 'Host (You)' : localRole === 'moderator' ? 'Moderator (You)' : 'Listener (You)'}
               </span>
-              {localBio && <span className="pp-bio">{localBio}</span>}
+              {localBio && <MarqueeText className="pp-bio" text={localBio} />}
             </div>
           </div>
         </div>
@@ -315,7 +342,7 @@ export function ParticipantsPanelContent({ onClose }: { onClose?: () => void }) 
                   {p.role === 'host' && ' (Host)'}
                   {p.role === 'moderator' && ' (Moderator)'}
                 </span>
-                {p.bio && <span className="pp-bio">{p.bio}</span>}
+                {p.bio && <MarqueeText className="pp-bio" text={p.bio} />}
               </div>
             </div>
             {/* 3-dot menu for host */}
