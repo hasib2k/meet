@@ -30,6 +30,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: '#e6e9f0',
+  // When the on-screen keyboard opens, shrink the layout viewport (instead of
+  // overlaying it). This keeps fixed full-screen panels — e.g. the chat panel's
+  // header and the pre-join form — above the keyboard instead of being panned
+  // out of view.
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

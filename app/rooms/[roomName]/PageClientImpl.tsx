@@ -59,6 +59,13 @@ export function PageClientImpl(props: {
   const [knockStatus, setKnockStatus] = React.useState<'none' | 'pending' | 'rejected' | 'expired' | 'locked'>('none');
   const knockIdRef = React.useRef<string | null>(null);
   const knockValuesRef = React.useRef<(LocalUserChoices & { imageUrl?: string }) | null>(null);
+  // Effective auth (role + host key) for this session. Initialised from the URL
+  // (props), but restored from sessionStorage on auto-rejoin so a page reload
+  // keeps the SAME role even if the URL no longer carries ?role / ?hk.
+  const authRef = React.useRef<{ role: string; hk: string }>({
+    role: props.role,
+    hk: props.hostKey || '',
+  });
   // Track if we're attempting auto-rejoin to avoid flashing the pre-join page
   const [isAutoRejoining, setIsAutoRejoining] = React.useState(() => {
     try {
@@ -94,14 +101,14 @@ export function PageClientImpl(props: {
     const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
     url.searchParams.append('roomName', props.roomName);
     url.searchParams.append('participantName', values.username);
-    url.searchParams.append('role', props.role);
-    if (props.hostKey) url.searchParams.append('hk', props.hostKey);
+    url.searchParams.append('role', authRef.current.role);
+    if (authRef.current.hk) url.searchParams.append('hk', authRef.current.hk);
     if (values.imageUrl) url.searchParams.append('imageUrl', values.imageUrl);
     if ((values as any).bio) url.searchParams.append('bio', (values as any).bio);
     if (props.region) url.searchParams.append('region', props.region);
     if (knockId) url.searchParams.append('knockId', knockId);
     return url.toString();
-  }, [props.roomName, props.region, props.role, props.hostKey]);
+  }, [props.roomName, props.region]);
 
   // Interpret a connection-details response. Returns true when terminal
   // (connected, room ended, rejected) so polling can stop.
@@ -139,21 +146,26 @@ export function PageClientImpl(props: {
       if (data.adminToken) sessionStorage.setItem('adminToken', data.adminToken);
       setKnockStatus('none');
       setConnectionDetails(data);
-      saveMeeting(props.roomName, props.role);
+      // Preserve role + host key so a reload (session) or a "Rejoin" from the
+      // home history (localStorage) both come back with the SAME role.
+      saveMeeting(props.roomName, authRef.current.role, authRef.current.hk || undefined);
       return true;
     }
     return false;
-  }, [props.roomName, props.role]);
+  }, [props.roomName]);
 
   const handlePreJoinSubmit = React.useCallback(async (values: LocalUserChoices & { imageUrl?: string }) => {
     setPreJoinChoices(values);
     knockValuesRef.current = values;
-    // Save choices so we can auto-rejoin on reload
+    // Save choices + the effective role/host-key so we can auto-rejoin on reload
+    // with the SAME role even if the URL no longer carries ?role / ?hk.
     try {
       sessionStorage.setItem(`rejoin_${props.roomName}`, JSON.stringify({
         username: values.username,
         imageUrl: values.imageUrl,
         bio: (values as any).bio,
+        role: authRef.current.role,
+        hk: authRef.current.hk,
       }));
     } catch {}
     const resp = await fetch(buildConnUrl(values));
@@ -186,6 +198,11 @@ export function PageClientImpl(props: {
       const saved = sessionStorage.getItem(`rejoin_${props.roomName}`);
       if (saved) {
         const data = JSON.parse(saved);
+        // Restore the role/host-key captured at first join so the reload keeps
+        // the same role regardless of what the current URL carries.
+        if (data.role) {
+          authRef.current = { role: data.role, hk: data.hk || '' };
+        }
         handlePreJoinSubmit({
           username: data.username,
           videoEnabled: false,
@@ -827,13 +844,18 @@ function ParticipantProfileImages() {
           if (!existing) {
             const bioEl = document.createElement('div');
             bioEl.className = 'tile-bio-text';
+            bioEl.dataset.bio = bio;
             bioEl.textContent = bio;
             // Insert after the metadata bar (which contains the name)
             const metaBar = tile.querySelector('.lk-participant-metadata');
             if (metaBar) {
               metaBar.appendChild(bioEl);
             }
-          } else {
+          } else if (existing.dataset.bio !== bio) {
+            // Only rewrite when the bio actually changed. Rewriting every poll
+            // cycle would destroy the injected .marquee-scroll span and restart
+            // the scroll animation, making it stutter.
+            existing.dataset.bio = bio;
             existing.textContent = bio;
           }
         } else if (existing) {

@@ -2170,6 +2170,15 @@ h2 a {
   border: none !important;
   outline: none !important;
 }
+/* LiveKit draws the blue speaking ring via a ::after pseudo-element border —
+   kill it so only the green avatar orb indicates speaking. */
+.lk-participant-tile::after,
+.lk-participant-tile[data-lk-speaking="true"]::after,
+.lk-participant-tile[data-lk-speaking="true"]:not([data-lk-source="screen_share"])::after {
+  border: 0 !important;
+  border-width: 0 !important;
+  content: none !important;
+}
 
 /* Placeholder: break out of absolute fill → 72px avatar ring */
 .lk-video-conference .lk-participant-tile .lk-participant-placeholder,
@@ -2566,16 +2575,22 @@ h2 a {
 .meeting-mic-btn {
   border: none;
   cursor: pointer;
-  width: 44px;
   height: 44px;
-  border-radius: 50%;
+  padding: 0 16px;
+  border-radius: 22px;
   flex-shrink: 0;
   background: #e6e9f0;
-  box-shadow: 5px 5px 10px #c3c8d4, -5px -5px 10px #ffffff;
+  box-shadow: 5px 5px 10px #cdd2de, -4px -4px 10px #eef1f7;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   transition: box-shadow 0.15s, filter 0.15s;
+}
+.meeting-mic-label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 .meeting-mic-btn.is-on {
   color: #16a34a;
@@ -2583,7 +2598,7 @@ h2 a {
 .meeting-mic-btn.is-off {
   color: #ffffff;
   background: linear-gradient(145deg, #f06a6a, #d94848);
-  box-shadow: 4px 4px 10px #c3c8d4, -4px -4px 10px #ffffff;
+  box-shadow: 4px 4px 10px #cdd2de, -3px -3px 8px #eef1f7;
 }
 .meeting-mic-btn:hover {
   filter: brightness(1.04);

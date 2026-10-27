@@ -417,6 +417,7 @@ function MeetingTitleBar() {
             ) : (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6"/><path d="M17 16.9A7 7 0 0 1 5 11M12 18v3"/></svg>
             )}
+            <span className="meeting-mic-label">{isMicrophoneEnabled ? 'Mute' : 'Unmute'}</span>
           </button>
         )}
       </div>

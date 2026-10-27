@@ -50,6 +50,28 @@ export function AudioOnlyPreJoin(props: {
     } as any);
   }, [userName, userImage, bio, props.onSubmit]);
 
+  // After returning from the Google OAuth redirect, finish the join
+  // automatically (so the user doesn't have to tap "Join Meeting" again) and —
+  // crucially — restore the host credential if the round-trip dropped ?hk= from
+  // the URL, so a host who signs in with Google still joins as host.
+  React.useEffect(() => {
+    if (!isLoggedIn || !userName) return;
+    let saved: string | null = null;
+    try { saved = sessionStorage.getItem('pending_google_join'); } catch {}
+    if (!saved || !saved.includes(`/rooms/${props.roomName}`)) return;
+
+    const savedHasHk = /[?&]hk=/.test(saved);
+    const hereHasHk = /[?&]hk=/.test(window.location.search);
+    if (savedHasHk && !hereHasHk) {
+      // OAuth dropped the ?hk= host key — reload the original URL so the server
+      // resolves the host role again. This effect re-runs and auto-joins.
+      window.location.replace(saved);
+      return;
+    }
+    try { sessionStorage.removeItem('pending_google_join'); } catch {}
+    handleGoogleJoin();
+  }, [isLoggedIn, userName, props.roomName, handleGoogleJoin]);
+
   const handleGuestJoin = useCallback(() => {
     const name = guestName.trim();
     if (!name) return;
@@ -293,6 +315,9 @@ export function AudioOnlyPreJoin(props: {
             if (isLoggedIn) {
               setMode('google');
             } else {
+              // Remember the full join URL (role + host key) so we can restore
+              // the host role and auto-join after Google sends us back.
+              try { sessionStorage.setItem('pending_google_join', window.location.href); } catch {}
               signIn('google', { callbackUrl: window.location.href });
             }
           }}
