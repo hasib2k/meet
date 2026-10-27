@@ -158,6 +158,21 @@ export default function AdminPage() {
   const [toast, setToast] = useState('');
   const [now, setNow] = useState(0);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 820);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  // Server render (and the first client paint before hydration) can't read
+  // sessionStorage, so isAuthed starts false there → the login screen would
+  // flash before hydration restores the session. Gate on `mounted` so we show a
+  // neutral splash until the client knows the real auth state.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const [tab, setTab] = useState<Tab>('live');
   const [selCode, setSelCode] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -268,21 +283,30 @@ export default function AdminPage() {
     sessionStorage.removeItem('adminPwd');
   };
 
+  /* ---------- pre-hydration splash (avoids login flash on reload) ---------- */
+  if (!mounted) {
+    return <div style={{ minHeight: '100vh', background: '#e6e9f0' }} />;
+  }
+
   /* ---------- login screen ---------- */
   if (!isAuthed) {
     return (
       <div style={S.loginPage}>
         <div style={S.glow} />
-        <div style={S.loginCard}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={S.loginBrandIcon}><img src="/icons/logo_icon.png" alt="MyTalk" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
-            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
-            <div style={S.adminBadge}>Admin</div>
+        <div style={isMobile ? { ...S.loginCard, padding: 24, gap: 16, borderRadius: 24 } : S.loginCard}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <div style={S.loginLogoRing}>
+              <img src="/icons/logo_icon.png" alt="MyTalk" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
+              <div style={S.adminBadge}>Admin</div>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
-            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em' }}>Welcome back</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'center' }}>
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-.02em' }}>Console sign in</div>
             <div style={{ fontSize: 14, color: '#6a7192', lineHeight: 1.5 }}>
-              Sign in to monitor and moderate meetings in real time.
+              Monitor and moderate your live meetings in real time.
             </div>
           </div>
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
@@ -309,6 +333,21 @@ export default function AdminPage() {
               Sign in to console
             </button>
           </form>
+
+          {/* Capability strip */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            {[
+              { icon: P.live, label: 'Live monitor', color: '#3f6fe0' },
+              { icon: P.mic, label: 'Moderation', color: '#16a34a' },
+              { icon: P.lock, label: 'Secure access', color: '#a58cff' },
+            ].map((f) => (
+              <div key={f.label} style={S.loginFeature}>
+                <div style={{ ...S.loginFeatureIcon, color: f.color }}><Svg d={f.icon} color={f.color} size={16} /></div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#6a7192', whiteSpace: 'nowrap' }}>{f.label}</span>
+              </div>
+            ))}
+          </div>
+
           <div style={S.loginFooter}><Svg d={P.lock} color="#7d849f" size={13} />Protected area · Authorized access only</div>
         </div>
       </div>
@@ -331,7 +370,6 @@ export default function AdminPage() {
 
   const navItems: { key: Tab; label: string; icon: string; count: number }[] = [
     { key: 'live', label: 'Live', icon: P.live, count: rooms.length },
-    { key: 'scheduled', label: 'Scheduled', icon: P.cal, count: 0 },
     { key: 'history', label: 'History', icon: P.hist, count: 0 },
   ];
   const titles: Record<Tab, [string, string]> = {
@@ -341,17 +379,22 @@ export default function AdminPage() {
   };
 
   return (
-    <div style={S.shell}>
+    <div style={isMobile ? { ...S.shell, display: 'flex', flexDirection: 'column' } : S.shell}>
       {/* Sidebar */}
-      <aside style={S.sidebar}>
+      <aside style={isMobile ? { ...S.sidebar, position: 'static', height: 'auto', flexDirection: 'column', gap: 16, padding: '16px 16px 8px' } : S.sidebar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px' }}>
           <div style={S.logoBox}><img src="/icons/logo_icon.png" alt="MyTalk" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#7d849f' }}>Admin console</div>
           </div>
+          {isMobile && (
+            <button onClick={logout} className="adm-btn" aria-label="Logout" style={{ ...S.iconBtn, marginLeft: 'auto', flexShrink: 0 }}>
+              <Svg d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" color="#e04848" size={16} sw={2.2} />
+            </button>
+          )}
         </div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <nav style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: 10 }}>
           {navItems.map((n) => {
             const active = tab === n.key;
             return (
@@ -360,9 +403,9 @@ export default function AdminPage() {
                 className="adm-btn"
                 onClick={() => setTab(n.key)}
                 style={{
-                  border: 'none', cursor: 'pointer', fontFamily: FONT, height: 52, padding: '0 16px', borderRadius: 16,
+                  border: 'none', cursor: 'pointer', fontFamily: FONT, height: isMobile ? 44 : 52, padding: isMobile ? '0 14px' : '0 16px', borderRadius: isMobile ? 13 : 16, flexShrink: 0,
                   background: '#e6e9f0', boxShadow: active ? 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' : 'none',
-                  display: 'flex', alignItems: 'center', gap: 14, color: active ? '#3f6fe0' : '#7d849f', fontSize: 15, fontWeight: 600, textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: isMobile ? 9 : 14, color: active ? '#3f6fe0' : '#7d849f', fontSize: isMobile ? 14 : 15, fontWeight: 600, textAlign: 'left',
                 }}
               >
                 <Svg d={n.icon} color={active ? '#3f6fe0' : '#7d849f'} size={20} />
@@ -372,7 +415,7 @@ export default function AdminPage() {
             );
           })}
         </nav>
-        <div style={S.sidebarUser}>
+        <div style={{ ...S.sidebarUser, display: isMobile ? 'none' : 'flex' }}>
           <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: '50%', background: 'linear-gradient(145deg,#f0ab3f,#de7a24)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>HA</div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Administrator</div>
@@ -385,10 +428,10 @@ export default function AdminPage() {
       </aside>
 
       {/* Main */}
-      <main style={S.main}>
+      <main style={isMobile ? { ...S.main, padding: '18px 16px 40px' } : S.main}>
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-.02em' }}>{titles[tab][0]}</div>
+            <div style={{ fontSize: isMobile ? 24 : 32, fontWeight: 700, letterSpacing: '-.02em' }}>{titles[tab][0]}</div>
             <div style={{ fontSize: 14, color: '#6a7192' }}>{titles[tab][1]}</div>
           </div>
           <button className="adm-btn" onClick={() => { setFormTitle(''); setFormPrivacy('public'); setModalOpen(true); }} style={S.btnPrimaryHeader}>
@@ -399,13 +442,13 @@ export default function AdminPage() {
         {/* LIVE TAB */}
         {tab === 'live' && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fit,minmax(150px,1fr))' : 'repeat(auto-fit,minmax(190px,1fr))', gap: isMobile ? 12 : 20 }}>
               {stats.map((st) => (
-                <div key={st.label} style={S.statCard}>
-                  <div style={{ ...S.statIcon, color: st.color }}><Svg d={st.icon} color={st.color} size={22} /></div>
+                <div key={st.label} style={isMobile ? { ...S.statCard, padding: '14px 16px', gap: 12 } : S.statCard}>
+                  <div style={{ ...S.statIcon, color: st.color, ...(isMobile ? { width: 42, height: 42 } : {}) }}><Svg d={st.icon} color={st.color} size={isMobile ? 18 : 22} /></div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                    <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.02em', lineHeight: 1.1 }}>{st.value}</div>
-                    <div style={{ fontSize: 13, color: '#7d849f', whiteSpace: 'nowrap' }}>{st.label}</div>
+                    <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, letterSpacing: '-.02em', lineHeight: 1.1 }}>{st.value}</div>
+                    <div style={{ fontSize: isMobile ? 12 : 13, color: '#7d849f', whiteSpace: 'nowrap' }}>{st.label}</div>
                   </div>
                 </div>
               ))}
@@ -474,7 +517,7 @@ export default function AdminPage() {
 
               {/* Selected meeting detail */}
               {sel && selMeta && (
-                <SelectedMeeting sel={sel} meta={selMeta} now={now} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} post={post} flash={flash} password={password} fetchRooms={fetchRooms} />
+                <SelectedMeeting sel={sel} meta={selMeta} now={now} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} post={post} flash={flash} password={password} fetchRooms={fetchRooms} isMobile={isMobile} />
               )}
             </div>
           </>
@@ -501,7 +544,7 @@ export default function AdminPage() {
 
       {/* Toast */}
       {toast && (
-        <div style={S.toast}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a' }} />{toast}</div>
+        <div style={isMobile ? { ...S.toast, right: 16, left: 16, bottom: 16, justifyContent: 'center' } : S.toast}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a' }} />{toast}</div>
       )}
 
       {/* New meeting modal */}
@@ -581,7 +624,7 @@ export default function AdminPage() {
 
 /* ---------- selected meeting ---------- */
 
-function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, post, flash, password, fetchRooms }: {
+function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, post, flash, password, fetchRooms, isMobile }: {
   sel: RoomInfo;
   meta: RoomMeta;
   now: number;
@@ -593,8 +636,13 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
   flash: (m: string) => void;
   password: string;
   fetchRooms: () => void;
+  isMobile: boolean;
 }) {
   const roomName = sel.name;
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState('');
+  const startEditTitle = () => { setTitleInput(meta.title || ''); setEditingTitle(true); };
+  const saveTitle = () => { post({ action: 'set_title', roomName, title: titleInput.trim() }, 'Title updated'); setEditingTitle(false); };
   const pending = meta.knock.filter((k) => k.status === 'pending');
   const handRaisers = sel.participants.filter((p) => p.isHandRaised);
 
@@ -632,12 +680,33 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
   ];
 
   return (
-    <section style={S.detailCard}>
+    <section style={isMobile ? { ...S.detailCard, padding: 16, borderRadius: 22 } : S.detailCard}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-.01em' }}>{meta.title || roomName}</div>
+            {editingTitle ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  value={titleInput}
+                  onChange={(e) => setTitleInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') setEditingTitle(false); }}
+                  maxLength={100}
+                  placeholder={roomName}
+                  autoFocus
+                  style={S.titleInput}
+                />
+                <button className="adm-btn" onClick={saveTitle} style={{ ...S.rowBtn, color: '#16a34a' }}>Save</button>
+                <button className="adm-btn" onClick={() => setEditingTitle(false)} style={{ ...S.rowBtn, color: '#7d849f' }}>Cancel</button>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-.01em' }}>{meta.title || roomName}</div>
+                <button className="adm-btn" aria-label="Edit title" title="Edit title" onClick={startEditTitle} style={S.iconBtn}>
+                  <Svg d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" color="#4f5675" size={15} sw={2} />
+                </button>
+              </>
+            )}
             <span style={{ ...S.privBadge, color: meta.visibility === 'private' ? '#a58cff' : '#16a34a' }}>
               <Svg d={meta.visibility === 'private' ? P.lock : P.globe} color="currentColor" size={11} sw={2.5} />
               {meta.visibility === 'private' ? 'Private' : 'Public'}
@@ -693,7 +762,7 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
               const isHost = p.role === 'host';
               const isListener = !p.canPublish;
               return (
-                <div key={p.sid} style={S.personRow}>
+                <div key={p.sid} style={isMobile ? { ...S.personRow, gridTemplateColumns: '1fr', gap: 12 } : S.personRow}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <div style={{ position: 'relative', flexShrink: 0 }}>
                       {p.imageUrl ? (
@@ -717,7 +786,7 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
                     {!isHost && (
                       isListener ? (
                         <button className="adm-btn" onClick={() => post({ action: 'grant_speak', roomName, identity: p.identity }, `${p.name || p.identity} can speak`)} style={{ ...S.rowBtn, color: '#16a34a' }}>Make speaker</button>
@@ -817,8 +886,11 @@ const S: Record<string, any> = {
   // login
   loginPage: { position: 'relative', minHeight: '100vh', background: 'radial-gradient(1200px 600px at 50% -10%, #e6e9f0 0%, #e6e9f0 55%)', color: '#1f2440', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' },
   glow: { position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle, rgba(111,151,255,0.18), transparent 60%)', filter: 'blur(20px)', pointerEvents: 'none' },
-  loginCard: { position: 'relative', width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18, padding: 36, borderRadius: 28, background: '#e6e9f0', boxShadow: '12px 12px 28px #c3c8d4', boxSizing: 'border-box' },
+  loginCard: { position: 'relative', width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18, padding: 36, borderRadius: 28, background: '#e6e9f0', boxShadow: '14px 14px 30px #cdd2de, -8px -8px 20px #eef1f7', boxSizing: 'border-box' },
   loginBrandIcon: { width: 44, height: 44, borderRadius: 14, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loginLogoRing: { width: 72, height: 72, borderRadius: 24, background: '#e6e9f0', boxShadow: '7px 7px 16px #cdd2de, -5px -5px 12px #eef1f7', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loginFeature: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 8px', borderRadius: 16, boxShadow: 'inset 3px 3px 7px #cdd2de, inset -3px -3px 7px #eef1f7' },
+  loginFeatureIcon: { width: 34, height: 34, borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #cdd2de, -2px -2px 6px #eef1f7', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   inputWrap: { display: 'flex', alignItems: 'center', gap: 10, height: 52, padding: '0 10px 0 16px', borderRadius: 14, background: '#e6e9f0', boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' },
   inputBare: { flex: 1, minWidth: 0, height: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#1f2440', fontSize: 15, fontFamily: FONT },
   eyeBtn: { flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer', background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -864,6 +936,7 @@ const S: Record<string, any> = {
   rolePill: { height: 22, padding: '0 8px', flexShrink: 0, borderRadius: 7, boxShadow: 'inset 2px 2px 4px #c3c8d4, inset -2px -2px 4px #ffffff', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 700 },
   rowBtn: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 34, padding: '0 12px', borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' },
   iconBtn: { border: 'none', cursor: 'pointer', width: 34, height: 34, borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  titleInput: { fontFamily: FONT, fontSize: 20, fontWeight: 700, color: '#1f2440', background: '#e6e9f0', border: 'none', borderRadius: 12, padding: '8px 14px', minWidth: 220, boxShadow: 'inset 3px 3px 7px #c3c8d4, inset -3px -3px 7px #ffffff', outline: 'none' },
   reqCard: { padding: 14, borderRadius: 18, background: '#e6e9f0', boxShadow: '5px 5px 11px #c3c8d4', display: 'flex', alignItems: 'center', gap: 12 },
   reqAvatar: { width: 38, height: 38, flexShrink: 0, borderRadius: '50%', objectFit: 'cover' },
   reqTextBtn: { border: 'none', cursor: 'pointer', fontFamily: FONT, height: 34, padding: '0 12px', borderRadius: 11, background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', fontSize: 12, fontWeight: 700 },

@@ -428,6 +428,22 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case 'set_title': {
+        const { title } = body;
+        const cleanTitle = typeof title === 'string' ? title.trim().slice(0, 100) : '';
+        const rooms = await svc.listRooms([roomName]);
+        const target = rooms.find((r) => r.name === roomName);
+        let meta: Record<string, unknown> = {};
+        try { meta = JSON.parse(target?.metadata || '{}'); } catch {}
+        if (cleanTitle) {
+          meta.title = cleanTitle;
+        } else {
+          delete meta.title;
+        }
+        await svc.updateRoomMetadata(roomName, JSON.stringify(meta));
+        return NextResponse.json({ success: true, message: 'Title updated' });
+      }
+
       case 'lock_room': {
         const { locked } = body;
         const rooms = await svc.listRooms([roomName]);

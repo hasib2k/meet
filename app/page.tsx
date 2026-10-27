@@ -24,6 +24,8 @@ function HomeContent() {
   const [profileBio, setProfileBio] = useState('');
   const [editingBio, setEditingBio] = useState(false);
   const [bioInput, setBioInput] = useState('');
+  // roomName -> true (live) | false (ended/gone). Undefined = not checked yet.
+  const [activeMeetings, setActiveMeetings] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setHistory(getMeetingHistory());
@@ -31,6 +33,30 @@ function HomeContent() {
       setProfileBio(localStorage.getItem('mytalk_profile_bio') || '');
     } catch {}
   }, []);
+
+  // Check which history meetings are still live, so Rejoin is only offered for
+  // meetings that actually exist (not expired / admin-ended ones).
+  const historyKey = history.map((m) => m.roomName).join(',');
+  useEffect(() => {
+    const codes = history.map((m) => m.roomName);
+    if (codes.length === 0) { setActiveMeetings({}); return; }
+    let cancelled = false;
+    Promise.all(
+      codes.map(async (code) => {
+        try {
+          const res = await fetch(`/api/room-info?roomName=${encodeURIComponent(code)}`);
+          const data = await res.json();
+          return [code, data?.exists === true] as const;
+        } catch {
+          return [code, false] as const;
+        }
+      }),
+    ).then((entries) => {
+      if (!cancelled) setActiveMeetings(Object.fromEntries(entries));
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historyKey]);
 
   const persistBio = (text: string) => {
     const trimmed = text.trim();
@@ -93,6 +119,8 @@ function HomeContent() {
   };
 
   const handleRejoin = (roomName: string, role: string, hk?: string) => {
+    // Don't let an ended/expired meeting be rejoined.
+    if (activeMeetings[roomName] === false) return;
     saveMeeting(roomName, role, hk);
     if (role === 'host' && hk) {
       router.push(`/rooms/${roomName}?role=host&hk=${encodeURIComponent(hk)}`);
@@ -230,22 +258,27 @@ function HomeContent() {
                     <span className="dk-history-label">Recent Meetings</span>
                     {history.length > 0 ? (
                       <div className="dk-history-list">
-                        {history.slice(0, 4).map((m) => (
+                        {history.slice(0, 4).map((m) => {
+                          const ended = activeMeetings[m.roomName] === false;
+                          return (
                           <div key={m.roomName} className="dk-history-item">
                             <div className="dk-history-icon">
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
                                 <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                               </svg>
                             </div>
-                            <div className="dk-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
+                            <div className="dk-history-info" onClick={ended ? undefined : () => handleRejoin(m.roomName, m.role, m.hk)} style={ended ? { cursor: 'default' } : undefined}>
                               <span className="dk-history-name">{m.roomName}</span>
                               <span className="dk-history-meta">
-                                {m.role === 'host' ? 'Hosted' : 'Joined'} &middot; {formatTimeAgo(m.timestamp)}
+                                {ended ? 'Ended' : m.role === 'host' ? 'Hosted' : 'Joined'} &middot; {formatTimeAgo(m.timestamp)}
                               </span>
                             </div>
-                            <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
+                            {ended
+                              ? <span className="rejoin-ended">Ended</span>
+                              : <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="dk-recent-empty">No recent meetings. Start one or join with a code.</div>
@@ -279,27 +312,32 @@ function HomeContent() {
                 </div>
                 {history.length > 0 ? (
                   <div className="dk-history-grid">
-                    {history.map((m) => (
+                    {history.map((m) => {
+                      const ended = activeMeetings[m.roomName] === false;
+                      return (
                       <div key={m.roomName} className="dk-history-card">
                         <div className="dk-history-icon">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
                           </svg>
                         </div>
-                        <div className="dk-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
+                        <div className="dk-history-info" onClick={ended ? undefined : () => handleRejoin(m.roomName, m.role, m.hk)} style={ended ? { cursor: 'default' } : undefined}>
                           <span className="dk-history-name">{m.roomName}</span>
                           <span className="dk-history-meta">
-                            {m.role === 'host' ? 'Hosted' : 'Joined'} &middot; {formatTimeAgo(m.timestamp)}
+                            {ended ? 'Ended' : m.role === 'host' ? 'Hosted' : 'Joined'} &middot; {formatTimeAgo(m.timestamp)}
                           </span>
                         </div>
-                        <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
+                        {ended
+                          ? <span className="rejoin-ended">Ended</span>
+                          : <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>}
                         <button className="dk-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                           </svg>
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="dk-history-empty-card">
@@ -427,19 +465,22 @@ function HomeContent() {
                 {recentMeetings.length > 0 && (
                   <div className="dk-profile-recent">
                     <div className="dk-recent-head">Recent meetings</div>
-                    {recentMeetings.map((m) => (
+                    {recentMeetings.map((m) => {
+                      const ended = activeMeetings[m.roomName] === false;
+                      return (
                       <div className="dk-recent-item" key={m.roomName}>
                         <div className="dk-recent-info">
                           <span className="dk-recent-name">{m.roomName}</span>
                           <span className="dk-recent-meta">
-                            {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
+                            {ended ? 'Ended' : m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
                           </span>
                         </div>
-                        <button className="dk-recent-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
-                          Rejoin
-                        </button>
+                        {ended
+                          ? <span className="rejoin-ended">Ended</span>
+                          : <button className="dk-recent-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -518,24 +559,27 @@ function HomeContent() {
                 <div className="m-join-label">Recent Meetings</div>
                 {history.length > 0 ? (
                   <div className="meeting-history-list">
-                    {history.slice(0, 4).map((m) => (
+                    {history.slice(0, 4).map((m) => {
+                      const ended = activeMeetings[m.roomName] === false;
+                      return (
                       <div key={m.roomName} className="meeting-history-item">
                         <div className="meeting-history-icon">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
                             <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                           </svg>
                         </div>
-                        <div className="meeting-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
+                        <div className="meeting-history-info" onClick={ended ? undefined : () => handleRejoin(m.roomName, m.role, m.hk)} style={ended ? { cursor: 'default' } : undefined}>
                           <span className="meeting-history-name">{m.roomName}</span>
                           <span className="meeting-history-meta">
-                            {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
+                            {ended ? 'Ended' : m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
                           </span>
                         </div>
-                        <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
-                          Rejoin
-                        </button>
+                        {ended
+                          ? <span className="rejoin-ended">Ended</span>
+                          : <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="m-recent-empty">No recent meetings. Start one or join with a code.</div>
@@ -553,30 +597,46 @@ function HomeContent() {
               )}
             </div>
             {history.length > 0 ? (
-              <div className="meeting-history-list">
-                {history.map((m) => (
-                  <div key={m.roomName} className="meeting-history-item">
-                    <div className="meeting-history-icon">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
-                        <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-                      </svg>
+              <div className="hist-timeline">
+                {history.map((m, i) => {
+                  const d = new Date(m.timestamp);
+                  const isHost = m.role === 'host';
+                  const ended = activeMeetings[m.roomName] === false;
+                  const color = ended ? '#9aa0b8' : isHost ? '#16a34a' : '#3f6fe0';
+                  const isLast = i === history.length - 1;
+                  return (
+                    <div key={m.roomName} className="hist-row">
+                      <div className="hist-date">
+                        <div className="hist-day">{d.getDate()}</div>
+                        <div className="hist-mon">{d.toLocaleString('en-US', { month: 'short' })}</div>
+                      </div>
+                      <div className="hist-track">
+                        <div className="hist-dot" style={{ borderColor: color }} />
+                        <div className="hist-line" style={{ background: isLast ? 'transparent' : '#d5d9e3', boxShadow: isLast ? 'none' : undefined }} />
+                      </div>
+                      <div className="hist-card-wrap">
+                        <div
+                          className={`hist-card${ended ? ' is-ended' : ''}`}
+                          onClick={ended ? undefined : () => handleRejoin(m.roomName, m.role, m.hk)}
+                          role={ended ? undefined : 'button'}
+                        >
+                          <button className="hist-remove" onClick={(e) => { e.stopPropagation(); handleRemove(m.roomName); }} aria-label="Remove">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
+                          </button>
+                          <div className="hist-badge" style={{ background: color }}>{ended ? 'Ended' : isHost ? 'Hosted' : 'Joined'}</div>
+                          <div className="hist-title">{m.roomName}</div>
+                          <div className="hist-foot">
+                            <div className="hist-host">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="#8a90aa"><circle cx="12" cy="8" r="4" /><path d="M4 20a8 8 0 0 1 16 0Z" /></svg>
+                              {ended ? 'Meeting ended' : isHost ? 'Hosted by you' : 'You joined'}
+                            </div>
+                            <div className="hist-tag">{formatTimeAgo(m.timestamp)}</div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="meeting-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
-                      <span className="meeting-history-name">{m.roomName}</span>
-                      <span className="meeting-history-meta">
-                        {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
-                      </span>
-                    </div>
-                    <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
-                      Rejoin
-                    </button>
-                    <button className="meeting-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="mobile-empty-state">
@@ -605,6 +665,7 @@ function HomeContent() {
               lastActive={lastActive}
               recentMeetings={recentMeetings}
               onRejoin={handleRejoin}
+              activeMeetings={activeMeetings}
             />
           </div>
         </main>
@@ -653,6 +714,7 @@ function ProfileTabContent({
   lastActive,
   recentMeetings,
   onRejoin,
+  activeMeetings,
 }: {
   session: any;
   userInitial: string;
@@ -664,6 +726,7 @@ function ProfileTabContent({
   lastActive: number | null;
   recentMeetings: MeetingRecord[];
   onRejoin: (roomName: string, role: string, hk?: string) => void;
+  activeMeetings: Record<string, boolean>;
 }) {
   const [guestName, setGuestName] = useState(() => {
     try { return localStorage.getItem('guestName') || ''; } catch { return ''; }
@@ -750,15 +813,20 @@ function ProfileTabContent({
       {recentMeetings.length > 0 && (
         <div className="mobile-profile-recent">
           <div className="mobile-recent-head">Recent meetings</div>
-          {recentMeetings.map((m) => (
+          {recentMeetings.map((m) => {
+            const ended = activeMeetings[m.roomName] === false;
+            return (
             <div className="mobile-recent-item" key={m.roomName}>
               <div className="mobile-recent-info">
                 <span className="mobile-recent-name">{m.roomName}</span>
-                <span className="mobile-recent-meta">{m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}</span>
+                <span className="mobile-recent-meta">{ended ? 'Ended' : m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}</span>
               </div>
-              <button className="mobile-recent-rejoin" onClick={() => onRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
+              {ended
+                ? <span className="rejoin-ended">Ended</span>
+                : <button className="mobile-recent-rejoin" onClick={() => onRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
