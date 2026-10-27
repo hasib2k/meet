@@ -384,7 +384,7 @@ export default function AdminPage() {
   return (
     <div style={isMobile ? { ...S.shell, display: 'flex', flexDirection: 'column' } : S.shell}>
       {/* Sidebar */}
-      <aside style={isMobile ? { ...S.sidebar, position: 'static', height: 'auto', flexDirection: 'column', gap: 16, padding: '16px 16px 8px' } : S.sidebar}>
+      <aside style={isMobile ? { ...S.sidebar, position: 'static', height: 'auto', flexDirection: 'column', gap: 16, padding: 'max(16px, calc(env(safe-area-inset-top) + 8px)) 16px 8px' } : S.sidebar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px' }}>
           <div style={S.logoBox}><img src="/icons/logo_icon.png" alt="MyTalk" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

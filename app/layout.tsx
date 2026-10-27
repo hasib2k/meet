@@ -36,6 +36,9 @@ export const viewport: Viewport = {
   // header and the pre-join form — above the keyboard instead of being panned
   // out of view.
   interactiveWidget: 'resizes-content',
+  // Let the app draw into the iPhone notch / home-indicator areas so we can add
+  // our own safe-area padding via env(safe-area-inset-*).
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

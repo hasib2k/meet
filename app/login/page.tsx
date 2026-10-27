@@ -57,6 +57,7 @@ function LoginContent() {
         <button
           onClick={() => signIn('google', { callbackUrl })}
           style={styles.googleBtn}
+          className="login-google-btn"
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path
@@ -179,12 +180,10 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#1f2440',
     border: 'none',
     borderRadius: '1rem',
-    fontSize: '0.95rem',
-    fontWeight: 600,
+    fontSize: '1rem',
+    fontWeight: 700,
     cursor: 'pointer',
-    transition: 'all 0.2s',
     marginTop: '0.25rem',
-    boxShadow: '4px 4px 12px #cdd2de, -4px -4px 12px #eef1f7',
   },
   divider: {
     display: 'flex',
