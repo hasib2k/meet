@@ -912,7 +912,7 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
 
 const S: Record<string, any> = {
   // login
-  loginPage: { position: 'relative', minHeight: '100vh', background: 'radial-gradient(1200px 600px at 50% -10%, #e6e9f0 0%, #e6e9f0 55%)', color: '#1f2440', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' },
+  loginPage: { position: 'relative', height: '100vh', overflowY: 'auto', overflowX: 'hidden', background: 'radial-gradient(1200px 600px at 50% -10%, #e6e9f0 0%, #e6e9f0 55%)', color: '#1f2440', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, boxSizing: 'border-box' },
   glow: { position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle, rgba(111,151,255,0.18), transparent 60%)', filter: 'blur(20px)', pointerEvents: 'none' },
   loginCard: { position: 'relative', width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18, padding: 36, borderRadius: 28, background: '#e6e9f0', boxShadow: '14px 14px 30px #cdd2de, -8px -8px 20px #eef1f7', boxSizing: 'border-box' },
   loginBrandIcon: { width: 44, height: 44, borderRadius: 14, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -926,7 +926,7 @@ const S: Record<string, any> = {
   loginFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#7d849f', marginTop: 2 },
 
   // shell
-  shell: { minHeight: '100vh', background: '#e6e9f0', color: '#1f2440', fontFamily: FONT, display: 'grid', gridTemplateColumns: '240px minmax(0,1fr)' },
+  shell: { height: '100vh', overflowY: 'auto', background: '#e6e9f0', color: '#1f2440', fontFamily: FONT, display: 'grid', gridTemplateColumns: '240px minmax(0,1fr)' },
   sidebar: { position: 'sticky', top: 0, height: '100vh', boxSizing: 'border-box', padding: '28px 20px', display: 'flex', flexDirection: 'column', gap: 36 },
   logoBox: { width: 46, height: 46, borderRadius: 15, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   navCount: { minWidth: 24, height: 22, padding: '0 7px', boxSizing: 'border-box', borderRadius: 8, boxShadow: 'inset 2px 2px 4px #c3c8d4, inset -2px -2px 4px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#6a7192' },
