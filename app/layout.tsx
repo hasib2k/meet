@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     'MyTalk is a premium audio conferencing platform built for large meetings with up to 2,500 participants.',
   manifest: '/manifest.json',
   icons: {
-    icon: {
-      rel: 'icon',
-      url: '/favicon.ico',
-    },
-    apple: '/icons/icon-192.jpg',
+    icon: [
+      { url: '/favicon-32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icons/app-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,

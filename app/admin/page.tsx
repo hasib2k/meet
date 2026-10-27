@@ -275,7 +275,7 @@ export default function AdminPage() {
         <div style={S.glow} />
         <div style={S.loginCard}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={S.loginBrandIcon}><Svg d={P.mic} color="#3f6fe0" size={24} /></div>
+            <div style={S.loginBrandIcon}><img src="/icons/logo_icon.png" alt="MyTalk" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
             <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
             <div style={S.adminBadge}>Admin</div>
           </div>
@@ -345,7 +345,7 @@ export default function AdminPage() {
       {/* Sidebar */}
       <aside style={S.sidebar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px' }}>
-          <div style={S.logoBox}><Svg d={P.mic} color="#3f6fe0" size={22} /></div>
+          <div style={S.logoBox}><img src="/icons/logo_icon.png" alt="MyTalk" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>My<span style={{ color: '#3f6fe0' }}>Talk</span></div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#7d849f' }}>Admin console</div>
@@ -728,11 +728,12 @@ function SelectedMeeting({ sel, meta, now, query, setQuery, filter, setFilter, p
                     {!isHost && (
                       <button className="adm-btn" onClick={() => { if (confirm(`Make ${p.name || p.identity} a host?`)) post({ action: 'make_host', roomName, identity: p.identity }, `${p.name || p.identity} is now host`); }} style={{ ...S.rowBtn, color: '#3f6fe0' }}>Make host</button>
                     )}
-                    {!isHost && (
-                      <button className="adm-btn" aria-label="Remove" onClick={() => { if (confirm(`Remove ${p.name || p.identity}?`)) post({ action: 'remove_participant', roomName, identity: p.identity }, `${p.name || p.identity} removed`); }} style={S.iconBtn}>
-                        <Svg d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM17 11h6" color="#e04848" size={14} sw={2.4} />
-                      </button>
+                    {isHost && (
+                      <button className="adm-btn" onClick={() => { if (confirm(`Demote ${p.name || p.identity} from host?`)) post({ action: 'demote_host', roomName, identity: p.identity }, `${p.name || p.identity} demoted to listener`); }} style={{ ...S.rowBtn, color: '#d98a12' }}>Demote host</button>
                     )}
+                    <button className="adm-btn" aria-label="Remove" onClick={() => { if (confirm(`Remove ${p.name || p.identity} from the meeting?`)) post({ action: 'remove_participant', roomName, identity: p.identity }, `${p.name || p.identity} removed`); }} style={S.iconBtn}>
+                      <Svg d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM17 11h6" color="#e04848" size={14} sw={2.4} />
+                    </button>
                   </div>
                 </div>
               );
@@ -817,7 +818,7 @@ const S: Record<string, any> = {
   loginPage: { position: 'relative', minHeight: '100vh', background: 'radial-gradient(1200px 600px at 50% -10%, #e6e9f0 0%, #e6e9f0 55%)', color: '#1f2440', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' },
   glow: { position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle, rgba(111,151,255,0.18), transparent 60%)', filter: 'blur(20px)', pointerEvents: 'none' },
   loginCard: { position: 'relative', width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18, padding: 36, borderRadius: 28, background: '#e6e9f0', boxShadow: '12px 12px 28px #c3c8d4', boxSizing: 'border-box' },
-  loginBrandIcon: { width: 44, height: 44, borderRadius: 14, background: '#e6e9f0', boxShadow: 'inset 3px 3px 7px #c3c8d4, inset -3px -3px 7px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loginBrandIcon: { width: 44, height: 44, borderRadius: 14, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   inputWrap: { display: 'flex', alignItems: 'center', gap: 10, height: 52, padding: '0 10px 0 16px', borderRadius: 14, background: '#e6e9f0', boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' },
   inputBare: { flex: 1, minWidth: 0, height: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#1f2440', fontSize: 15, fontFamily: FONT },
   eyeBtn: { flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer', background: '#e6e9f0', boxShadow: '3px 3px 7px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -827,7 +828,7 @@ const S: Record<string, any> = {
   // shell
   shell: { minHeight: '100vh', background: '#e6e9f0', color: '#1f2440', fontFamily: FONT, display: 'grid', gridTemplateColumns: '240px minmax(0,1fr)' },
   sidebar: { position: 'sticky', top: 0, height: '100vh', boxSizing: 'border-box', padding: '28px 20px', display: 'flex', flexDirection: 'column', gap: 36 },
-  logoBox: { width: 46, height: 46, borderRadius: 15, background: '#e6e9f0', boxShadow: '5px 5px 10px #c3c8d4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  logoBox: { width: 46, height: 46, borderRadius: 15, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   navCount: { minWidth: 24, height: 22, padding: '0 7px', boxSizing: 'border-box', borderRadius: 8, boxShadow: 'inset 2px 2px 4px #c3c8d4, inset -2px -2px 4px #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#6a7192' },
   sidebarUser: { marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 18, boxShadow: 'inset 4px 4px 9px #c3c8d4, inset -4px -4px 9px #ffffff' },
   adminBadge: { height: 26, padding: '0 10px', borderRadius: 8, boxShadow: 'inset 2px 2px 5px #c3c8d4, inset -2px -2px 5px #ffffff', display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#6a7192' },

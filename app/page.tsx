@@ -5,7 +5,7 @@ import React, { Suspense, useState, useEffect } from 'react';
 import { useSession, signOut, signIn } from 'next-auth/react';
 import { getMeetingHistory, saveMeeting, removeMeeting, clearAllMeetings, formatTimeAgo, type MeetingRecord } from '@/lib/meetingHistory';
 
-type TabId = 'meet' | 'calls' | 'groups' | 'chat' | 'profile';
+type TabId = 'meet' | 'history' | 'profile';
 
 function generateRoomCode() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -131,9 +131,7 @@ function HomeContent() {
             {/* Logo */}
             <div className="dk-logo">
               <div className="dk-logo-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#3f6fe0">
-                  <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"/>
-                </svg>
+                <img src="/icons/logo_icon.png" alt="MyTalk" className="app-logo-img" />
               </div>
               <span className="dk-logo-text">My<span>Talk</span></span>
             </div>
@@ -142,9 +140,7 @@ function HomeContent() {
             <nav className="dk-nav">
               {([
                 { id: 'meet' as TabId, label: 'Meet', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg> },
-                { id: 'calls' as TabId, label: 'Calls', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg> },
-                { id: 'groups' as TabId, label: 'Groups', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg> },
-                { id: 'chat' as TabId, label: 'Chat', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg> },
+                { id: 'history' as TabId, label: 'History', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg> },
                 { id: 'profile' as TabId, label: 'Profile', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> },
               ]).map(tab => (
                 <button
@@ -168,7 +164,9 @@ function HomeContent() {
         <div className="dk-main">
           {/* Header */}
           <header className="dk-header">
-            <div className="dk-header-greeting">Good to see you, {displayName}</div>
+            <div className="dk-header-greeting">
+              {activeTab === 'history' ? 'Your past meetings' : activeTab === 'profile' ? 'Your profile' : `Good to see you, ${displayName}`}
+            </div>
             <div className="dk-header-right">
               {session?.user ? (
                 <>
@@ -228,14 +226,11 @@ function HomeContent() {
                   {joinError && <div className="join-error">{joinError}</div>}
 
                   {/* Recent Meetings */}
-                  {history.length > 0 && (
-                    <div className="dk-history">
-                      <div className="dk-history-header">
-                        <span className="dk-history-label">Recent Meetings</span>
-                        <button className="dk-history-clear" onClick={handleClearAll}>Clear all</button>
-                      </div>
+                  <div className="dk-recent-section">
+                    <span className="dk-history-label">Recent Meetings</span>
+                    {history.length > 0 ? (
                       <div className="dk-history-list">
-                        {history.map((m) => (
+                        {history.slice(0, 4).map((m) => (
                           <div key={m.roomName} className="dk-history-item">
                             <div className="dk-history-icon">
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
@@ -249,16 +244,13 @@ function HomeContent() {
                               </span>
                             </div>
                             <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
-                            <button className="dk-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                              </svg>
-                            </button>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="dk-recent-empty">No recent meetings. Start one or join with a code.</div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Illustration card */}
@@ -276,57 +268,56 @@ function HomeContent() {
               </div>
             )}
 
-            {/* === CALLS TAB === */}
-            {activeTab === 'calls' && (
-              <div className="dk-empty-tab">
-                <h2 className="dk-empty-title">Calls</h2>
-                <button className="dk-empty-action-btn">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                  Start a Call
-                </button>
-                <div className="dk-empty-circle">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>
-                  </svg>
+            {/* === HISTORY TAB === */}
+            {activeTab === 'history' && (
+              <div className="dk-history-tab">
+                <div className="dk-history-tab-head">
+                  <h2 className="dk-profile-title">History</h2>
+                  {history.length > 0 && (
+                    <button className="dk-history-clear" onClick={handleClearAll}>Clear all</button>
+                  )}
                 </div>
-                <span className="dk-empty-heading">No recent calls</span>
-                <span className="dk-empty-sub">Group and direct calls will show up here</span>
-              </div>
-            )}
-
-            {/* === GROUPS TAB === */}
-            {activeTab === 'groups' && (
-              <div className="dk-empty-tab">
-                <h2 className="dk-empty-title">Groups</h2>
-                <button className="dk-empty-action-btn green">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                  Create Group
-                </button>
-                <div className="dk-empty-circle green">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>
-                  </svg>
-                </div>
-                <span className="dk-empty-heading">No groups yet</span>
-                <span className="dk-empty-sub">Create groups and start audio calls together</span>
-              </div>
-            )}
-
-            {/* === CHAT TAB === */}
-            {activeTab === 'chat' && (
-              <div className="dk-empty-tab">
-                <h2 className="dk-empty-title">Chats</h2>
-                <button className="dk-empty-action-btn orange">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                  New Chat
-                </button>
-                <div className="dk-empty-circle orange">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><path d="M8 8h8M8 12h5"/>
-                  </svg>
-                </div>
-                <span className="dk-empty-heading">No conversations</span>
-                <span className="dk-empty-sub">Message anyone on MyTalk</span>
+                {history.length > 0 ? (
+                  <div className="dk-history-grid">
+                    {history.map((m) => (
+                      <div key={m.roomName} className="dk-history-card">
+                        <div className="dk-history-icon">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+                          </svg>
+                        </div>
+                        <div className="dk-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
+                          <span className="dk-history-name">{m.roomName}</span>
+                          <span className="dk-history-meta">
+                            {m.role === 'host' ? 'Hosted' : 'Joined'} &middot; {formatTimeAgo(m.timestamp)}
+                          </span>
+                        </div>
+                        <button className="dk-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>Rejoin</button>
+                        <button className="dk-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="dk-history-empty-card">
+                    <div className="dk-history-empty-inner">
+                      <div className="dk-history-empty-circle">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+                        </svg>
+                      </div>
+                      <span className="dk-history-empty-title">No meeting history</span>
+                      <span className="dk-history-empty-sub">Meetings you start or join will show up here</span>
+                      <button className="dk-history-start-btn" onClick={handleNewMeeting}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Start a meeting
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -463,19 +454,17 @@ function HomeContent() {
         <div className="topbar">
           <div className="topbar-logo">
             <div className="topbar-mic-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#3f6fe0">
-                <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"/>
-              </svg>
+              <img src="/icons/logo_icon.png" alt="MyTalk" className="app-logo-img" />
             </div>
             <span>My<span style={{ color: '#3f6fe0' }}>Talk</span></span>
           </div>
-          <div className="topbar-user-mobile">
+          <button className="topbar-user-mobile" onClick={() => setActiveTab('profile')} aria-label="Profile">
             {session?.user?.image ? (
               <img src={session.user.image} alt="" referrerPolicy="no-referrer" className="topbar-mobile-avatar" />
             ) : (
               <div className="topbar-mobile-initial">{userInitial}</div>
             )}
-          </div>
+          </button>
         </div>
 
         {/* Main content */}
@@ -524,15 +513,12 @@ function HomeContent() {
                 {joinError && <div className="join-error">{joinError}</div>}
               </div>
 
-              {/* Meeting History */}
-              {history.length > 0 && (
-                <div className="meeting-history">
-                  <div className="meeting-history-header">
-                    <h3 className="meeting-history-title">Recent Meetings</h3>
-                    <button className="meeting-history-clear" onClick={handleClearAll}>Clear</button>
-                  </div>
+              {/* Recent Meetings */}
+              <div className="m-recent-section">
+                <div className="m-join-label">Recent Meetings</div>
+                {history.length > 0 ? (
                   <div className="meeting-history-list">
-                    {history.map((m) => (
+                    {history.slice(0, 4).map((m) => (
                       <div key={m.roomName} className="meeting-history-item">
                         <div className="meeting-history-icon">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
@@ -548,59 +534,61 @@ function HomeContent() {
                         <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
                           Rejoin
                         </button>
-                        <button className="meeting-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                          </svg>
-                        </button>
                       </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="m-recent-empty">No recent meetings. Start one or join with a code.</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ===== HISTORY TAB ===== */}
+          <div className={`mobile-tab-content ${activeTab !== 'history' ? 'mobile-tab-hidden' : ''}`}>
+            <div className="mobile-tab-header">
+              <h2>History</h2>
+              {history.length > 0 && (
+                <button className="meeting-history-clear" onClick={handleClearAll}>Clear all</button>
               )}
             </div>
-          </div>
-
-          {/* ===== CALLS TAB ===== */}
-          <div className={`mobile-tab-content ${activeTab !== 'calls' ? 'mobile-tab-hidden' : ''}`}>
-            <div className="mobile-tab-header"><h2>Calls</h2></div>
-            <div className="mobile-empty-state">
-              <div className="mobile-empty-icon calls">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>
-                </svg>
+            {history.length > 0 ? (
+              <div className="meeting-history-list">
+                {history.map((m) => (
+                  <div key={m.roomName} className="meeting-history-item">
+                    <div className="meeting-history-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round">
+                        <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </div>
+                    <div className="meeting-history-info" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
+                      <span className="meeting-history-name">{m.roomName}</span>
+                      <span className="meeting-history-meta">
+                        {m.role === 'host' ? 'Hosted' : 'Joined'} · {formatTimeAgo(m.timestamp)}
+                      </span>
+                    </div>
+                    <button className="meeting-history-rejoin" onClick={() => handleRejoin(m.roomName, m.role, m.hk)}>
+                      Rejoin
+                    </button>
+                    <button className="meeting-history-remove" onClick={() => handleRemove(m.roomName)} title="Remove">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
               </div>
-              <span className="mobile-empty-title">No recent calls</span>
-              <span className="mobile-empty-sub">Group and direct calls will show up here</span>
-            </div>
-          </div>
-
-          {/* ===== GROUPS TAB ===== */}
-          <div className={`mobile-tab-content ${activeTab !== 'groups' ? 'mobile-tab-hidden' : ''}`}>
-            <div className="mobile-tab-header"><h2>Groups</h2></div>
-            <div className="mobile-empty-state">
-              <div className="mobile-empty-icon groups">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>
-                </svg>
+            ) : (
+              <div className="mobile-empty-state">
+                <div className="dk-history-empty-circle">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+                  </svg>
+                </div>
+                <span className="mobile-empty-title">No meeting history</span>
+                <span className="mobile-empty-sub">Meetings you start or join will show up here</span>
               </div>
-              <span className="mobile-empty-title">No groups yet</span>
-              <span className="mobile-empty-sub">Create groups and start audio calls together</span>
-            </div>
-          </div>
-
-          {/* ===== CHAT TAB ===== */}
-          <div className={`mobile-tab-content ${activeTab !== 'chat' ? 'mobile-tab-hidden' : ''}`}>
-            <div className="mobile-tab-header"><h2>Chats</h2></div>
-            <div className="mobile-empty-state">
-              <div className="mobile-empty-icon chat">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><path d="M8 8h8M8 12h5"/>
-                </svg>
-              </div>
-              <span className="mobile-empty-title">No conversations</span>
-              <span className="mobile-empty-sub">Message anyone on MyTalk</span>
-            </div>
+            )}
           </div>
 
           {/* ===== PROFILE TAB ===== */}
@@ -630,23 +618,11 @@ function HomeContent() {
             </svg>
             <span>Meet</span>
           </button>
-          <button className={`bottom-nav-item ${activeTab === 'calls' ? 'active' : ''}`} onClick={() => setActiveTab('calls')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+          <button className={`bottom-nav-item ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
             </svg>
-            <span>Calls</span>
-          </button>
-          <button className={`bottom-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => setActiveTab('groups')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-            </svg>
-            <span>Groups</span>
-          </button>
-          <button className={`bottom-nav-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-            </svg>
-            <span>Chat</span>
+            <span>History</span>
           </button>
           <button className={`bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
             {session?.user?.image ? (

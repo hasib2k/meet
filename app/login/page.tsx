@@ -4,6 +4,36 @@ import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import React, { Suspense } from 'react';
 
+const FEATURES = [
+  {
+    title: 'Crystal-clear HD audio',
+    sub: 'Low-latency voice built for real conversations',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f6fe0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><path d="M12 19v4" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Up to 2,500 participants',
+    sub: 'Scale from a quick call to a town hall',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Private & secure rooms',
+    sub: 'Lock rooms and approve guests with knock-to-join',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d98a12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+  },
+];
+
 function LoginContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -11,19 +41,15 @@ function LoginContent() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        {/* Logo */}
-        <div style={styles.logoWrap}>
-          <svg width="48" height="48" viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="10" fill="#3f6fe0" />
-            <path
-              d="M12 15C12 13.8954 12.8954 13 14 13H20C21.1046 13 22 13.8954 22 15V25C22 26.1046 21.1046 27 20 27H14C12.8954 27 12 26.1046 12 25V15Z"
-              fill="white"
-            />
-            <path d="M24 17L28 14V26L24 23V17Z" fill="white" />
-          </svg>
+        {/* Brand */}
+        <div style={styles.brandRow}>
+          <img src="/icons/logo_icon.png" alt="MyTalk" style={styles.logoImg} />
+          <span style={styles.brandText}>
+            My<span style={{ color: '#3f6fe0' }}>Talk</span>
+          </span>
         </div>
 
-        <h1 style={styles.title}>Sign in to MyTalk</h1>
+        <h1 style={styles.title}>Welcome to MyTalk</h1>
         <p style={styles.subtitle}>
           Sign in with your Google account to join or create meetings
         </p>
@@ -53,8 +79,27 @@ function LoginContent() {
           <span>Continue with Google</span>
         </button>
 
+        <div style={styles.divider}>
+          <span style={styles.dividerLine} />
+          <span style={styles.dividerText}>What you get</span>
+          <span style={styles.dividerLine} />
+        </div>
+
+        {/* Feature highlights */}
+        <div style={styles.features}>
+          {FEATURES.map((f) => (
+            <div key={f.title} style={styles.featureRow}>
+              <div style={styles.featureIcon}>{f.icon}</div>
+              <div style={styles.featureText}>
+                <span style={styles.featureTitle}>{f.title}</span>
+                <span style={styles.featureSub}>{f.sub}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <p style={styles.footer}>
-          Audio-only meetings for up to 2,500 participants
+          By continuing you agree to use MyTalk responsibly. No downloads, works in your browser.
         </p>
       </div>
     </div>
@@ -71,27 +116,42 @@ export default function LoginPage() {
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
-    height: '100%',
+    minHeight: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     background: '#e6e9f0',
+    padding: '24px 16px',
   },
   card: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '1.25rem',
-    padding: '3rem 2.5rem',
+    gap: '1rem',
+    padding: '2.5rem 2.25rem',
     background: '#e6e9f0',
     border: 'none',
-    borderRadius: '1.5rem',
+    borderRadius: '1.75rem',
     width: '100%',
-    maxWidth: '400px',
-    boxShadow: '8px 8px 20px #c3c8d4, -8px -8px 20px #ffffff',
+    maxWidth: '420px',
+    boxShadow: '8px 8px 20px #cdd2de, -7px -7px 16px #eef1f7',
   },
-  logoWrap: {
-    marginBottom: '0.5rem',
+  brandRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    marginBottom: '0.25rem',
+  },
+  logoImg: {
+    width: '46px',
+    height: '46px',
+    objectFit: 'contain',
+  },
+  brandText: {
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: '#1f2440',
+    letterSpacing: '-0.01em',
   },
   title: {
     fontSize: '1.5rem',
@@ -99,10 +159,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#1f2440',
     margin: 0,
     textAlign: 'center',
+    letterSpacing: '-0.01em',
   },
   subtitle: {
     fontSize: '0.9rem',
-    color: 'rgba(0, 0, 0, 0.5)',
+    color: '#7d849f',
     margin: 0,
     textAlign: 'center',
     lineHeight: 1.5,
@@ -114,22 +175,84 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.75rem',
     width: '100%',
     padding: '0.875rem 1.5rem',
-    background: 'linear-gradient(145deg, #eef0f5, #e6e9f0)',
+    background: '#e6e9f0',
     color: '#1f2440',
     border: 'none',
-    borderRadius: '2rem',
+    borderRadius: '1rem',
     fontSize: '0.95rem',
-    fontWeight: 500,
+    fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s',
+    marginTop: '0.25rem',
+    boxShadow: '4px 4px 12px #cdd2de, -4px -4px 12px #eef1f7',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    width: '100%',
     marginTop: '0.5rem',
-    boxShadow: '4px 4px 12px #c3c8d4, -4px -4px 12px #ffffff',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: '#d4d8e2',
+  },
+  dividerText: {
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: '#9aa0b8',
+  },
+  features: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    width: '100%',
+  },
+  featureRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '12px 14px',
+    borderRadius: '16px',
+    background: '#e6e9f0',
+    boxShadow: 'inset 3px 3px 7px #cdd2de, inset -3px -3px 7px #eef1f7',
+  },
+  featureIcon: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '12px',
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#e6e9f0',
+    boxShadow: '3px 3px 7px #cdd2de, -3px -3px 7px #eef1f7',
+  },
+  featureText: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    minWidth: 0,
+  },
+  featureTitle: {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: '#1f2440',
+  },
+  featureSub: {
+    fontSize: '0.78rem',
+    color: '#7d849f',
+    lineHeight: 1.35,
   },
   footer: {
-    fontSize: '0.8rem',
-    color: 'rgba(0, 0, 0, 0.3)',
+    fontSize: '0.75rem',
+    color: '#9aa0b8',
     margin: 0,
     textAlign: 'center',
-    marginTop: '0.5rem',
+    marginTop: '0.25rem',
+    lineHeight: 1.5,
   },
 };

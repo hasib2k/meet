@@ -244,6 +244,42 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'Participant removed' });
       }
 
+      case 'demote_host': {
+        // Revoke host: drop to listener (no publish) AND remove from the room's
+        // persistent hosts list so they can't auto-rejoin as host.
+        const demoteList = await svc.listParticipants(roomName);
+        const demoteTarget = demoteList.find((p) => p.identity === identity);
+        let demoteMeta: Record<string, unknown> = {};
+        if (demoteTarget) {
+          try { demoteMeta = JSON.parse(demoteTarget.metadata || '{}'); } catch {}
+        }
+        demoteMeta.role = 'listener';
+        demoteMeta.isHandRaised = false;
+        await svc.updateParticipant(roomName, identity, {
+          metadata: JSON.stringify(demoteMeta),
+          permission: {
+            canPublish: false,
+            canPublishData: true,
+            canSubscribe: true,
+          },
+        });
+
+        // Remove this user's name from the room metadata hosts list.
+        const demoteName = demoteTarget?.name || identity.split('__')[0];
+        try {
+          const rooms = await svc.listRooms([roomName]);
+          if (rooms.length > 0) {
+            let roomMeta: Record<string, unknown> = {};
+            try { roomMeta = JSON.parse(rooms[0].metadata || '{}'); } catch {}
+            const hosts: string[] = Array.isArray(roomMeta.hosts) ? roomMeta.hosts as string[] : [];
+            roomMeta.hosts = hosts.filter((h) => h !== demoteName);
+            await svc.updateRoomMetadata(roomName, JSON.stringify(roomMeta));
+          }
+        } catch {}
+
+        return NextResponse.json({ success: true, message: 'Host demoted to listener' });
+      }
+
       case 'make_host': {
         const hostList = await svc.listParticipants(roomName);
         const hostTarget = hostList.find((p) => p.identity === identity);
