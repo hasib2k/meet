@@ -152,6 +152,7 @@ export default function AdminPage() {
     return false;
   });
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
+  const [endedRooms, setEndedRooms] = useState<Array<{ name: string; sid: string; title: string; endedAt: number; creationTime: number; host: string; visibility: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -194,6 +195,7 @@ export default function AdminPage() {
       if (res.status === 401) { setIsAuthed(false); setError('Invalid password'); return; }
       const data = await res.json();
       setRooms(data.rooms || []);
+      setEndedRooms(data.endedRooms || []);
       setError('');
     } catch {
       setError('Failed to fetch rooms');
@@ -211,6 +213,7 @@ export default function AdminPage() {
       setError('');
       const data = await res.json();
       setRooms(data.rooms || []);
+      setEndedRooms(data.endedRooms || []);
     } else {
       setError('Wrong password');
     }
@@ -370,7 +373,7 @@ export default function AdminPage() {
 
   const navItems: { key: Tab; label: string; icon: string; count: number }[] = [
     { key: 'live', label: 'Live', icon: P.live, count: rooms.length },
-    { key: 'history', label: 'History', icon: P.hist, count: 0 },
+    { key: 'history', label: 'History', icon: P.hist, count: endedRooms.length },
   ];
   const titles: Record<Tab, [string, string]> = {
     live: ['Live meetings', 'Monitor and moderate meetings in real time'],
@@ -534,11 +537,36 @@ export default function AdminPage() {
 
         {/* HISTORY TAB */}
         {tab === 'history' && (
-          <div style={S.emptyBig}>
-            <Svg d={P.hist} color="#3f6fe0" size={40} sw={1.6} />
-            <div style={{ fontSize: 18, fontWeight: 700 }}>No history yet</div>
-            <div style={{ fontSize: 14, color: '#6a7192', maxWidth: 380 }}>Ended meetings aren&apos;t archived on the server. Live meetings appear under the Live tab.</div>
-          </div>
+          endedRooms.length === 0 ? (
+            <div style={S.emptyBig}>
+              <Svg d={P.hist} color="#3f6fe0" size={40} sw={1.6} />
+              <div style={{ fontSize: 18, fontWeight: 700 }}>No ended meetings yet</div>
+              <div style={{ fontSize: 14, color: '#6a7192', maxWidth: 380 }}>When a meeting is ended it will appear here. Live meetings are under the Live tab.</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {endedRooms.map((r) => (
+                <div key={r.sid || r.name} style={{ ...S.reqCard, justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                    <div style={{ ...S.miniBadgeInset, width: 42, height: 42, borderRadius: 14, flexShrink: 0 }}>
+                      <Svg d={P.hist} color="#9aa0b8" size={18} />
+                    </div>
+                    <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title || r.name}</div>
+                        <span style={{ ...S.rolePill, color: '#e04848' }}>Ended</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#7d849f' }}>
+                        {r.name}
+                        {r.host ? ` · Hosted by ${r.host}` : ''}
+                        {r.endedAt ? ` · Ended ${now ? fmtDur(now - r.endedAt) : ''} ago` : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </main>
 

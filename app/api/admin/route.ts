@@ -85,6 +85,29 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Ended meetings (tombstones) → History. Only for the dashboard (no roomName).
+    const endedRooms = roomName
+      ? []
+      : allRooms
+          .map((room) => {
+            let meta: Record<string, unknown> = {};
+            try { meta = JSON.parse(room.metadata || '{}'); } catch {}
+            if (meta.ended !== true) return null;
+            const hosts = Array.isArray(meta.hosts) ? (meta.hosts as string[]) : [];
+            return {
+              name: room.name,
+              sid: room.sid,
+              title: (meta.title as string) || '',
+              endedAt: Number(meta.endedAt) || 0,
+              creationTime: Number(room.creationTime),
+              host: hosts[0] || '',
+              visibility: meta.visibility === 'private' ? 'private' : 'public',
+            };
+          })
+          .filter((r): r is NonNullable<typeof r> => r !== null)
+          .sort((a, b) => b.endedAt - a.endedAt)
+          .slice(0, 50);
+
     const roomsWithParticipants = await Promise.all(
       rooms.map(async (room) => {
         const participants = await svc.listParticipants(room.name);
@@ -123,7 +146,7 @@ export async function GET(request: NextRequest) {
       }),
     );
 
-    return NextResponse.json({ rooms: roomsWithParticipants });
+    return NextResponse.json({ rooms: roomsWithParticipants, endedRooms });
   } catch (error) {
     console.error('Admin API error:', error);
     return new NextResponse('Server error', { status: 500 });

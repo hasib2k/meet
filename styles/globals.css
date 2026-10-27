@@ -6130,6 +6130,101 @@ select:-webkit-autofill {
   transition: background-color 9999s ease-in-out 0s;
 }
 
+/* PWA install banner — slides in at the top when the app is installable */
+.pwa-install-banner {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  width: calc(100% - 24px);
+  max-width: 440px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 18px;
+  background: #e6e9f0;
+  box-shadow: 8px 8px 20px #cdd2de, -6px -6px 16px #eef1f7;
+  animation: pwa-slide-down 0.35s ease;
+}
+@keyframes pwa-slide-down {
+  from { opacity: 0; transform: translate(-50%, -16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.pwa-install-logo {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #e6e9f0;
+  box-shadow: inset 3px 3px 7px #cdd2de, inset -3px -3px 7px #eef1f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pwa-install-logo img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+.pwa-install-text {
+  flex: 1;
+  min-width: 0;
+}
+.pwa-install-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2440;
+}
+.pwa-install-sub {
+  font-size: 12px;
+  color: #7d849f;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pwa-install-btn {
+  height: 38px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #7aa0ff, #5a83ee);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 4px 4px 10px #cdd2de;
+  white-space: nowrap;
+}
+.pwa-install-btn:active {
+  box-shadow: inset 3px 3px 7px #4a6fc4;
+}
+.pwa-install-dismiss {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  background: #e6e9f0;
+  color: #7d849f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3px 3px 7px #cdd2de, -2px -2px 6px #eef1f7;
+}
+.pwa-install-dismiss:active {
+  box-shadow: inset 3px 3px 6px #cdd2de, inset -3px -3px 6px #eef1f7;
+}
+
 /* App logo image (replaces the old mic SVG in logo badges) */
 .app-logo-img {
   width: 100%;

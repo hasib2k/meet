@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/lib/AuthProvider';
 import { RegisterSW } from '@/lib/RegisterSW';
+import { PWAInstallPrompt } from '@/lib/PWAInstallPrompt';
 
 export const metadata: Metadata = {
   title: {
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body data-lk-theme="default">
         <AuthProvider>
           <RegisterSW />
+          <PWAInstallPrompt />
           <Toaster />
           {children}
         </AuthProvider>
