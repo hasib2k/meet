@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { validateRoomName } from '@/lib/validation';
+import { verifyParticipant } from '@/lib/adminAuth';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
 const API_SECRET = process.env.LIVEKIT_API_SECRET!;
@@ -20,6 +21,12 @@ export async function POST(request: NextRequest) {
 
     if (!validateRoomName(roomName)) {
       return new NextResponse('Invalid roomName', { status: 400 });
+    }
+
+    // Only the participant themselves (signed cookie from join) may toggle their
+    // own hand — not anyone who knows the identity string.
+    if (!verifyParticipant(request.cookies.get('pauth')?.value, identity)) {
+      return new NextResponse('Forbidden', { status: 403 });
     }
 
     const svc = new RoomServiceClient(getHttpUrl(LIVEKIT_URL), API_KEY, API_SECRET);

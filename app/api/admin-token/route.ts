@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
-import { generateAdminToken } from '@/lib/adminAuth';
+import { generateAdminToken, verifyParticipant } from '@/lib/adminAuth';
 import { validateRoomName } from '@/lib/validation';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
@@ -22,6 +22,13 @@ export async function GET(request: NextRequest) {
 
   if (!validateRoomName(roomName) || !identity) {
     return new NextResponse('Invalid parameters', { status: 400 });
+  }
+
+  // The caller must prove they actually ARE this participant (signed cookie set
+  // at join), otherwise anyone who can read a host's identity could mint an
+  // admin token for the room.
+  if (!verifyParticipant(request.cookies.get('pauth')?.value, identity)) {
+    return new NextResponse('Forbidden', { status: 403 });
   }
 
   try {

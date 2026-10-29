@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { generateHostToken } from '@/lib/adminAuth';
 import { validateRoomName } from '@/lib/validation';
+import { rateLimit, clientIp } from '@/lib/rateLimit';
 
 const API_KEY = process.env.LIVEKIT_API_KEY!;
 const API_SECRET = process.env.LIVEKIT_API_SECRET!;
@@ -18,6 +19,9 @@ function getHttpUrl(wsUrl: string): string {
  */
 export async function POST(request: NextRequest) {
   try {
+    if (rateLimit('host-token', clientIp(request), 30)) {
+      return new NextResponse('Too many requests', { status: 429 });
+    }
     const { roomName } = await request.json();
     if (!validateRoomName(roomName)) {
       return new NextResponse('Invalid roomName', { status: 400 });

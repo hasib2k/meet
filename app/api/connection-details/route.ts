@@ -3,7 +3,8 @@ import { getLiveKitURL } from '@/lib/getLiveKitURL';
 import { ConnectionDetails } from '@/lib/types';
 import { AccessToken, AccessTokenOptions, VideoGrant, RoomServiceClient } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateAdminToken, verifyHostToken } from '@/lib/adminAuth';
+import { generateAdminToken, verifyHostToken, signParticipant } from '@/lib/adminAuth';
+import { rateLimit, clientIp } from '@/lib/rateLimit';
 import {
   validateRoomName,
   validateParticipantName,
@@ -23,6 +24,11 @@ function getHttpUrl(wsUrl: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    // Allow generous polling (knock lobby polls every ~2.5s) but block floods
+    // that would spam room creation.
+    if (rateLimit('conn', clientIp(request), 150)) {
+      return new NextResponse('Too many requests', { status: 429 });
+    }
     const roomName = request.nextUrl.searchParams.get('roomName');
     const participantName = request.nextUrl.searchParams.get('participantName');
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
@@ -190,9 +196,10 @@ export async function GET(request: NextRequest) {
       ...(metadata ? JSON.parse(metadata) : {}),
     });
 
+    const identity = `${participantName}__${randomParticipantPostfix}`;
     const participantToken = await createParticipantToken(
       {
-        identity: `${participantName}__${randomParticipantPostfix}`,
+        identity,
         name: participantName!,
         metadata: participantMetadata,
       },
@@ -208,12 +215,16 @@ export async function GET(request: NextRequest) {
       participantName: participantName!,
       ...(role === 'host' ? { adminToken: generateAdminToken(roomName!) } : {}),
     };
-    return new NextResponse(JSON.stringify(data), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': `${COOKIE_KEY}=${randomParticipantPostfix}; Path=/; HttpOnly; SameSite=Strict; Secure; Expires=${getCookieExpirationTime()}`,
-      },
+    // Signed proof that this browser owns `identity` — lets per-participant
+    // endpoints (raise-hand, admin-token) verify the real caller.
+    const pauth = signParticipant(identity);
+    const res = new NextResponse(JSON.stringify(data), {
+      headers: { 'Content-Type': 'application/json' },
     });
+    const cookieOpts = `Path=/; HttpOnly; SameSite=Strict; Secure; Expires=${getCookieExpirationTime()}`;
+    res.headers.append('Set-Cookie', `${COOKIE_KEY}=${randomParticipantPostfix}; ${cookieOpts}`);
+    res.headers.append('Set-Cookie', `pauth=${pauth}; ${cookieOpts}`);
+    return res;
   } catch (error) {
     if (error instanceof Error) {
       return new NextResponse(error.message, { status: 500 });

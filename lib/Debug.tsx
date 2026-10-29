@@ -7,10 +7,17 @@ import { datadogLogs } from '@datadog/browser-logs';
 
 import styles from '../styles/Debug.module.css';
 
+const IS_PROD = process.env.NODE_ENV === 'production';
+
 export const useDebugMode = ({ logLevel }: { logLevel?: LogLevel }) => {
   const room = useRoomContext();
 
   React.useEffect(() => {
+    // In production keep logs quiet and don't expose internals on window.
+    if (IS_PROD) {
+      setLogLevel('warn');
+      return;
+    }
     setLogLevel(logLevel ?? 'debug');
 
     if (process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN && process.env.NEXT_PUBLIC_DATADOG_SITE) {
@@ -53,6 +60,12 @@ export const useDebugMode = ({ logLevel }: { logLevel?: LogLevel }) => {
 };
 
 export const DebugMode = ({ logLevel }: { logLevel?: LogLevel }) => {
+  // The debug overlay (Shift+D) and its internals are dev-only.
+  if (IS_PROD) return null;
+  return <DebugModeInner logLevel={logLevel} />;
+};
+
+const DebugModeInner = ({ logLevel }: { logLevel?: LogLevel }) => {
   const room = useRoomContext();
   const [isOpen, setIsOpen] = React.useState(false);
   const [, setRender] = React.useState({});
